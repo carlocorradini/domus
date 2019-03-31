@@ -3,4 +3,4 @@ project(Domus C)
 
 set(CMAKE_C_STANDARD 11)
 
-add_executable(Domus main.c ansi.h)
+add_executable(Domus main.c color.h)
