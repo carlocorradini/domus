@@ -21,9 +21,9 @@
  * @param args Format tags da sostituire nel testo | OPTIONAL
  */
 static void printer(FILE *stream, const char *color, const char *format, va_list args) {
-    printf("%s", color);
+    fprintf(stream, "%s", color);
     vfprintf(stream, format, args);
-    printf("%s", COLOR_RESET);
+    fprintf(stream, "%s", COLOR_RESET);
 }
 
 /**
