@@ -1,7 +1,6 @@
 #ifndef DOMUS_COLOR_H
 #define DOMUS_COLOR_H
 
-#include <stdarg.h>
 #include <stdio.h>
 
 #define COLOR_RESET   "\x1b[0m"
@@ -20,11 +19,7 @@
  * @param format Stringa di testo da scrivere nello stream
  * @param args Format tags da sostituire nel testo | OPTIONAL
  */
-static void printer(FILE *stream, const char *color, const char *format, va_list args) {
-    fprintf(stream, "%s", color);
-    vfprintf(stream, format, args);
-    fprintf(stream, "%s", COLOR_RESET);
-}
+static void printer(FILE *stream, const char *color, const char *format, va_list args);
 
 /**
  * Stampa nello `stream` la stringa con colore ANSI selezionato
@@ -33,12 +28,7 @@ static void printer(FILE *stream, const char *color, const char *format, va_list
  * @param format Stringa di testo da scrivere nello stream
  * @param ... Format tags da sostituire nel testo | OPTIONAL
  */
-void print_stream(FILE *stream, const char *color, const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    printer(stream, color, format, args);
-    va_end(args);
-}
+void print_stream(FILE *stream, const char *color, const char *format, ...);
 
 /**
  * Stampa in `stdout` la stringa con colore ANSI selezionato
@@ -46,11 +36,6 @@ void print_stream(FILE *stream, const char *color, const char *format, ...) {
  * @param format Stringa di testo da scrivere nello stream
  * @param ... Format tags da sostituire nel testo | OPTIONAL
  */
-void print(const char *color, const char *format, ...) {
-    va_list args;
-    va_start(args, format);
-    printer(stdout, color, format, args);
-    va_end(args);
-}
+void print(const char *color, const char *format, ...);
 
 #endif //DOMUS_COLOR_H
