@@ -1,52 +1,85 @@
-#ifndef DOMUS_CLI_H
-#define DOMUS_CLI_H
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include "domus.h"
+#include "cli.h"
 
-#define CLI_CONTINUE 1
-#define CLI_TERMINATE 0
-#define CLI_NEW_LINE '\n'
-#define CLI_STRING_TERMINATOR '\0'
-#define CLI_READ_LINE_BUFFER_SIZE 1024
-#define CLI_SPLIT_LINE_BUFFER_SIZE 64
-#define CLI_SPLIT_LINE_TOKEN_DELIMITER "\t\r\n\a"
+// ------------------------------------------------------------
 
-void domus_print_information(void);
+int cli_help(char **args);
 
-int lsh_help(char **args) {
-    domus_print_information();
+int cli_info(char **args);
 
-    return CLI_CONTINUE;
-}
+int cli_exit(char **args);
 
-int lsh_exit(char **args) {
-    return CLI_TERMINATE;
-}
+int cli_num_commands();
 
-char *CLI_COMMANDS[] = {
+const static char *CLI_COMMANDS[] = {
         "help",
+        "info",
         "exit"
 };
 
 int (*CLI_FUNCTIONS[])(char **) = {
-        &lsh_help,
-        &lsh_exit
+        &cli_help,
+        &cli_info,
+        &cli_exit
 };
 
-int num_commands() {
+int cli_help(char **args) {
+    int i;
+    print(COLOR_BLUE, "Supported Commands {%d}\n", cli_num_commands());
+    for (i = 0; i < cli_num_commands(); i++) {
+        printf("\t%s\n", CLI_COMMANDS[i]);
+    }
+    return CLI_CONTINUE;
+}
+
+int cli_info(char **args) {
+    domus_information();
+    return CLI_CONTINUE;
+}
+
+int cli_exit(char **args) {
+    return CLI_TERMINATE;
+}
+
+int cli_num_commands() {
     return sizeof(CLI_COMMANDS) / sizeof(char *);
 }
 
-/**
- * Legge in sequenza i caratteri della riga corrente fino al raggiungimento del caratter:
- *  - 'NEW_LINE' ritornando il buffer
- *  - 'EOF' terminando il programma
- * @return Buffer char riga corrente
- */
+// ------------------------------------------------------------
+
+void cli_start(void) {
+    char *line;
+    char **args;
+    int status;
+
+    do {
+        printf("%s ", CLI_POINTER);
+        line = cli_read_line();
+        args = cli_split_line(line);
+        status = cli_execute(args);
+
+        free(line);
+        free(args);
+    } while (status);
+}
+
+static int cli_execute(char **args) {
+    int i;
+
+    if (args[0] == NULL) {
+        // Nessun comando, CONTINUE
+        return CLI_CONTINUE;
+    }
+
+    for (i = 0; i < cli_num_commands(); ++i) {
+        if (strcmp(args[0], CLI_COMMANDS[i]) == 0) {
+            return (*CLI_FUNCTIONS[i])(args);
+        }
+    }
+
+    print(COLOR_RED, "NO COMMAND FOUND\n");
+}
+
 static char *cli_read_line(void) {
     int c;
     int position = 0;
@@ -84,11 +117,6 @@ static char *cli_read_line(void) {
     }
 }
 
-/**
- * Splitta la linea in tokens e ritorna un buffer si token(stringhe)
- * @param line Buffer char riga corrente
- * @return Buffer stringhe tokens terminante con 'NULL'
- */
 static char **cli_split_line(char *line) {
     int position = 0;
     int buffer_size = CLI_SPLIT_LINE_BUFFER_SIZE;
@@ -125,44 +153,3 @@ static char **cli_split_line(char *line) {
     tokens[position] = NULL;
     return tokens;
 }
-
-/**
- * Esegue il comando con le variabili passate
- *  altrimenti 'CONTINUE'
- * @param args Argument command + tokens
- * @return CLI status code: 'CONTINUE' | 'TERMINATE'
- */
-static int cli_execute(char **args) {
-    int i;
-
-    if (args[0] == NULL) {
-        // Nessun comando, CONTINUE
-        return CLI_CONTINUE;
-    }
-
-    for (i = 0; i < num_commands(); ++i) {
-        if (strcmp(args[0], CLI_COMMANDS[i]) == 0) {
-            return (*CLI_FUNCTIONS[i])(args);
-        }
-    }
-
-    print(COLOR_RED, "NO COMMAND FOUND\n");
-}
-
-void cli_start(void) {
-    char *line;
-    char **args;
-    int status;
-
-    do {
-        printf("> ");
-        line = cli_read_line();
-        args = cli_split_line(line);
-        status = cli_execute(args);
-
-        free(line);
-        free(args);
-    } while (status);
-}
-
-#endif //DOMUS_CLI_H

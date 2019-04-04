@@ -1,5 +1,5 @@
-#ifndef DOMUS_COLOR_H
-#define DOMUS_COLOR_H
+#ifndef _COLOR_H
+#define _COLOR_H
 
 #include <stdio.h>
 
@@ -13,7 +13,7 @@
 #define COLOR_WHITE    "\x1b[37m"
 
 /**
- * Stampa nello `stream` la stringa con colore ANSI selezionato
+ * Stampa nello 'stream' la stringa con colore ANSI selezionato
  * @param stream Stream pointer output
  * @param color Colore di stampa
  * @param format Stringa di testo da scrivere nello stream
@@ -22,7 +22,7 @@
 static void printer(FILE *stream, const char *color, const char *format, va_list args);
 
 /**
- * Stampa nello `stream` la stringa con colore ANSI selezionato
+ * Stampa nello 'stream' la stringa con colore ANSI selezionato
  * @param stream Stream pointer output
  * @param color Colore di stampa
  * @param format Stringa di testo da scrivere nello stream
@@ -31,11 +31,11 @@ static void printer(FILE *stream, const char *color, const char *format, va_list
 void print_stream(FILE *stream, const char *color, const char *format, ...);
 
 /**
- * Stampa in `stdout` la stringa con colore ANSI selezionato
+ * Stampa in 'stdout' la stringa con colore ANSI selezionato
  * @param color Colore di stampa
  * @param format Stringa di testo da scrivere nello stream
  * @param ... Format tags da sostituire nel testo | OPTIONAL
  */
 void print(const char *color, const char *format, ...);
 
-#endif //DOMUS_COLOR_H
+#endif //_COLOR_H
