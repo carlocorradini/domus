@@ -22,6 +22,6 @@ set(
         ${SOURCE}/domus.c
         ${HEADER}/cli.h
         ${SOURCE}/cli.c
-)
+        ${HEADER}/command/command.h src/command/command.c include/data_structure/list.h src/data_structure/list.c include/command/exit.h include/command/help.h)
 
 add_executable(Domus ${SOURCE_FILES})

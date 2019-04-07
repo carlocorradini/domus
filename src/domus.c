@@ -1,5 +1,8 @@
 
 #include "domus.h"
+#include "author.h"
+#include "color.h"
+#include "cli.h"
 
 void domus_start(void) {
     domus_welcome();
@@ -24,7 +27,7 @@ static void domus_welcome(void) {
 void domus_information(void) {
     print(COLOR_BLUE, "-> INFORMATION <-\n");
     print(COLOR_MAGENTA, "- AUTHORS\n");
-    author_print_all();
+    author_print_all(author_get_all());
     print(COLOR_MAGENTA, "- DESCRIPTION\n");
     printf("\t%s\n", DOMUS_DESCRIPTION);
     print(COLOR_MAGENTA, "- VERSION\n");

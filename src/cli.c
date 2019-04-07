@@ -1,5 +1,8 @@
 
 #include "cli.h"
+#include "color.h"
+#include "data_structure/list.h"
+#include "command/command.h"
 
 // ------------------------------------------------------------
 
@@ -64,20 +67,27 @@ void cli_start(void) {
 }
 
 static int cli_execute(char **args) {
-    int i;
+    List *commands = command_get_all();
 
     if (args[0] == NULL) {
         // Nessun comando, CONTINUE
         return CLI_CONTINUE;
     }
 
-    for (i = 0; i < cli_num_commands(); ++i) {
-        if (strcmp(args[0], CLI_COMMANDS[i]) == 0) {
-            return (*CLI_FUNCTIONS[i])(args);
+    Node *curr = *commands;
+    Node *next;
+
+    while (curr != NULL) {
+        next = curr->next;
+        Command *command = (Command *) curr->data;
+        if (strcmp(args[0], command->name) == 0) {
+            return command->execute(args);
         }
+        curr = next;
     }
 
     print(COLOR_RED, "NO COMMAND FOUND\n");
+    return CLI_CONTINUE;
 }
 
 static char *cli_read_line(void) {

@@ -1,10 +1,6 @@
 #ifndef _DOMUS_H
 #define _DOMUS_H
 
-#include "author.h"
-#include "color.h"
-#include "cli.h"
-
 #define DOMUS_VERSION "1.0.0"
 #define DOMUS_LICENSE "MIT"
 #define DOMUS_SLOGAN "Unicuique sua domus nota"
