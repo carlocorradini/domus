@@ -1,54 +1,8 @@
 
 #include "cli.h"
-#include "color.h"
+#include "printer.h"
 #include "data_structure/list.h"
 #include "command/command.h"
-
-// ------------------------------------------------------------
-
-int cli_help(char **args);
-
-int cli_info(char **args);
-
-int cli_exit(char **args);
-
-int cli_num_commands();
-
-const static char *CLI_COMMANDS[] = {
-        "help",
-        "info",
-        "exit"
-};
-
-int (*CLI_FUNCTIONS[])(char **) = {
-        &cli_help,
-        &cli_info,
-        &cli_exit
-};
-
-int cli_help(char **args) {
-    int i;
-    print(COLOR_BLUE, "Supported Commands {%d}\n", cli_num_commands());
-    for (i = 0; i < cli_num_commands(); i++) {
-        printf("\t%s\n", CLI_COMMANDS[i]);
-    }
-    return CLI_CONTINUE;
-}
-
-int cli_info(char **args) {
-    domus_information();
-    return CLI_CONTINUE;
-}
-
-int cli_exit(char **args) {
-    return CLI_TERMINATE;
-}
-
-int cli_num_commands() {
-    return sizeof(CLI_COMMANDS) / sizeof(char *);
-}
-
-// ------------------------------------------------------------
 
 void cli_start(void) {
     char *line;
@@ -56,7 +10,7 @@ void cli_start(void) {
     int status;
 
     do {
-        printf("%s ", CLI_POINTER);
+        print("%c ", CLI_POINTER);
         line = cli_read_line();
         args = cli_split_line(line);
         status = cli_execute(args);
@@ -67,34 +21,19 @@ void cli_start(void) {
 }
 
 static int cli_execute(char **args) {
-    List *commands = command_get_all();
-
-    if (args[0] == NULL) {
-        // Nessun comando, CONTINUE
-        return CLI_CONTINUE;
+    const int status = command_execute(args);
+    if (status == -1) {
+        // No Command found, CONTINUE
+        println_color(COLOR_RED, "\tNO COMMAND FOUND");
     }
-
-    Node *curr = *commands;
-    Node *next;
-
-    while (curr != NULL) {
-        next = curr->next;
-        Command *command = (Command *) curr->data;
-        if (strcmp(args[0], command->name) == 0) {
-            return command->execute(args);
-        }
-        curr = next;
-    }
-
-    print(COLOR_RED, "NO COMMAND FOUND\n");
-    return CLI_CONTINUE;
+    return status;
 }
 
 static char *cli_read_line(void) {
     int c;
     int position = 0;
     int buffer_size = CLI_READ_LINE_BUFFER_SIZE;
-    char *buffer = malloc(sizeof(char) * buffer_size);
+    char *buffer = (char *) malloc(sizeof(char) * buffer_size);
 
     if (!buffer) {
         perror("Read Line Memory Allocation");
@@ -115,7 +54,7 @@ static char *cli_read_line(void) {
 
         position++;
 
-        // Dimensione del Buffer raggiunta, rialloco memoria
+        // Buffer dimension reached, reallocation
         if (position >= buffer_size) {
             buffer_size += CLI_READ_LINE_BUFFER_SIZE;
             buffer = realloc(buffer, buffer_size);
@@ -131,27 +70,24 @@ static char **cli_split_line(char *line) {
     int position = 0;
     int buffer_size = CLI_SPLIT_LINE_BUFFER_SIZE;
     char *token;
-    char **tokens = malloc(sizeof(char *) * buffer_size);
-    char **tokens_backup;
+    char **buffer = (char **) malloc(sizeof(char *) * buffer_size);
 
-    if (!tokens) {
+    if (!buffer) {
         perror("Split Line Memory Allocation");
         exit(EXIT_FAILURE);
     }
 
     token = strtok(line, CLI_SPLIT_LINE_TOKEN_DELIMITER);
     while (token != NULL) {
-        tokens[position] = token;
+        buffer[position] = token;
         position++;
 
-        // Dimensione del Buffer raggiunta, rialloco memoria
+        // Buffer dimension reached, reallocation
         if (position >= buffer_size) {
             buffer_size += CLI_SPLIT_LINE_BUFFER_SIZE;
-            tokens_backup = tokens;
-            tokens = realloc(tokens, buffer_size * sizeof(char *));
+            buffer = realloc(buffer, buffer_size * sizeof(char *));
 
-            if (!tokens) {
-                free(tokens_backup);
+            if (!buffer) {
                 perror("Split Line Memory Allocation");
                 exit(EXIT_FAILURE);
             }
@@ -160,6 +96,6 @@ static char **cli_split_line(char *line) {
         token = strtok(NULL, CLI_SPLIT_LINE_TOKEN_DELIMITER);
     }
 
-    tokens[position] = NULL;
-    return tokens;
+    buffer[position] = NULL;
+    return buffer;
 }

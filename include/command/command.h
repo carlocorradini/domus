@@ -5,7 +5,7 @@
 
 #define COMMAND_NAME_LENGTH 25
 #define COMMAND_DESCRIPTION_LENGTH 250
-#define COMMAND_SYNTAX_LENGTH 250
+#define COMMAND_SYNTAX_LENGTH 50
 
 /**
  * Command Struct
@@ -19,10 +19,19 @@ typedef struct Command {
 } Command;
 
 /**
- * Create and return a List of supported Commands
- * @return The List of supported Commands
+ * List of Commands
  */
-List *command_get_all(void);
+extern List *commands;
+
+/**
+ * Initialize the List of Commands
+ */
+void commands_init(void);
+
+/**
+ * Free the List of Commands
+ */
+void commands_free(void);
 
 /**
  * Create a new Command
@@ -39,5 +48,18 @@ Command *new_command(char name[], char description[], char syntax[], int (*execu
  * @param command The command to free
  */
 void free_command(Command *command);
+
+/**
+ * Execute the command passed in args[0]
+ * @param args Command & parameter/s
+ * @return -1 if no command found or command return value
+ */
+int command_execute(char **args);
+
+/**
+ * Print information about a Command
+ * @param command The command to retrieve information
+ */
+static void command_information(const Command *command);
 
 #endif //_COMMAND_H

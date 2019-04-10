@@ -14,8 +14,8 @@ include_directories(${SOURCE})
 set(
         SOURCE_FILES
         main.c
-        ${HEADER}/color.h
-        ${SOURCE}/color.c
+        ${HEADER}/printer.h
+        ${SOURCE}/printer.c
         ${HEADER}/author.h
         ${SOURCE}/author.c
         ${HEADER}/domus.h

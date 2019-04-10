@@ -3,8 +3,8 @@
 
 #include "command/command.h"
 
-static int _exit(char **args) {
-    printf("MESSAGGIO DI EXIT\n");
+static int __exit(char **args) {
+    println("\tThanks for using Domus ☺");
     return CLI_TERMINATE;
 }
 
@@ -13,7 +13,7 @@ Command *command_exit(void) {
             "exit",
             "Close Domus",
             "exit",
-            _exit);
+            __exit);
 }
 
 #endif //_EXIT_H

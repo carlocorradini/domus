@@ -3,6 +3,31 @@
 #include <stdio.h>
 #include <string.h>
 #include "author.h"
+#include "printer.h"
+
+List *authors = NULL;
+
+void authors_init(void) {
+    if (authors) return;
+    authors = list_create(NULL);
+
+    list_push(authors, new_author("Carlo", "Corradini", "carlo.corradini@studenti.unitn.it"));
+    list_push(authors, new_author("Simone", "Nascivera", "simone.nascivera@studenti.unitn.it"));
+}
+
+void authors_free(void) {
+    if (!authors) return;
+
+    Node *curr = *authors;
+    Node *next;
+
+    while (curr != NULL) {
+        next = curr->next;
+        free_author(curr->data);
+        curr = next;
+    }
+    list_free(authors);
+}
 
 Author *new_author(char name[], char surname[], char email[]) {
     Author *author = (Author *) malloc(sizeof(Author));
@@ -18,22 +43,15 @@ Author *new_author(char name[], char surname[], char email[]) {
 }
 
 void free_author(Author *author) {
+    if (!author) return;
     free(author->name);
     free(author->surname);
     free(author->email);
     free(author);
 }
 
-List *author_get_all(void) {
-    List *authors = list_create(NULL);
-
-    list_push(authors, new_author("Carlo", "Corradini", "carlo.corradini@studenti.unitn.it"));
-    list_push(authors, new_author("Simone", "Nascivera", "simone.nascivera@studenti.unitn.it"));
-
-    return authors;
-}
-
-void author_print_all(const List *authors) {
+void author_print_all() {
+    if (!authors) return;
     Node *curr = *authors;
     Node *next;
 
@@ -45,5 +63,6 @@ void author_print_all(const List *authors) {
 }
 
 void author_print(const Author *author) {
-    printf("\t%-10s %-10s | %-10s\n", author->name, author->surname, author->email);
+    if (!author) return;
+    println("\t%-10s %-10s | %-10s", author->name, author->surname, author->email);
 }

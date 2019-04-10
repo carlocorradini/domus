@@ -9,13 +9,25 @@
 #include "command/exit.h"
 // END Commands
 
-List *command_get_all(void) {
-    List *commands = list_create(NULL);
+List *commands = NULL;
+
+void commands_init(void) {
+    if (commands) return;
+    commands = list_create(NULL);
 
     list_push(commands, command_help());
     list_push(commands, command_exit());
+}
 
-    return commands;
+void commands_free(void) {
+    if (!commands) return;
+
+    Command *command = NULL;
+    list_for_each(item, commands) {
+        command = (Command *) item->data;
+        free_command(command);
+    }
+    list_free(commands);
 }
 
 Command *new_command(char name[], char description[], char syntax[], int (*execute)(char **)) {
@@ -33,9 +45,38 @@ Command *new_command(char name[], char description[], char syntax[], int (*execu
 }
 
 void free_command(Command *command) {
+    if (!command) return;
     free(command->name);
     free(command->description);
     free(command->syntax);
     command->execute = NULL;
     free(command);
+}
+
+int command_execute(char **args) {
+    if (args[0] == NULL) {
+        // No Command passed, CONTINUE
+        return CLI_CONTINUE;
+    }
+
+    Command *command = NULL;
+    list_for_each(item, commands) {
+        command = (Command *) item->data;
+        if (strcmp(args[0], command->name) == 0) {
+            // Command Found
+            if (args[1] && strcmp(args[1], CLI_QUESTION) == 0) {
+                // Command Question
+                command_information(command);
+                return CLI_CONTINUE;
+            }
+            // Execute Command
+            return command->execute(args);
+        }
+    }
+    return -1;
+}
+
+static void command_information(const Command *command) {
+    print("\t%-*s", COMMAND_SYNTAX_LENGTH, command->syntax);
+    println("%s", command->description);
 }

@@ -1,37 +1,50 @@
 
 #include "domus.h"
 #include "author.h"
-#include "color.h"
+#include "command/command.h"
+#include "printer.h"
 #include "cli.h"
 
 void domus_start(void) {
+    domus_init();
     domus_welcome();
     cli_start();
+    domus_free();
+}
+
+static void domus_init(void) {
+    authors_init();
+    commands_init();
+}
+
+static void domus_free(void) {
+    authors_free();
+    commands_free();
 }
 
 static void domus_welcome(void) {
-    printf("=================================================================\n");
-    printf(
+    println("=================================================================");
+    println(
             " _______    ______   .___  ___.  __    __       _______.\n"
             "|       \\  /  __  \\  |   \\/   | |  |  |  |     /       |\n"
             "|  .--.  ||  |  |  | |  \\  /  | |  |  |  |    |   (----`\n"
             "|  |  |  ||  |  |  | |  |\\/|  | |  |  |  |     \\   \\    \n"
             "|  '--'  ||  `--'  | |  |  |  | |  `--'  | .----)   |   \n"
-            "|_______/  \\______/  |__|  |__|  \\______/  |_______/    \n"
+            "|_______/  \\______/  |__|  |__|  \\______/  |_______/"
     );
-    printf("%s\n\n", DOMUS_SLOGAN);
+    println("%s\n", DOMUS_SLOGAN);
     domus_information();
-    printf("=================================================================\n");
+    println("=================================================================");
 }
 
 void domus_information(void) {
-    print(COLOR_BLUE, "-> INFORMATION <-\n");
-    print(COLOR_MAGENTA, "- AUTHORS\n");
-    author_print_all(author_get_all());
-    print(COLOR_MAGENTA, "- DESCRIPTION\n");
-    printf("\t%s\n", DOMUS_DESCRIPTION);
-    print(COLOR_MAGENTA, "- VERSION\n");
-    printf("\t%s\n", DOMUS_VERSION);
-    print(COLOR_MAGENTA, "- LICENSE\n");
-    printf("\t%s\n", DOMUS_LICENSE);
+    println_color(COLOR_BLUE, "-> INFORMATION <-");
+    println_color(COLOR_MAGENTA, "- AUTHORS");
+    author_print_all();
+    println_color(COLOR_MAGENTA, "- DESCRIPTION");
+    println("\t%s", DOMUS_DESCRIPTION);
+    println_color(COLOR_MAGENTA, "- VERSION");
+    println("\t%s", DOMUS_VERSION);
+    println_color(COLOR_MAGENTA, "- LICENSE");
+    println("\t%s", DOMUS_LICENSE);
 }
