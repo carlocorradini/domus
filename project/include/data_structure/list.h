@@ -2,7 +2,8 @@
 #define _LIST_H
 
 #define list_for_each(item, list) \
-    for(Node *item = *list; item != NULL; item = item->next)
+    Node *item = *list; \
+    for(item; item != NULL; item = item->next)
 
 /**
  * Node Struct
