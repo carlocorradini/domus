@@ -10,6 +10,5 @@ typedef struct Device{
     Stato* stato;
     Interruttore* interruttore;
     void* registro;
-
 };
 #endif //_DEVICE_H
