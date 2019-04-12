@@ -18,7 +18,7 @@ static void domus_init(void) {
 }
 
 static void domus_free(void) {
-    authors_free();
+    //authors_free();
     //commands_free();
 }
 

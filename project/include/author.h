@@ -11,9 +11,9 @@
  * Struct Author
  */
 typedef struct Author {
-    char name[AUTHOR_NAME_LENGTH];
-    char surname[AUTHOR_SURNAME_LENGTH];
-    char email[AUTHOR_EMAIL_LENGTH];
+    char* name[AUTHOR_NAME_LENGTH];
+    char* surname[AUTHOR_SURNAME_LENGTH];
+    char* email[AUTHOR_EMAIL_LENGTH];
 } Author;
 
 /**

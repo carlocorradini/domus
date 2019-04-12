@@ -19,6 +19,7 @@ void commands_init(void) {
     list_push(commands, command_exit());
 }
 
+/*
 void commands_free(void) {
     if (!commands) return;
 
@@ -29,6 +30,7 @@ void commands_free(void) {
     }
     list_free(commands);
 }
+*/
 
 Command *new_command(char name[], char description[], char syntax[], int (*execute)(char **)) {
     Command *command = (Command *) malloc(sizeof(Command));
@@ -43,7 +45,7 @@ Command *new_command(char name[], char description[], char syntax[], int (*execu
     command->execute = execute;
     return command;
 }
-
+/*
 void free_command(Command *command) {
     if (!command) return;
     free(command->name);
@@ -52,7 +54,7 @@ void free_command(Command *command) {
     command->execute = NULL;
     free(command);
 }
-
+*/
 int command_execute(char **args) {
     if (args[0] == NULL) {
         // No Command passed, CONTINUE

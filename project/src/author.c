@@ -15,19 +15,17 @@ void authors_init(void) {
     list_push(authors, new_author("Simone", "Nascivera", "simone.nascivera@studenti.unitn.it"));
 }
 
+/*
 void authors_free(void) {
     if (!authors) return;
 
-    Node *curr = *authors;
-    Node *next;
-
-    while (curr != NULL) {
-        next = curr->next;
-        free_author(curr->data);
-        curr = next;
+    Author *tmp;
+    list_for_each(item, authors){
+        tmp = (Author*) item->data;
+        free_author(tmp);
     }
-    list_free(authors);
 }
+*/
 
 Author *new_author(char name[], char surname[], char email[]) {
     Author *author = (Author *) malloc(sizeof(Author));
@@ -42,13 +40,23 @@ Author *new_author(char name[], char surname[], char email[]) {
     return author;
 }
 
+//would be nice to implement
+/*
 void free_author(Author *author) {
     if (!author) return;
     free(author->name);
+    printf("\nhere name\n");
+    println("%s", author->surname);
     free(author->surname);
-    free(author->email);
-    free(author);
+    printf("\nhere surname\n");
+
+    //free(author->email);
+    printf("\nhere email\n");
+
+    //free(author);
+    printf("\nhere author\n");
 }
+*/
 
 void author_print_all() {
     if (!authors) return;

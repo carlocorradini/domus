@@ -4,7 +4,7 @@
 #include "command/command.h"
 
 static int __exit(char **args) {
-    println("\tThanks for using Domus ☺");
+    println("\tThanks for using Domus");
     return CLI_TERMINATE;
 }
 
