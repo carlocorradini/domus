@@ -29,7 +29,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 help:
-	@$(ECHO) "all    -  build & compile what is necessary"
+	@$(ECHO) "build    -  build & compile what is necessary"
 	@$(ECHO) "clean  -  cleanup old .o and binaries"
 	@$(ECHO) "help   -  Show useful information"
 
