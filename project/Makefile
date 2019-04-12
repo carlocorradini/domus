@@ -19,7 +19,7 @@ RM = rm -rf
 
 .PHONY: all clean setup
 
-all: $(TARGET)
+build: $(TARGET)
 
 $(TARGET): $(OBJ)
 	$(CC) $^ -o $@
@@ -29,8 +29,6 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 help:
-	@$(ECHO) $(SRC)
-	@$(ECHO) $(OBJ)
 	@$(ECHO) "all    -  build & compile what is necessary"
 	@$(ECHO) "clean  -  cleanup old .o and binaries"
 	@$(ECHO) "help   -  Show useful information"
