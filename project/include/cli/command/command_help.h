@@ -1,11 +1,11 @@
-#ifndef _HELP_H
-#define _HELP_H
+#ifndef _COMMAND_HELP_H
+#define _COMMAND_HELP_H
 
 #include "command/command.h"
 
 /**
  * Definition of help Command
- * @return The Command definition of help
+ * @return The help Command
  */
 Command *command_help(void);
 

@@ -1,6 +1,6 @@
 
-#include "command/help.h"
-#include "cli.h"
+#include "command/command_help.h"
+#include "include/cli/cli.h"
 
 /**
  * Display help information about Domus

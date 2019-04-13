@@ -1,11 +1,11 @@
-#ifndef _EXIT_H
-#define _EXIT_H
+#ifndef _COMMAND_EXIT_H
+#define _COMMAND_EXIT_H
 
 #include "command/command.h"
 
 /**
  * Definition of exit Command
- * @return The Command definition of exit
+ * @return The exit Command
  */
 Command *command_exit(void);
 

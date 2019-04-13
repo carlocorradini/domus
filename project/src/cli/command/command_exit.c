@@ -1,6 +1,6 @@
 
-#include "command/exit.h"
-#include "cli.h"
+#include "command/command_exit.h"
+#include "include/cli/cli.h"
 #include "printer.h"
 
 /**

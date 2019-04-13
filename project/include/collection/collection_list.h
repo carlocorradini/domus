@@ -1,5 +1,5 @@
-#ifndef _LIST_H
-#define _LIST_H
+#ifndef _COLLECTION_LIST_H
+#define _COLLECTION_LIST_H
 
 #define list_for_each(item, list) \
     Node *item = *list; \

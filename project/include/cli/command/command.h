@@ -1,7 +1,7 @@
 #ifndef _COMMAND_H
 #define _COMMAND_H
 
-#include "collection/list.h"
+#include "collection/collection_list.h"
 
 #define COMMAND_NAME_LENGTH 25
 #define COMMAND_DESCRIPTION_LENGTH 250

@@ -3,14 +3,15 @@
 #include <stdio.h>
 #include <string.h>
 #include "command/command.h"
-#include "cli.h"
+#include "include/cli/cli.h"
 #include "printer.h"
 
-/* Commands */
-#include "command/help.h"
-#include "command/exit.h"
+/* Commands supported */
+#include "command/command_exit.h"
+#include "command/command_help.h"
+#include "command/command_list.h"
 
-/* END Commands */
+/* END Commands supported */
 
 List *commands = NULL;
 
@@ -18,8 +19,9 @@ void commands_init(void) {
     if (commands != NULL) return;
     commands = list_create(NULL);
 
-    list_push(commands, command_help());
     list_push(commands, command_exit());
+    list_push(commands, command_help());
+    list_push(commands, command_list());
 }
 
 void commands_free(void) {

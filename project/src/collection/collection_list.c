@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "collection/list.h"
+#include "collection/collection_list.h"
 
 List *list_create(void *data) {
     Node *new_node;
