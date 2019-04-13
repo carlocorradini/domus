@@ -7,28 +7,8 @@
 #define DOMUS_DESCRIPTION "Home Automation at your CLI"
 
 /**
- * Domus Start Point
+ * Start Domus System
  */
 void domus_start(void);
 
-/**
- * Initialize all Domus Components
- */
-static void domus_init(void);
-
-/**
- * Free all Domus Components
- */
-static void domus_free(void);
-
-/**
- * Domus Welcome Page
- */
-static void domus_welcome(void);
-
-/**
- * Show information about Domus
- */
-void domus_information(void);
-
-#endif //_DOMUS_H
+#endif

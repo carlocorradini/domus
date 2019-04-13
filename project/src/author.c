@@ -8,69 +8,43 @@
 List *authors = NULL;
 
 void authors_init(void) {
-    if (authors) return;
+    if (authors != NULL) return;
     authors = list_create(NULL);
 
-    list_push(authors, new_author("Carlo", "Corradini", "carlo.corradini@studenti.unitn.it"));
-    list_push(authors, new_author("Simone", "Nascivera", "simone.nascivera@studenti.unitn.it"));
+    list_push(authors, new_author(192451, "Carlo", "Corradini", "carlo.corradini@studenti.unitn.it"));
+    list_push(authors, new_author(193246, "Simone", "Nascivera", "simone.nascivera@studenti.unitn.it"));
 }
 
-/*
 void authors_free(void) {
-    if (!authors) return;
-
-    Author *tmp;
-    list_for_each(item, authors){
-        tmp = (Author*) item->data;
-        free_author(tmp);
-    }
+    list_free(authors);
 }
-*/
 
-Author *new_author(char name[], char surname[], char email[]) {
+Author *new_author(unsigned int id, char name[], char surname[], char email[]) {
     Author *author = (Author *) malloc(sizeof(Author));
-    if (!author) {
+    if (author == NULL) {
         perror("Author Memory Allocation");
         exit(EXIT_FAILURE);
     }
 
+    author->id = id;
     strncpy(author->name, name, AUTHOR_NAME_LENGTH);
     strncpy(author->surname, surname, AUTHOR_SURNAME_LENGTH);
     strncpy(author->email, email, AUTHOR_EMAIL_LENGTH);
     return author;
 }
 
-//would be nice to implement
-/*
-void free_author(Author *author) {
-    if (!author) return;
-    free(author->name);
-    printf("\nhere name\n");
-    println("%s", author->surname);
-    free(author->surname);
-    printf("\nhere surname\n");
-
-    //free(author->email);
-    printf("\nhere email\n");
-
-    //free(author);
-    printf("\nhere author\n");
-}
-*/
-
 void author_print_all() {
-    if (!authors) return;
-    Node *curr = *authors;
-    Node *next;
+    Author *author;
+    if (authors == NULL) return;
 
-    while (curr != NULL) {
-        next = curr->next;
-        author_print(curr->data);
-        curr = next;
+    list_for_each(item, authors)
+    {
+        author = (Author *) item->data;
+        author_print(author);
     }
 }
 
 void author_print(const Author *author) {
-    if (!author) return;
-    println("\t%-10s %-10s | %-10s", author->name, author->surname, author->email);
+    if (author == NULL) return;
+    println("\t%-6s %-9s | %-34s | %6d", author->name, author->surname, author->email, author->id);
 }

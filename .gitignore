@@ -1,4 +1,9 @@
 ###
+### CUSTOM
+###
+project/build/
+
+###
 ### C template
 ###
 # Prerequisites

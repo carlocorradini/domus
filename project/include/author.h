@@ -1,7 +1,7 @@
 #ifndef _AUTHOR_H
 #define _AUTHOR_H
 
-#include "data_structure/list.h"
+#include "collection/list.h"
 
 #define AUTHOR_NAME_LENGTH 50
 #define AUTHOR_SURNAME_LENGTH 50
@@ -11,13 +11,14 @@
  * Struct Author
  */
 typedef struct Author {
-    char* name[AUTHOR_NAME_LENGTH];
-    char* surname[AUTHOR_SURNAME_LENGTH];
-    char* email[AUTHOR_EMAIL_LENGTH];
+    unsigned int id;
+    char name[AUTHOR_NAME_LENGTH];
+    char surname[AUTHOR_SURNAME_LENGTH];
+    char email[AUTHOR_EMAIL_LENGTH];
 } Author;
 
 /**
- * List of Authors
+ * Collection of Authors
  */
 extern List *authors;
 
@@ -33,18 +34,13 @@ void authors_free(void);
 
 /**
  * Create a new Author
+ * @param id Identifier
  * @param name Author name
  * @param surname Author surname
  * @param email Author email
  * @return The new Author
  */
-Author *new_author(char name[], char surname[], char email[]);
-
-/**
- * Free an Author
- * @param author The author to free
- */
-void free_author(Author *author);
+Author *new_author(unsigned int id, char name[], char surname[], char email[]);
 
 /**
  * Print all Author to stdout
@@ -58,4 +54,4 @@ void author_print_all();
  */
 void author_print(const Author *author);
 
-#endif //_AUTHOR_H
+#endif

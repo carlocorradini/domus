@@ -11,7 +11,7 @@
 #define COLOR_BLUE    "\x1b[34m"
 #define COLOR_MAGENTA "\x1b[35m"
 #define COLOR_CYAN    "\x1b[36m"
-#define COLOR_WHITE    "\x1b[37m"
+#define COLOR_WHITE   "\x1b[37m"
 
 /**
  * Print the string to stdout
@@ -43,4 +43,4 @@ void println(const char *format, ...);
  */
 void println_color(const char *color, const char *format, ...);
 
-#endif //_PRINTER_H
+#endif

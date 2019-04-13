@@ -1,7 +1,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "data_structure/list.h"
+#include "collection/list.h"
 
 List *list_create(void *data) {
     Node *new_node;
@@ -48,7 +48,7 @@ void list_push(List *list, void *data) {
         head->data = data;
     } else {
         /* Head is not empty, add new node as new head */
-        new_node = malloc(sizeof(Node));
+        new_node = (Node *) malloc(sizeof(Node));
         if (new_node == NULL) {
             perror("List Memory Allocation");
             exit(EXIT_FAILURE);

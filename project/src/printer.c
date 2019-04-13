@@ -10,6 +10,8 @@
  * @param newline Add a newline at the end
  * @param args Format tags
  */
+static void printer(FILE *stream, const char *color, const char *format, bool newline, va_list args);
+
 static void printer(FILE *stream, const char *color, const char *format, bool newline, va_list args) {
     fprintf(stream, "%s", color);
     vfprintf(stream, format, args);
