@@ -1,6 +1,6 @@
 
-#include "command/command_list.h"
-#include "include/cli/cli.h"
+#include "cli/cli.h"
+#include "cli/command/command_list.h"
 
 /**
  * Display all available devices and their features

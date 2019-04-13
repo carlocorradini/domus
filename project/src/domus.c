@@ -1,19 +1,8 @@
 
 #include "domus.h"
 #include "author.h"
-#include "command/command.h"
 #include "printer.h"
-#include "cli.h"
-
-/**
- * Initialize all Domus Components
- */
-static void domus_init(void);
-
-/**
- * Free all Domus Components
- */
-static void domus_free(void);
+#include "device/control/device_controller.h"
 
 /**
  * Show information about Domus
@@ -26,24 +15,12 @@ static void domus_information(void);
 static void domus_welcome(void);
 
 void domus_start(void) {
-    domus_init();
-    domus_welcome();
-    cli_start();
-    domus_free();
-}
-
-static void domus_init(void) {
     authors_init();
-    commands_init();
-}
-
-static void domus_free(void) {
-    authors_free();
-    commands_free();
+    domus_welcome();
+    controller_start();
 }
 
 static void domus_information(void) {
-    println_color(COLOR_BLUE, "-> INFORMATION <-");
     println_color(COLOR_MAGENTA, "- AUTHORS");
     author_print_all();
     println_color(COLOR_MAGENTA, "- DESCRIPTION");

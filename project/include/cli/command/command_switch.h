@@ -1,7 +1,7 @@
 #ifndef _COMMAND_SWITCH_H
 #define _COMMAND_SWITCH_H
 
-#include "command/command.h"
+#include "command.h"
 
 /**
  * Definition of switch Command

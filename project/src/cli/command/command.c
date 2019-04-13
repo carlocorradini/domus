@@ -2,16 +2,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "command/command.h"
-#include "include/cli/cli.h"
+#include "cli/command/command.h"
+#include "cli/cli.h"
 #include "printer.h"
 
-/* Commands supported */
-#include "command/command_exit.h"
-#include "command/command_help.h"
-#include "command/command_list.h"
+/* Supported Commands */
+#include "cli/command/command_add.h"
+#include "cli/command/command_del.h"
+#include "cli/command/command_exit.h"
+#include "cli/command/command_help.h"
+#include "cli/command/command_info.h"
+#include "cli/command/command_link.h"
+#include "cli/command/command_list.h"
+#include "cli/command/command_switch.h"
 
-/* END Commands supported */
+/* END Supported Commands */
 
 List *commands = NULL;
 
@@ -19,9 +24,14 @@ void commands_init(void) {
     if (commands != NULL) return;
     commands = list_create(NULL);
 
+    list_push(commands, command_add());
+    list_push(commands, command_del());
     list_push(commands, command_exit());
     list_push(commands, command_help());
+    list_push(commands, command_info());
+    list_push(commands, command_link());
     list_push(commands, command_list());
+    list_push(commands, command_switch());
 }
 
 void commands_free(void) {
@@ -50,8 +60,7 @@ int command_execute(char **args) {
         return CLI_CONTINUE;
     }
 
-    list_for_each(item, commands)
-    {
+    list_for_each(item, commands) {
         command = (Command *) item->data;
         if (strcmp(args[0], command->name) == 0) {
             /* Command Found */

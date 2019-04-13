@@ -1,7 +1,7 @@
 #ifndef _AUTHOR_H
 #define _AUTHOR_H
 
-#include "collection/list.h"
+#include "collection/collection_list.h"
 
 #define AUTHOR_NAME_LENGTH 50
 #define AUTHOR_SURNAME_LENGTH 50

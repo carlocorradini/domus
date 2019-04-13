@@ -2,7 +2,7 @@
 #ifndef _COMMAND_LINK_H
 #define _COMMAND_LINK_H
 
-#include "command/command.h"
+#include "command.h"
 
 /**
  * Definition of link Command

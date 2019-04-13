@@ -2,12 +2,12 @@
 #ifndef _DEVICE_H
 #define _DEVICE_H
 
-typedef enum { false, true } Stato;
-typedef enum { false, true } Interruttore;
+#include <stdbool.h>
 
-typedef struct Device{
-    Stato* stato;
-    Interruttore* interruttore;
-    void* registro;
-};
+typedef struct Device {
+    bool state;
+    bool master_switch;
+    unsigned int registry;
+} Device;
+
 #endif

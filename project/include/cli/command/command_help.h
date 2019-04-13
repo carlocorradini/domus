@@ -1,7 +1,7 @@
 #ifndef _COMMAND_HELP_H
 #define _COMMAND_HELP_H
 
-#include "command/command.h"
+#include "command.h"
 
 /**
  * Definition of help Command

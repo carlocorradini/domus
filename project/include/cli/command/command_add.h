@@ -2,7 +2,7 @@
 #ifndef _COMMAND_ADD_H
 #define _COMMAND_ADD_H
 
-#include "command/command.h"
+#include "command.h"
 
 /**
  * Definition of add Command

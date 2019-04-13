@@ -1,9 +1,9 @@
 
 #include "device/device.h"
 #include "device/control/device_controller.h"
-#include "command/command.h"
+#include "cli/command/command.h"
 #include "author.h"
-#include "cli.h"
+#include "cli/cli.h"
 
 /**
  * Controller that must be defined and it cannot be visible outside this file

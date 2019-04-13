@@ -2,7 +2,7 @@
 #ifndef _COMMAND_DEL_H
 #define _COMMAND_DEL_H
 
-#include "command/command.h"
+#include "command.h"
 
 /**
  * Definition of del Command

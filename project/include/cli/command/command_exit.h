@@ -1,7 +1,7 @@
 #ifndef _COMMAND_EXIT_H
 #define _COMMAND_EXIT_H
 
-#include "command/command.h"
+#include "command.h"
 
 /**
  * Definition of exit Command
