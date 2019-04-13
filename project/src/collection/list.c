@@ -7,7 +7,7 @@ List *list_create(void *data) {
     Node *new_node;
 
     List *new_list = (List *) malloc(sizeof(List));
-    if (!new_list) {
+    if (new_list == NULL) {
         perror("List Memory Allocation");
         exit(EXIT_FAILURE);
     }
@@ -44,12 +44,12 @@ void list_push(List *list, void *data) {
     head = *list;
 
     if (head->data == NULL) {
-        // Head is an empty node
+        /* Head is an empty node */
         head->data = data;
     } else {
-        // Head is not empty, add new node as new head
+        /* Head is not empty, add new node as new head */
         new_node = malloc(sizeof(Node));
-        if (!new_node) {
+        if (new_node == NULL) {
             perror("List Memory Allocation");
             exit(EXIT_FAILURE);
         }

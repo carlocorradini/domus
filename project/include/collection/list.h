@@ -42,4 +42,4 @@ void list_push(List *list, void *data);
  */
 void *list_pop(List *list);
 
-#endif //_LIST_H
+#endif
