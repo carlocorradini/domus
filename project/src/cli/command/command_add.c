@@ -1,7 +1,7 @@
 
-
 #include "cli/cli.h"
 #include "cli/command/command_add.h"
+#include "device/control/device_controller.h"
 
 /**
  * Add a device to the system and show its features
@@ -9,7 +9,14 @@
  * @return CLI status code
  */
 static int _add(char **args) {
-    printf("\tNOT SUPPORTED YET\n");
+
+    if(args[1] != NULL && strcmp(args[1], "bulb")==0){
+        printf("Creating new bulb\n");
+        controller_process_spawn(1);
+    }
+    else{
+        printf("\tDEVICE NOT SUPPORTED YET\n");
+    }
 
     return CLI_CONTINUE;
 }
