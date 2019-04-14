@@ -15,6 +15,7 @@
 #include "cli/command/command_link.h"
 #include "cli/command/command_list.h"
 #include "cli/command/command_switch.h"
+#include "cli/command/command_clear.h"
 
 /* END Supported Commands */
 
@@ -32,6 +33,7 @@ void commands_init(void) {
     list_push(commands, command_link());
     list_push(commands, command_list());
     list_push(commands, command_switch());
+    list_push(commands, command_clear());
 }
 
 void commands_free(void) {
