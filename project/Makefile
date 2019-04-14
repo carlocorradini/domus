@@ -12,6 +12,7 @@ SRC_DIR := ./src
 HDR_DIR := ./include
 BUILD_DIR := ./build
 OBJ_DIR := $(BUILD_DIR)/obj
+BIN_DIR := $(BUILD_DIR)/bin
 # SOURCES & OBJECTS
 SRC := $(shell find $(SRC_DIR)/ -type f -name '*.c')
 OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
@@ -20,8 +21,12 @@ CC := gcc
 CFLAGS := -std=gnu90 -Wall -Wextra -pedantic -g
 CPPFLAGS := -I$(HDR_DIR)
 # UTILS
-ECHO := echo -e
+MKDIR := mkdir -p
 RM := rm -r -f
+ECHO := echo
+ifeq ($(OS), Windows_NT)
+	ECHO += -e
+endif
 # COLORS
 COLOR_RESET := \033[0m
 COLOR_RED := \033[0;31m
@@ -47,10 +52,11 @@ all:
 build: clean $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CC) $^ -o $@
+	$(MKDIR) $(BIN_DIR)
+	$(CC) $^ -o $(BIN_DIR)/$@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	mkdir -p $(dir $@)
+	$(MKDIR) $(dir $@)
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 help:
@@ -71,7 +77,7 @@ help:
 	@$(ECHO) "\t$(COLOR_YELLOW)help$(COLOR_RESET)             Show useful information"
 
 clean:
-	$(RM) $(BUILD_DIR) $(TARGET)
+	$(RM) $(BUILD_DIR)
 # -------------------------
 # END RECIPES
 # -------------------------
