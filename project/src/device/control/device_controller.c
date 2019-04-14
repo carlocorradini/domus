@@ -78,7 +78,7 @@ void controller_process_spawn(int device) {
         else {
             /*
              * Simple test to check if signals work:
-             * simply send a signal every 1 second.
+             * simply send a signal every 1 second. (fid is the PID of the child process)
              */
             while(1){
                 sleep(1);

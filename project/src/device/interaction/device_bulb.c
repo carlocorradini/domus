@@ -5,6 +5,11 @@
 
 static void sighup();
 
+/*
+ * my poor bulb shared between all this functions
+ */
+Bulb* my_bulb;
+
 Bulb* init_bulb(pid_t fid){
     Bulb *bulb = (Bulb *) malloc(sizeof(Bulb));
 
@@ -16,6 +21,7 @@ Bulb* init_bulb(pid_t fid){
     bulb->state = false;
     println_color(COLOR_BLUE, "\nSuccessfully started new Bulb with PID %d\n", fid);
 
+    my_bulb = bulb;
     return bulb;
 }
 
@@ -26,7 +32,10 @@ void bulb_life(Bulb* bulb){
         ; /* loop for ever */
 }
 
+/*
+ * When I receive a sighub signal, this should be run
+ */
 static void sighup(){
-    signal(SIGHUP, sighup);
-    print_color(COLOR_YELLOW, "\nCambio\n");
+    my_bulb->state = !my_bulb->state;
+    println_color(COLOR_BLUE, "\nHere %d\n", my_bulb->state);
 }
