@@ -3,11 +3,12 @@
 #include "cli/cli.h"
 #include "cli/command/command_clear.h"
 
-#if defined(_WIN32) || defined(_WIN64)
-    const bool os = false;
+static bool is_unix = true;
+#ifdef defined(_WIN32) || defined(_WIN64)
+is_unix = false;
 #else
-#ifdef __linux
-    const bool os = true;
+#ifdef defined(__linux)
+is_unix = true;
 #endif
 #endif
 
@@ -17,12 +18,7 @@
  * @return CLI status code
  */
 static int _clear(char **args) {
-    if(os){
-        system("clear");
-    }
-    else{
-        system("cls");
-    }
+    (is_unix) ? system("clear") : system("CLS");
     return CLI_CONTINUE;
 }
 
