@@ -233,6 +233,7 @@ void *list_remove_last(List *list) {
 bool list_remove(List *list, const void *data) {
     Node *node;
     size_t index;
+    void *element;
     if (list == NULL || data == NULL) return false;
     if (list_is_empty(list)) return false;
     if (list->equals == NULL) {
@@ -244,7 +245,12 @@ bool list_remove(List *list, const void *data) {
     index = 0;
     while (node != NULL) {
         if (list->equals(node->data, data)) {
-            list_remove_index(list, index);
+            element = list_remove_index(list, index);
+            if(list->destroy == NULL) {
+                free(element);
+            } else {
+                list->destroy(element);
+            }
             index--;
         }
         node = node->next;
