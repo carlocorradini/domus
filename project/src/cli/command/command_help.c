@@ -1,6 +1,7 @@
 
 #include "cli/cli.h"
 #include "cli/command/command_help.h"
+#include "collection/collection_linked_list.h"
 
 /**
  * Display help information about Domus
@@ -8,13 +9,12 @@
  * @return CLI status code
  */
 static int _help(char **args) {
-    Command *command;
+    LinkedList *commands = command_get_commands();
+    Command *data;
     if (commands == NULL) return CLI_CONTINUE;
 
-    list_for_each(item, commands)
-    {
-        command = (Command *) item->data;
-        command_information(command);
+    list_for_each(data, commands) {
+        command_information(data);
     }
 
     return CLI_CONTINUE;

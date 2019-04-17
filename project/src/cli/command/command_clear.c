@@ -4,10 +4,10 @@
 #include "cli/command/command_clear.h"
 
 static bool is_unix = true;
-#ifdef defined(_WIN32) || defined(_WIN64)
+#ifdef _WIN32
 is_unix = false;
 #else
-#ifdef defined(__linux)
+#ifdef __linux__
 is_unix = true;
 #endif
 #endif

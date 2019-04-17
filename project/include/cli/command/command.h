@@ -1,7 +1,7 @@
 #ifndef _COMMAND_H
 #define _COMMAND_H
 
-#include "collection/collection_list.h"
+#include "collection/collection_linked_list.h"
 
 #define COMMAND_NAME_LENGTH 25
 #define COMMAND_DESCRIPTION_LENGTH 250
@@ -17,11 +17,6 @@ typedef struct Command {
 
     int (*execute)(char **);
 } Command;
-
-/**
- * Collection of Commands
- */
-extern List *commands;
 
 /**
  * Initialize the List of Commands
@@ -42,6 +37,12 @@ void commands_free(void);
  * @return The new Command
  */
 Command *new_command(char name[], char description[], char syntax[], int (*execute)(char **));
+
+/**
+ * Return the List of Supported Commands
+ * @return The List of Commands
+ */
+LinkedList *command_get_commands();
 
 /**
  * Execute the command passed in args[0]

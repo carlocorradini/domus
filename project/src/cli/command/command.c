@@ -8,6 +8,7 @@
 
 /* Supported Commands */
 #include "cli/command/command_add.h"
+#include "cli/command/command_clear.h"
 #include "cli/command/command_del.h"
 #include "cli/command/command_exit.h"
 #include "cli/command/command_help.h"
@@ -15,29 +16,31 @@
 #include "cli/command/command_link.h"
 #include "cli/command/command_list.h"
 #include "cli/command/command_switch.h"
-#include "cli/command/command_clear.h"
 
 /* END Supported Commands */
 
-List *commands = NULL;
+/**
+ * List of Supported Commands
+ */
+static LinkedList *commands = NULL;
 
 void commands_init(void) {
     if (commands != NULL) return;
-    commands = list_create(NULL);
+    commands = new_linked_list(NULL, NULL);
 
-    list_push(commands, command_add());
-    list_push(commands, command_del());
-    list_push(commands, command_exit());
-    list_push(commands, command_help());
-    list_push(commands, command_info());
-    list_push(commands, command_link());
-    list_push(commands, command_list());
-    list_push(commands, command_switch());
-    list_push(commands, command_clear());
+    linked_list_add_last(commands, command_add());
+    linked_list_add_last(commands, command_clear());
+    linked_list_add_last(commands, command_del());
+    linked_list_add_last(commands, command_exit());
+    linked_list_add_last(commands, command_help());
+    linked_list_add_last(commands, command_info());
+    linked_list_add_last(commands, command_link());
+    linked_list_add_last(commands, command_list());
+    linked_list_add_last(commands, command_switch());
 }
 
 void commands_free(void) {
-    list_free(commands);
+    free_linked_list(commands);
 }
 
 Command *new_command(char name[], char description[], char syntax[], int (*execute)(char **)) {
@@ -54,27 +57,31 @@ Command *new_command(char name[], char description[], char syntax[], int (*execu
     return command;
 }
 
+LinkedList *command_get_commands() {
+    return commands;
+}
+
 /* \todo Implement with HashMap O(1) instead of O(n) */
 int command_execute(char **args) {
-    Command *command;
+    Command *data;
     if (args[0] == NULL) {
         /* No Command passed, CONTINUE */
         return CLI_CONTINUE;
     }
 
-    list_for_each(item, commands) {
-        command = (Command *) item->data;
-        if (strcmp(args[0], command->name) == 0) {
+    list_for_each(data, commands) {
+        if (strcmp(args[0], data->name) == 0) {
             /* Command Found */
             if (args[1] && strcmp(args[1], CLI_QUESTION) == 0) {
                 /* Command Question */
-                command_information(command);
+                command_information(data);
                 return CLI_CONTINUE;
             }
             /* Execute Command */
-            return command->execute(args);
+            return data->execute(args);
         }
     }
+
     return -1;
 }
 

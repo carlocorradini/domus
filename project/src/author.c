@@ -2,21 +2,25 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "collection/collection_linked_list.h"
 #include "author.h"
 #include "printer.h"
 
-List *authors = NULL;
+/**
+ * List of authors
+ */
+static LinkedList *authors = NULL;
 
 void authors_init(void) {
     if (authors != NULL) return;
-    authors = list_create(NULL);
+    authors = new_linked_list(NULL, NULL);
 
-    list_push(authors, new_author(192451, "Carlo", "Corradini", "carlo.corradini@studenti.unitn.it"));
-    list_push(authors, new_author(193246, "Simone", "Nascivera", "simone.nascivera@studenti.unitn.it"));
+    linked_list_add_last(authors, new_author(192451, "Carlo", "Corradini", "carlo.corradini@studenti.unitn.it"));
+    linked_list_add_last(authors, new_author(193246, "Simone", "Nascivera", "simone.nascivera@studenti.unitn.it"));
 }
 
 void authors_free(void) {
-    list_free(authors);
+    free_linked_list(authors);
 }
 
 Author *new_author(unsigned int id, char name[], char surname[], char email[]) {
@@ -34,13 +38,11 @@ Author *new_author(unsigned int id, char name[], char surname[], char email[]) {
 }
 
 void author_print_all() {
-    Author *author;
+    Author *data;
     if (authors == NULL) return;
 
-    list_for_each(item, authors)
-    {
-        author = (Author *) item->data;
-        author_print(author);
+    list_for_each(data, authors) {
+        author_print(data);
     }
 }
 

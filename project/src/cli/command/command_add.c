@@ -12,7 +12,7 @@ static int _add(char **args) {
 
     if(args[1] != NULL && strcmp(args[1], "bulb")==0){
         printf("Creating new bulb\n");
-        controller_process_spawn(1);
+        /*controller_process_spawn(1);*/
     }
     else{
         printf("\tDEVICE NOT SUPPORTED YET\n");

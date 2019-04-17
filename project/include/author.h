@@ -1,8 +1,6 @@
 #ifndef _AUTHOR_H
 #define _AUTHOR_H
 
-#include "collection/collection_list.h"
-
 #define AUTHOR_NAME_LENGTH 50
 #define AUTHOR_SURNAME_LENGTH 50
 #define AUTHOR_EMAIL_LENGTH 50
@@ -16,11 +14,6 @@ typedef struct Author {
     char surname[AUTHOR_SURNAME_LENGTH];
     char email[AUTHOR_EMAIL_LENGTH];
 } Author;
-
-/**
- * Collection of Authors
- */
-extern List *authors;
 
 /**
  * Initialize the List of Authors
