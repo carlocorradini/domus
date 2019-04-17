@@ -18,12 +18,12 @@ typedef struct Author {
 /**
  * Initialize the List of Authors
  */
-void authors_init(void);
+void author_init(void);
 
 /**
  * Free the List of Authors
  */
-void authors_free(void);
+void author_tini(void);
 
 /**
  * Create a new Author

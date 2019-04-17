@@ -8,36 +8,32 @@ LICENSE := MIT
 SLOGAN := Unicuique sua domus nota
 DESCRIPTION := Home Automation at your CLI
 
+# MAINS
+TARGET:= main bulb
+
 # DIRECTORIES
 SRC_DIR := ./src
-DEV_DIR := $(SRC_DIR)/device
+DEV_SRC_DIR := $(SRC_DIR)/device
 HDR_DIR := ./include
 BUILD_DIR := ./build
 OBJ_DIR := $(BUILD_DIR)/obj
-DEV_OBJ_DIR := $(BUILD_DIR)/obj/device
+DEV_OBJ_DIR := $(OBJ_DIR)/device
 BIN_DIR := $(BUILD_DIR)/bin
 DEV_BIN := $(BIN_DIR)/device
 
 # SOURCES & OBJECTS
-DEV := $(shell find $(DEV_DIR) -type f -name '*.c')
-
+SRC := $(shell find $(SRC_DIR)/ -type f -name '*.c')
+OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
+DEV := $(shell find $(DEV_SRC_DIR) -type f -name '*.c')
 # Take all .c file in src/device/, but device.c and device_controller.c
-DEV_OBJ := $(patsubst $(DEV_DIR)/%.c, $(DEV_OBJ_DIR)/%.o, $(DEV))
+DEV_OBJ := $(patsubst $(DEV_SRC_DIR)/%.c, $(DEV_OBJ_DIR)/%.o, $(DEV))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring controller,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring device.o,$a),,$a))
 
-SRC := $(shell find $(SRC_DIR)/ -type f -name '*.c')
-
-OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
-
-#
 # All .o files, both commons and specific ones
-#
-ALL := $(OBJ)
+ALL_OBJ := $(OBJ)
 
-#
 # Only common .o files
-#
 OBJ := $(foreach a,$(OBJ),$(if $(findstring main.o,$a),,$a))
 OBJ := $(filter-out $(DEV_OBJ), $(OBJ))
 
@@ -45,6 +41,7 @@ OBJ := $(filter-out $(DEV_OBJ), $(OBJ))
 CC := gcc
 CFLAGS := -std=gnu90 -Wall -Wextra -pedantic -g
 CPPFLAGS := -I$(HDR_DIR)
+
 # UTILS
 MKDIR := mkdir -p
 RM := rm -r -f
@@ -52,6 +49,7 @@ ECHO := echo
 ifeq ($(OS), Windows_NT)
 	ECHO += -e
 endif
+
 # COLORS
 COLOR_RESET := \033[0m
 COLOR_RED := \033[0;31m
@@ -74,23 +72,16 @@ all:
 	@$(ECHO) "$(COLOR_RED)Make without any recipe is not allowed$(COLOR_RESET)"
 	@$(ECHO) "$(COLOR_RED)Please type 'make help' for more information$(COLOR_RESET)"
 
-# all the files that have a int main() function inside
-TARGET:= main  bulb
-
 build: clean $(TARGET)
 
-$(TARGET): $(ALL)
+$(TARGET): $(ALL_OBJ)
 	$(MKDIR) $(DEV_BIN)
-	#
-	#      get the .o file having $(TARGET) in the name                            add all common files
-	#
-	$(CC)  $(filter-out $(foreach a,$(ALL),$(if $(findstring $@,$a),,$a)), $(ALL)) $(OBJ) -o $(DEV_BIN)/$@
+	#      get the .o file having $(TARGET) in the name                                    add all common files
+	$(CC)  $(filter-out $(foreach a,$(ALL_OBJ),$(if $(findstring $@,$a),,$a)), $(ALL_OBJ)) $(OBJ) -o $(DEV_BIN)/$@
 	# if the executable is the main one, move it and rename it
 	@if [ $@ = main ]; then \
 		mv $(DEV_BIN)/$@ $(BIN_DIR)/$(PRJ_NAME); \
 	fi;
-
-
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(MKDIR) $(dir $@)

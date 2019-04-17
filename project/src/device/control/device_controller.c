@@ -32,11 +32,11 @@ void controller_start(void) {
 }
 
 static void controller_init(void) {
-    commands_init();
-    authors_init();
+    command_init();
+    author_init();
 }
 
 static void controller_free(void) {
-    commands_free();
-    authors_free();
+    command_tini();
+    author_tini();
 }

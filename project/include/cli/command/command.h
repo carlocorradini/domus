@@ -21,12 +21,12 @@ typedef struct Command {
 /**
  * Initialize the List of Commands
  */
-void commands_init(void);
+void command_init(void);
 
 /**
  * Free the List of Commands
  */
-void commands_free(void);
+void command_tini(void);
 
 /**
  * Create a new Command

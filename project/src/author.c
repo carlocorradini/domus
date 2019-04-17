@@ -11,7 +11,7 @@
  */
 static List *authors = NULL;
 
-void authors_init(void) {
+void author_init(void) {
     if (authors != NULL) return;
     authors = new_list(NULL, NULL);
 
@@ -19,7 +19,7 @@ void authors_init(void) {
     list_add_last(authors, new_author(193246, "Simone", "Nascivera", "simone.nascivera@studenti.unitn.it"));
 }
 
-void authors_free(void) {
+void author_tini(void) {
     free_list(authors);
 }
 

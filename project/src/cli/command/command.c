@@ -24,7 +24,7 @@
  */
 static List *commands = NULL;
 
-void commands_init(void) {
+void command_init(void) {
     if (commands != NULL) return;
     commands = new_list(NULL, NULL);
 
@@ -39,7 +39,7 @@ void commands_init(void) {
     list_add_last(commands, command_switch());
 }
 
-void commands_free(void) {
+void command_tini(void) {
     free_list(commands);
 }
 

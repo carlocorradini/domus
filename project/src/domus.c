@@ -15,7 +15,7 @@ static void domus_information(void);
 static void domus_welcome(void);
 
 void domus_start(void) {
-    authors_init();
+    author_init();
     domus_welcome();
     controller_start();
 }
