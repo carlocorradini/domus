@@ -39,3 +39,7 @@ static void sighup(){
     my_bulb->state = !my_bulb->state;
     println_color(COLOR_BLUE, "\nHere %d\n", my_bulb->state);
 }
+
+int main(){
+    println_color(COLOR_BLUE, "\nI'm alive\n");
+}
