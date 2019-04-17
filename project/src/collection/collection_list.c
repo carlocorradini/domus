@@ -1,5 +1,5 @@
 
-#include "collection/collection_linked_list.h"
+#include "collection/collection_list.h"
 
 /**
  * Check if 'index' is a valid index
@@ -7,21 +7,21 @@
  * @param index The index to check
  * @return true if is a valid index, false otherwise
  */
-static bool linked_list_check_index(const LinkedList *list, size_t index);
+static bool list_check_index(const List *list, size_t index);
 
 /**
  * Create a new non empty Node with next and prev NULL
  * @param data The data of the Node
  * @return The new Node
  */
-static Node *linked_list_new_node(void *data);
+static Node *list_new_node(void *data);
 
 /**
  * Free a Node returning it's data
  * @param node The Node to free
  * @return The data of the Node
  */
-static void *linked_list_free_node(Node *node);
+static void *list_free_node(Node *node);
 
 /**
  * Return a Node of the List or NULL if List is empty or index is invalid
@@ -29,12 +29,12 @@ static void *linked_list_free_node(Node *node);
  * @param index The index of the Node
  * @return The Node of the List at index
  */
-static Node *linked_list_get_node(const LinkedList *list, size_t index);
+static Node *list_get_node(const List *list, size_t index);
 
-LinkedList *new_linked_list(void (*destroy)(void *), bool(*equals)(void *, void *)) {
-    LinkedList *list = (LinkedList *) malloc(sizeof(LinkedList));
+List *new_list(void (*destroy)(void *), bool(*equals)(const void *, const void *)) {
+    List *list = (List *) malloc(sizeof(List));
     if (list == NULL) {
-        perror("New Linked List Memory Allocation");
+        perror("New List Memory Allocation");
         exit(EXIT_FAILURE);
     }
 
@@ -46,19 +46,19 @@ LinkedList *new_linked_list(void (*destroy)(void *), bool(*equals)(void *, void 
     return list;
 }
 
-bool free_linked_list(LinkedList *list) {
+bool free_list(List *list) {
     Node *node;
     Node *next;
     if (list == NULL) return false;
 
-    if (!linked_list_is_empty(list)) {
+    if (!list_is_empty(list)) {
         node = list->head;
         while (node != NULL) {
             next = node->next;
             if (list->destroy == NULL) {
-                free(linked_list_free_node(node));
+                free(list_free_node(node));
             } else {
-                list->destroy(linked_list_free_node(node));
+                list->destroy(list_free_node(node));
             }
             node = next;
         }
@@ -68,25 +68,25 @@ bool free_linked_list(LinkedList *list) {
     return true;
 }
 
-bool linked_list_is_empty(const LinkedList *list) {
+bool list_is_empty(const List *list) {
     if (list == NULL) return NULL;
     return list->size == 0 && list->head == NULL && list->tail == NULL;
 }
 
-void *linked_list_node_data(const Node *node) {
-    if(node == NULL) return NULL;
+void *list_node_data(const Node *node) {
+    if (node == NULL) return NULL;
     return node->data;
 }
 
-static bool linked_list_check_index(const LinkedList *list, size_t index) {
+static bool list_check_index(const List *list, size_t index) {
     if (list == NULL) return false;
     return index >= 0 && index <= list->size;
 }
 
-static Node *linked_list_new_node(void *data) {
+static Node *list_new_node(void *data) {
     Node *node = (Node *) malloc(sizeof(Node));
     if (node == NULL) {
-        perror("New Node Linked List Memory Allocation");
+        perror("New Node List Memory Allocation");
         exit(EXIT_FAILURE);
     }
 
@@ -96,17 +96,17 @@ static Node *linked_list_new_node(void *data) {
     return node;
 }
 
-static void *linked_list_free_node(Node *node) {
+static void *list_free_node(Node *node) {
     void *data = node->data;
     free(node);
     return data;
 }
 
-static Node *linked_list_get_node(const LinkedList *list, size_t index) {
+static Node *list_get_node(const List *list, size_t index) {
     Node *node;
     size_t i;
     if (list == NULL) return NULL;
-    if (linked_list_is_empty(list) || !linked_list_check_index(list, index)) return NULL;
+    if (list_is_empty(list) || !list_check_index(list, index)) return NULL;
 
     node = list->head;
     for (i = 0; i < index; i++) {
@@ -116,21 +116,21 @@ static Node *linked_list_get_node(const LinkedList *list, size_t index) {
     return node;
 }
 
-bool linked_list_add(LinkedList *list, size_t index, void *data) {
+bool list_add(List *list, size_t index, void *data) {
     Node *new_node;
     Node *node;
     if (list == NULL) return false;
-    if (!linked_list_check_index(list, index)) return false;
+    if (!list_check_index(list, index)) return false;
 
     if (index == 0) {
-        return linked_list_add_first(list, data);
+        return list_add_first(list, data);
     }
     if (index == list->size - 1) {
-        return linked_list_add_last(list, data);
+        return list_add_last(list, data);
     }
 
-    new_node = linked_list_new_node(data);
-    node = linked_list_get_node(list, index);
+    new_node = list_new_node(data);
+    node = list_get_node(list, index);
 
     new_node->prev = node->prev;
     new_node->next = node;
@@ -141,11 +141,11 @@ bool linked_list_add(LinkedList *list, size_t index, void *data) {
     return true;
 }
 
-bool linked_list_add_first(LinkedList *list, void *data) {
+bool list_add_first(List *list, void *data) {
     Node *node;
     if (list == NULL) return false;
 
-    node = linked_list_new_node(data);
+    node = list_new_node(data);
     node->next = list->head;
 
     if (list->head != NULL) {
@@ -160,11 +160,11 @@ bool linked_list_add_first(LinkedList *list, void *data) {
     return true;
 }
 
-bool linked_list_add_last(LinkedList *list, void *data) {
+bool list_add_last(List *list, void *data) {
     Node *node;
     if (list == NULL) return false;
 
-    node = linked_list_new_node(data);
+    node = list_new_node(data);
     node->prev = list->tail;
 
     if (list->tail != NULL) {
@@ -179,29 +179,29 @@ bool linked_list_add_last(LinkedList *list, void *data) {
     return true;
 }
 
-void *linked_list_get(const LinkedList *list, size_t index) {
+void *list_get(const List *list, size_t index) {
     if (list == NULL) return NULL;
-    if (linked_list_is_empty(list) || !linked_list_check_index(list, index)) return NULL;
+    if (list_is_empty(list) || !list_check_index(list, index)) return NULL;
 
-    return linked_list_get_node(list, index)->data;
+    return list_get_node(list, index)->data;
 }
 
-void *linked_list_get_first(const LinkedList *list) {
-    return linked_list_get(list, 0);
+void *list_get_first(const List *list) {
+    return list_get(list, 0);
 }
 
-void *linked_list_get_last(const LinkedList *list) {
+void *list_get_last(const List *list) {
     if (list == NULL) return NULL;
-    return linked_list_get(list, list->size - 1);
+    return list_get(list, list->size - 1);
 }
 
-void *linked_list_remove(LinkedList *list, size_t index) {
+void *list_remove_index(List *list, size_t index) {
     Node *node;
     void *data = NULL;
     if (list == NULL) return NULL;
-    if (linked_list_is_empty(list) || !linked_list_check_index(list, index)) return NULL;
+    if (list_is_empty(list) || !list_check_index(list, index)) return NULL;
 
-    node = linked_list_get_node(list, index);
+    node = list_get_node(list, index);
 
     if (node->prev == NULL && node->next == NULL) {
         list->head = list->tail = NULL;
@@ -216,26 +216,51 @@ void *linked_list_remove(LinkedList *list, size_t index) {
         node->next->prev = node->prev;
     }
 
-    data = linked_list_free_node(node);
+    data = list_free_node(node);
     list->size--;
     return data;
 }
 
-void *linked_list_remove_first(LinkedList *list) {
-    return linked_list_remove(list, 0);
+void *list_remove_first(List *list) {
+    return list_remove_index(list, 0);
 }
 
-void *linked_list_remove_last(LinkedList *list) {
+void *list_remove_last(List *list) {
     if (list == NULL) return NULL;
-    return linked_list_remove(list, list->size - 1);
+    return list_remove_index(list, list->size - 1);
 }
 
-bool linked_list_contains(const LinkedList *list, void *data) {
+bool list_remove(List *list, const void *data) {
+    Node *node;
+    size_t index;
+    if (list == NULL || data == NULL) return false;
+    if (list_is_empty(list)) return false;
+    if (list->equals == NULL) {
+        fprintf(stderr, "List: Unable to compare, please define a valid equals function\n");
+        return false;
+    }
+
+    node = list->head;
+    index = 0;
+    while (node != NULL) {
+        if (list->equals(node->data, data)) {
+            list_remove_index(list, index);
+            index--;
+        }
+        node = node->next;
+        index++;
+    }
+
+    return true;
+}
+
+bool list_contains(const List *list, void *data) {
     Node *node;
     if (list == NULL || data == NULL) return false;
-    if (linked_list_is_empty(list)) return false;
+    if (list_is_empty(list)) return false;
     if (list->equals == NULL) {
-        fprintf(stderr, "Linked List: Unable to compare, please define a valid equals function\n");
+        fprintf(stderr, "List: Unable to compare, please define a valid equals function\n");
+        return false;
     }
 
     node = list->head;

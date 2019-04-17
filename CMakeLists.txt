@@ -35,6 +35,6 @@ set(
         project/include/device/control/device_timer.h
         project/src/device/control/device_timer.c
         project/src/cli/command/command_clear.c
-        project/include/cli/command/command_add.h project/include/cli/command/command_del.h project/include/cli/command/command_link.h project/include/cli/command/command_switch.h project/include/cli/command/command_info.h project/src/cli/command/command_add.c project/src/cli/command/command_del.c project/src/cli/command/command_info.c project/src/cli/command/command_link.c project/src/cli/command/command_switch.c project/include/collection/collection_linked_list.h project/src/collection/collection_linked_list.c)
+        project/include/cli/command/command_add.h project/include/cli/command/command_del.h project/include/cli/command/command_link.h project/include/cli/command/command_switch.h project/include/cli/command/command_info.h project/src/cli/command/command_add.c project/src/cli/command/command_del.c project/src/cli/command/command_info.c project/src/cli/command/command_link.c project/src/cli/command/command_switch.c project/include/collection/collection_list.h project/src/collection/collection_list.c)
 
 add_executable(domus ${SOURCE_FILES})

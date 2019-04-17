@@ -2,25 +2,25 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include "collection/collection_linked_list.h"
+#include "collection/collection_list.h"
 #include "author.h"
 #include "printer.h"
 
 /**
  * List of authors
  */
-static LinkedList *authors = NULL;
+static List *authors = NULL;
 
 void authors_init(void) {
     if (authors != NULL) return;
-    authors = new_linked_list(NULL, NULL);
+    authors = new_list(NULL, NULL);
 
-    linked_list_add_last(authors, new_author(192451, "Carlo", "Corradini", "carlo.corradini@studenti.unitn.it"));
-    linked_list_add_last(authors, new_author(193246, "Simone", "Nascivera", "simone.nascivera@studenti.unitn.it"));
+    list_add_last(authors, new_author(192451, "Carlo", "Corradini", "carlo.corradini@studenti.unitn.it"));
+    list_add_last(authors, new_author(193246, "Simone", "Nascivera", "simone.nascivera@studenti.unitn.it"));
 }
 
 void authors_free(void) {
-    free_linked_list(authors);
+    free_list(authors);
 }
 
 Author *new_author(unsigned int id, char name[], char surname[], char email[]) {

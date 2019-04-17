@@ -22,25 +22,25 @@
 /**
  * List of Supported Commands
  */
-static LinkedList *commands = NULL;
+static List *commands = NULL;
 
 void commands_init(void) {
     if (commands != NULL) return;
-    commands = new_linked_list(NULL, NULL);
+    commands = new_list(NULL, NULL);
 
-    linked_list_add_last(commands, command_add());
-    linked_list_add_last(commands, command_clear());
-    linked_list_add_last(commands, command_del());
-    linked_list_add_last(commands, command_exit());
-    linked_list_add_last(commands, command_help());
-    linked_list_add_last(commands, command_info());
-    linked_list_add_last(commands, command_link());
-    linked_list_add_last(commands, command_list());
-    linked_list_add_last(commands, command_switch());
+    list_add_last(commands, command_add());
+    list_add_last(commands, command_clear());
+    list_add_last(commands, command_del());
+    list_add_last(commands, command_exit());
+    list_add_last(commands, command_help());
+    list_add_last(commands, command_info());
+    list_add_last(commands, command_link());
+    list_add_last(commands, command_list());
+    list_add_last(commands, command_switch());
 }
 
 void commands_free(void) {
-    free_linked_list(commands);
+    free_list(commands);
 }
 
 Command *new_command(char name[], char description[], char syntax[], int (*execute)(char **)) {
@@ -57,10 +57,6 @@ Command *new_command(char name[], char description[], char syntax[], int (*execu
     return command;
 }
 
-LinkedList *command_get_commands() {
-    return commands;
-}
-
 /* \todo Implement with HashMap O(1) instead of O(n) */
 int command_execute(char **args) {
     Command *data;
@@ -74,7 +70,7 @@ int command_execute(char **args) {
             /* Command Found */
             if (args[1] && strcmp(args[1], CLI_QUESTION) == 0) {
                 /* Command Question */
-                command_information(data);
+                command_print(data);
                 return CLI_CONTINUE;
             }
             /* Execute Command */
@@ -85,7 +81,16 @@ int command_execute(char **args) {
     return -1;
 }
 
-void command_information(const Command *command) {
+void command_print_all(void) {
+    Command *data;
+    if (commands == NULL) return;
+
+    list_for_each(data, commands) {
+        command_print(data);
+    }
+}
+
+void command_print(const Command *command) {
     print_color(COLOR_YELLOW, "\t%-*s", COMMAND_SYNTAX_LENGTH, command->syntax);
     println("%s", command->description);
 }

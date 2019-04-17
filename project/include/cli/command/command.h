@@ -1,7 +1,7 @@
 #ifndef _COMMAND_H
 #define _COMMAND_H
 
-#include "collection/collection_linked_list.h"
+#include "collection/collection_list.h"
 
 #define COMMAND_NAME_LENGTH 25
 #define COMMAND_DESCRIPTION_LENGTH 250
@@ -39,12 +39,6 @@ void commands_free(void);
 Command *new_command(char name[], char description[], char syntax[], int (*execute)(char **));
 
 /**
- * Return the List of Supported Commands
- * @return The List of Commands
- */
-LinkedList *command_get_commands();
-
-/**
  * Execute the command passed in args[0]
  * @param args Command & parameter/s
  * @return -1 if no command found or command return value
@@ -52,9 +46,14 @@ LinkedList *command_get_commands();
 int command_execute(char **args);
 
 /**
+ * Print all commands using command_print function
+ */
+void command_print_all(void);
+
+/**
  * Print information about a Command
  * @param command The command to retrieve information
  */
-void command_information(const Command *command);
+void command_print(const Command *command);
 
 #endif

@@ -3,22 +3,17 @@
 #include "cli/cli.h"
 #include "cli/command/command_clear.h"
 
-static bool is_unix = true;
-#ifdef _WIN32
-is_unix = false;
-#else
-#ifdef __linux__
-is_unix = true;
-#endif
-#endif
-
 /**
  * Clear the CLI interface
  * @param args Arguments
  * @return CLI status code
  */
 static int _clear(char **args) {
-    (is_unix) ? system("clear") : system("CLS");
+#ifdef _WIN32
+    system("CLS");
+#else
+    system("clear");
+#endif
     return CLI_CONTINUE;
 }
 
