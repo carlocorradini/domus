@@ -80,7 +80,7 @@ void *list_node_data(const Node *node) {
 
 static bool list_check_index(const List *list, size_t index) {
     if (list == NULL) return false;
-    return index >= 0 && index <= list->size;
+    return index <= list->size;
 }
 
 static Node *list_new_node(void *data) {
@@ -260,7 +260,7 @@ bool list_remove(List *list, const void *data) {
     return true;
 }
 
-bool list_contains(const List *list, void *data) {
+bool list_contains(const List *list, const void *data) {
     Node *node;
     if (list == NULL || data == NULL) return false;
     if (list_is_empty(list)) return false;

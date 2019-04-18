@@ -19,12 +19,12 @@ typedef struct Command {
 } Command;
 
 /**
- * Initialize the List of Commands
+ * Initialize the List of supported Commands
  */
 void command_init(void);
 
 /**
- * Free the List of Commands
+ * Free the List of supported Commands
  */
 void command_tini(void);
 

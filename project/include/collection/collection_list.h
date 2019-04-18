@@ -142,6 +142,6 @@ bool list_remove(List *list, const void *data);
  * @param data The element to check
  * @return true if this List contains the specified element, false otherwise
  */
-bool list_contains(const List *list, void *data);
+bool list_contains(const List *list, const void *data);
 
 #endif
