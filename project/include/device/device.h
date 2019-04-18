@@ -8,7 +8,7 @@
 
 #define DEVICE_PATH "./device/"
 #define DEVICE_STATE true
-#define DEVICE_NAME_LENGTH 25
+#define DEVICE_NAME_LENGTH 35
 #define DEVICE_DESCRIPTION_LENGTH 250
 #define DEVICE_PATH_LENGTH 100
 
@@ -94,5 +94,16 @@ bool device_change_state(Device *device, bool state);
  * @return true if is supported, false otherwise
  */
 bool device_is_supported(const char *device);
+
+/**
+ * Print all supported devices using device_print function
+ */
+void device_print_all(void);
+
+/**
+ * Print information about a Device
+ * @param device_descriptor The device descriptor to retrieve information
+ */
+void device_print(const DeviceDescriptor *device_descriptor);
 
 #endif

@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "device/device.h"
+#include "printer.h"
 
 /**
  * The List of Supported Devices
@@ -95,4 +96,18 @@ bool device_is_supported(const char *device) {
             return true;
     }
     return false;
+}
+
+void device_print_all(void) {
+    DeviceDescriptor *data;
+    if (supported_devices == NULL) return;
+
+    list_for_each(data, supported_devices) {
+        device_print(data);
+    }
+}
+
+void device_print(const DeviceDescriptor *device_descriptor) {
+    print_color(COLOR_YELLOW, "\t%-*s", DEVICE_NAME_LENGTH, device_descriptor->name);
+    println("%s", device_descriptor->description);
 }

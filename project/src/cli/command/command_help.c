@@ -1,7 +1,6 @@
 
 #include "cli/cli.h"
 #include "cli/command/command_help.h"
-#include "collection/collection_list.h"
 
 /**
  * Display help information about Domus

@@ -10,6 +10,7 @@
 #include "cli/command/command_add.h"
 #include "cli/command/command_clear.h"
 #include "cli/command/command_del.h"
+#include "cli/command/command_device.h"
 #include "cli/command/command_exit.h"
 #include "cli/command/command_help.h"
 #include "cli/command/command_info.h"
@@ -31,6 +32,7 @@ void command_init(void) {
     list_add_last(commands, command_add());
     list_add_last(commands, command_clear());
     list_add_last(commands, command_del());
+    list_add_last(commands, command_device());
     list_add_last(commands, command_exit());
     list_add_last(commands, command_help());
     list_add_last(commands, command_info());
