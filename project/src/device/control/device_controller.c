@@ -1,4 +1,5 @@
 
+#include <string.h>
 #include "device/control/device_controller.h"
 #include "cli/command/command.h"
 #include "cli/cli.h"
