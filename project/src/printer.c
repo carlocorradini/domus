@@ -1,6 +1,6 @@
 
 #include <stdarg.h>
-#include "printer.h"
+#include "utils/printer.h"
 
 /**
  * Print the string to stream with the selected color and add a newline if newline is true

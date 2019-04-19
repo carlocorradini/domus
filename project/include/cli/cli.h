@@ -1,12 +1,6 @@
 #ifndef _CLI_H
 #define _CLI_H
 
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <stdbool.h>
-#include "domus.h"
-
 #define CLI_POINTER ">"
 #define CLI_CONTINUE 1
 #define CLI_TERMINATE 0

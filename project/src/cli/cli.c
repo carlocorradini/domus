@@ -1,7 +1,8 @@
 
+#include <string.h>
 #include "cli/cli.h"
-#include "printer.h"
 #include "cli/command/command.h"
+#include "utils/printer.h"
 
 /**
  * Execute the command passed in args[0] or CONTINUE if no command found or args[0] == NULL

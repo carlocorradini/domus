@@ -16,7 +16,7 @@ set(
         ./project/src/cli/cli.c
         ./project/include/domus.h
         ./project/src/domus.c
-        ./project/include/printer.h
+        project/include/utils/printer.h
         ./project/src/printer.c
         ./project/include/cli/command/command.h
         ./project/src/cli/command/command.c

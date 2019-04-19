@@ -4,7 +4,7 @@
 #include <string.h>
 #include "collection/collection_list.h"
 #include "author.h"
-#include "printer.h"
+#include "utils/printer.h"
 
 /**
  * List of authors

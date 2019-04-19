@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "device/device.h"
-#include "printer.h"
+#include "utils/printer.h"
 #include "utils/os.h"
 
 /**

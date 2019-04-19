@@ -1,7 +1,7 @@
 
 #include "cli/cli.h"
 #include "cli/command/command_exit.h"
-#include "printer.h"
+#include "utils/printer.h"
 
 /**
  * Close Domus
