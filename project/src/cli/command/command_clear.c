@@ -1,6 +1,7 @@
 
 #include <stdbool.h>
 #include "cli/cli.h"
+#include "utils/os.h"
 #include "cli/command/command_clear.h"
 
 /**
@@ -9,11 +10,7 @@
  * @return CLI status code
  */
 static int _clear(char **args) {
-#ifdef _WIN32
-    system("CLS");
-#else
-    system("clear");
-#endif
+    (os_windows()) ? system("CLS") : system("clear");
     return CLI_CONTINUE;
 }
 

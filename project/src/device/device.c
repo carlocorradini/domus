@@ -4,6 +4,7 @@
 #include <string.h>
 #include "device/device.h"
 #include "printer.h"
+#include "utils/os.h"
 
 /**
  * The List of Supported Devices
@@ -62,7 +63,8 @@ ControlDevice *new_control_device(Device *device, List *devices) {
 }
 
 DeviceDescriptor *new_device_descriptor(char name[], char description[], char file_name[]) {
-    char real_path[DEVICE_PATH_LENGTH] = {};
+    char real_path[DEVICE_PATH_LENGTH];
+    char file[DEVICE_PATH_LENGTH - DEVICE_NAME_LENGTH];
     DeviceDescriptor *device_descriptor = (DeviceDescriptor *) malloc(sizeof(DeviceDescriptor));
     if (device_descriptor == NULL) {
         perror("DeviceDescriptor Memory Allocation");
@@ -71,11 +73,12 @@ DeviceDescriptor *new_device_descriptor(char name[], char description[], char fi
 
     strncpy(device_descriptor->name, name, DEVICE_NAME_LENGTH);
     strncpy(device_descriptor->description, description, DEVICE_DESCRIPTION_LENGTH);
-#ifdef _WIN32
-    strcat(file_name, ".exe");
-#endif
+    /* Copy the file name to file */
+    strncpy(file, file_name, DEVICE_PATH_LENGTH - DEVICE_NAME_LENGTH);
+    /* Get absolute path & attach the file*/
+    getcwd(real_path, sizeof(real_path));
     strcat(real_path, DEVICE_PATH);
-    strcat(real_path, file_name);
+    strcat(real_path, file);
     strncpy(device_descriptor->file_name, real_path, DEVICE_PATH_LENGTH);
 
     return device_descriptor;
@@ -87,15 +90,15 @@ bool device_change_state(Device *device, bool state) {
     return device->master_switch(state);
 }
 
-bool device_is_supported(const char *device) {
+DeviceDescriptor *device_is_supported(const char *device) {
     DeviceDescriptor *data;
-    if (device == NULL) return false;
+    if (device == NULL) return NULL;
 
     list_for_each(data, supported_devices) {
         if (strcmp(data->name, device) == 0)
-            return true;
+            return data;
     }
-    return false;
+    return NULL;
 }
 
 void device_print_all(void) {

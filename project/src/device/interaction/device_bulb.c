@@ -1,6 +1,8 @@
 
 #include "device/interaction/device_bulb.h"
+#include "printer.h"
 
-int main() {
+int main(int argc, char **args) {
+    /*println_color(COLOR_MAGENTA, "SONO VIVO e sono un %s", args[0]);*/
     return 0;
 }

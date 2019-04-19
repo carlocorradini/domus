@@ -6,11 +6,11 @@
 #include <stdbool.h>
 #include "collection/collection_list.h"
 
-#define DEVICE_PATH "./device/"
+#define DEVICE_PATH "/device/"
 #define DEVICE_STATE true
 #define DEVICE_NAME_LENGTH 35
 #define DEVICE_DESCRIPTION_LENGTH 250
-#define DEVICE_PATH_LENGTH 100
+#define DEVICE_PATH_LENGTH 256
 
 /**
  * Struct generic Device
@@ -89,11 +89,12 @@ DeviceDescriptor *new_device_descriptor(char name[], char description[], char fi
 bool device_change_state(Device *device, bool state);
 
 /**
- * Check if a device is supported or not
+ * Check if a device is supported,
+ *  if found return the Device Descriptor, NULL otherwise
  * @param device The device to check
- * @return true if is supported, false otherwise
+ * @return The Device Descriptor, NULL otherwise
  */
-bool device_is_supported(const char *device);
+DeviceDescriptor *device_is_supported(const char *device);
 
 /**
  * Print all supported devices using device_print function
