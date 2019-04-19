@@ -18,7 +18,6 @@ static int _add(char **args) {
         println("\tDevice %s is not supported", args[1]);
     } else {
         if (controller_fork_device(device_descriptor)) {
-            println("%u", getpid());
             println_color(COLOR_GREEN, "\tDevice %s has been added", device_descriptor->name);
             println_color(COLOR_GREEN, "\t\t# %u directly connected device/s", controller_connected_directly());
             println_color(COLOR_GREEN, "\t\t# %u total connected device/s", (controller_connected_total()));
