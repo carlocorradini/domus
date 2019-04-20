@@ -4,7 +4,7 @@
 #include <string.h>
 #include "cli/command/command.h"
 #include "cli/cli.h"
-#include "utils/printer.h"
+#include "util/util_printer.h"
 
 /* Supported Commands */
 #include "cli/command/command_add.h"

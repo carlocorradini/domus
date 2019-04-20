@@ -16,8 +16,8 @@ set(
         ./project/src/cli/cli.c
         ./project/include/domus.h
         ./project/src/domus.c
-        project/include/utils/printer.h
-        project/src/utils/printer.c
+        project/include/util/util_printer.h
+        project/src/util/util_printer.c
         ./project/include/cli/command/command.h
         ./project/src/cli/command/command.c
         ./project/include/cli/command/command_exit.h
@@ -37,6 +37,6 @@ set(
         project/src/cli/command/command_clear.c
         project/include/device/interaction/device_bulb.h
         project/src/device/interaction/device_bulb.c
-        project/include/cli/command/command_add.h project/include/cli/command/command_del.h project/include/cli/command/command_link.h project/include/cli/command/command_switch.h project/include/cli/command/command_info.h project/src/cli/command/command_add.c project/src/cli/command/command_del.c project/src/cli/command/command_info.c project/src/cli/command/command_link.c project/src/cli/command/command_switch.c project/include/collection/collection_list.h project/src/collection/collection_list.c project/include/cli/command/command_device.h project/src/cli/command/command_device.c project/include/utils/os.h project/src/utils/os.c)
+        project/include/cli/command/command_add.h project/include/cli/command/command_del.h project/include/cli/command/command_link.h project/include/cli/command/command_switch.h project/include/cli/command/command_info.h project/src/cli/command/command_add.c project/src/cli/command/command_del.c project/src/cli/command/command_info.c project/src/cli/command/command_link.c project/src/cli/command/command_switch.c project/include/collection/collection_list.h project/src/collection/collection_list.c project/include/cli/command/command_device.h project/src/cli/command/command_device.c project/include/util/util_os.h project/src/util/util_os.c)
 
 add_executable(domus ${SOURCE_FILES})

@@ -3,8 +3,8 @@
 #include <stdio.h>
 #include <string.h>
 #include "device/device.h"
-#include "utils/printer.h"
-#include "utils/os.h"
+#include "util/util_printer.h"
+#include "util/util_os.h"
 
 /**
  * The List of Supported Devices

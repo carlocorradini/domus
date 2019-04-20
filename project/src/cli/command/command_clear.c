@@ -1,7 +1,7 @@
 
 #include <stdbool.h>
 #include "cli/cli.h"
-#include "utils/os.h"
+#include "util/util_os.h"
 #include "cli/command/command_clear.h"
 
 /**

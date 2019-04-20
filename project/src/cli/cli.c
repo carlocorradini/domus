@@ -2,7 +2,7 @@
 #include <string.h>
 #include "cli/cli.h"
 #include "cli/command/command.h"
-#include "utils/printer.h"
+#include "util/util_printer.h"
 
 /**
  * Execute the command passed in args[0] or CONTINUE if no command found or args[0] == NULL
