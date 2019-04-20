@@ -130,14 +130,25 @@ static void controller_fork_child(const DeviceDescriptor *device_descriptor) {
     execv(device_descriptor->file_name, device_args);
 }
 
+/*\todo WARNING, CHANGE IN FUTURE*/
 static void controller_fork_parent(pid_t pid) {
     ControllerRegistry *registry;
+    /* todo Future this is a Struct */
+    pid_t *pid_child;
     if (!controller_check_controller()) return;
     if (pid < 0) return;
 
-    list_add_last(controller->devices, pid);
+    pid_child = (pid_t *) malloc(sizeof(pid_t));
+    if(pid_child == NULL) {
+        perror("Controller Fork Parent Memory Allocation");
+        exit(EXIT_FAILURE);
+    }
+
+    *pid_child = pid;
+
+    list_add_last(controller->devices, pid_child);
     registry = controller->device->registry;
-    registry->connected_directly = registry->connected_total = controller->devices->size; /* \todo WARNING, CHANGE IN FUTURE*/
+    registry->connected_directly = registry->connected_total = controller->devices->size;
 }
 
 size_t controller_connected_directly(void) {
