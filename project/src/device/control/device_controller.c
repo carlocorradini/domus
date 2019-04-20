@@ -53,8 +53,10 @@ void controller_start(void) {
 }
 
 static void controller_init(void) {
+    /* Create the controller, only once in the entire program with id 0 */
     controller = new_control_device(
             new_device(getpid(),
+                       0,
                        DEVICE_STATE,
                        new_controller_registry(),
                        controller_master_switch),
@@ -66,6 +68,7 @@ static void controller_init(void) {
 }
 
 static void controller_tini(void) {
+    free_control_device(controller);
     command_tini();
     author_tini();
     device_tini();
@@ -142,7 +145,7 @@ size_t controller_connected_directly(void) {
     if (!controller_check_controller()) return -1;
 
     registry = (ControllerRegistry *) controller->device->registry;
-    if(controller->devices->size != registry->connected_directly) return -1;
+    if (controller->devices->size != registry->connected_directly) return -1;
 
     return registry->connected_directly;
 }

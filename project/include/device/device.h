@@ -16,7 +16,8 @@
  * Struct generic Device
  */
 typedef struct Device {
-    pid_t PID;
+    pid_t pid;
+    size_t id;
     bool state;
     void *registry;
 
@@ -54,21 +55,29 @@ void device_tini(void);
 
 /**
  * Create a new generic Device
- * @param PID Device process id
+ * @param pid Device process id
+ * @param id Device unique id
  * @param state Device state
  * @param registry Device registry
  * @param master_switch Function to change state and make custom operations
  * @return The new Device, NULL otherwise
  */
-Device *new_device(pid_t PID, bool state, void *registry, bool (*master_switch)(bool state));
+Device *new_device(pid_t pid, size_t id, bool state, void *registry, bool (*master_switch)(bool));
 
 /**
- * Create a new generic ControlDevice
+ * Create a new generic Control Device
  * @param device The generic Device
  * @param devices The List for all controlled Devices
  * @return The new ControlDevice, NULL otherwise
  */
 ControlDevice *new_control_device(Device *device, List *devices);
+
+/**
+ * Free a Control Device
+ * @param control_device The Control Device to free
+ * @return true if the Control Device has been freed, false otherwise
+ */
+bool free_control_device(ControlDevice *control_device);
 
 /**
  * Create a new Device Descriptor

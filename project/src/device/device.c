@@ -24,7 +24,7 @@ void device_tini(void) {
     free_list(supported_devices);
 }
 
-Device *new_device(pid_t PID, bool state, void *registry, bool (*master_switch)(bool state)) {
+Device *new_device(pid_t pid, size_t id, bool state, void *registry, bool (*master_switch)(bool)) {
     Device *device;
     if (registry == NULL || master_switch == NULL) {
         fprintf(stderr, "Device: Please define all required function\n");
@@ -36,7 +36,8 @@ Device *new_device(pid_t PID, bool state, void *registry, bool (*master_switch)(
         exit(EXIT_FAILURE);
     }
 
-    device->PID = PID;
+    device->pid = pid;
+    device->id = id;
     device->state = state;
     device->registry = registry;
     device->master_switch = master_switch;
@@ -60,6 +61,17 @@ ControlDevice *new_control_device(Device *device, List *devices) {
     control_device->devices = devices;
 
     return control_device;
+}
+
+bool free_control_device(ControlDevice *control_device) {
+    if(control_device == NULL) return false;
+    if(control_device->device == NULL || control_device->devices == NULL) return false;
+
+    free_list(control_device->devices);
+    free(control_device->device);
+    free(control_device);
+
+    return true;
 }
 
 DeviceDescriptor *new_device_descriptor(char name[], char description[], char file_name[]) {
