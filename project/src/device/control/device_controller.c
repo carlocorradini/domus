@@ -111,6 +111,7 @@ bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
         exit(EXIT_FAILURE);
     } else if (pid == 0) {
         controller_fork_child(device_descriptor);
+        return true;
     } else {
         controller_fork_parent(pid);
         return true;

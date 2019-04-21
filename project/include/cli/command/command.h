@@ -2,6 +2,7 @@
 #define _COMMAND_H
 
 #include "collection/collection_list.h"
+#include "collection/collection_trie.h"
 
 #define COMMAND_NAME_LENGTH 25
 #define COMMAND_DESCRIPTION_LENGTH 250
@@ -55,5 +56,7 @@ void command_print_all(void);
  * @param command The command to retrieve information
  */
 void command_print(const Command *command);
+
+char* autocomplete_search(char * buffer, char * dat);
 
 #endif

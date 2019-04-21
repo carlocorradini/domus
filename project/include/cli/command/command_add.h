@@ -10,4 +10,6 @@
  */
 Command *command_add(void);
 
+void controller_process_spawn(void);
+
 #endif

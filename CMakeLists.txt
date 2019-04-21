@@ -28,6 +28,7 @@ set(
         ./project/src/cli/command/command_list.c
         ./project/include/device/device.h
         ./project/src/device/device.c
+        ./project/src/collection/collection_trie.c
         project/include/device/control/device_controller.h
         project/src/device/control/device_controller.c
         project/include/device/control/device_hub.h

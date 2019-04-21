@@ -24,21 +24,39 @@
  * List of Supported Commands
  */
 static List *commands = NULL;
+static Trie *autocomplete = NULL;
 
 void command_init(void) {
     if (commands != NULL) return;
     commands = new_list(NULL, NULL);
 
+    if(autocomplete != NULL) return;
+    autocomplete = new_trie(NULL, NULL);
+
     list_add_last(commands, command_add());
+    autocomplete = insert(autocomplete, command_add()->name, 1);
     list_add_last(commands, command_clear());
+    autocomplete = insert(autocomplete, command_clear()->name, 1);
     list_add_last(commands, command_del());
+    autocomplete = insert(autocomplete, command_del()->name, 1);
     list_add_last(commands, command_device());
+    autocomplete = insert(autocomplete, command_device()->name, 1);
     list_add_last(commands, command_exit());
+    autocomplete = insert(autocomplete, command_exit()->name, 1);
     list_add_last(commands, command_help());
+    autocomplete = insert(autocomplete, command_help()->name, 1);
     list_add_last(commands, command_info());
+    autocomplete = insert(autocomplete, command_info()->name, 1);
     list_add_last(commands, command_link());
+    autocomplete = insert(autocomplete, command_link()->name, 1);
     list_add_last(commands, command_list());
+    autocomplete = insert(autocomplete, command_list()->name, 1);
     list_add_last(commands, command_switch());
+    autocomplete = insert(autocomplete, command_switch()->name, 1);
+}
+
+char* autocomplete_search(char * buffer, char * dat){
+    return search(autocomplete->root, buffer, dat);
 }
 
 void command_tini(void) {
