@@ -69,7 +69,7 @@ bool free_list(List *list) {
 }
 
 bool list_is_empty(const List *list) {
-    if (list == NULL) return NULL;
+    if (list == NULL) return true;
     return list->size == 0 && list->head == NULL && list->tail == NULL;
 }
 
@@ -146,9 +146,9 @@ bool list_add_first(List *list, void *data) {
     if (list == NULL) return false;
 
     node = list_new_node(data);
-    node->next = list->head;
 
     if (list->head != NULL) {
+        node->next = list->head;
         list->head->prev = node;
     }
     if (list->tail == NULL) {
@@ -165,9 +165,9 @@ bool list_add_last(List *list, void *data) {
     if (list == NULL) return false;
 
     node = list_new_node(data);
-    node->prev = list->tail;
 
     if (list->tail != NULL) {
+        node->prev = list->tail;
         list->tail->next = node;
     }
     if (list->head == NULL) {
@@ -187,6 +187,7 @@ void *list_get(const List *list, size_t index) {
 }
 
 void *list_get_first(const List *list) {
+    if (list == NULL) return NULL;
     return list_get(list, 0);
 }
 
@@ -246,7 +247,7 @@ bool list_remove(List *list, const void *data) {
     while (node != NULL) {
         if (list->equals(node->data, data)) {
             element = list_remove_index(list, index);
-            if(list->destroy == NULL) {
+            if (list->destroy == NULL) {
                 free(element);
             } else {
                 list->destroy(element);

@@ -29,6 +29,7 @@ DEV := $(shell find $(DEV_SRC_DIR) -type f -name '*.c')
 DEV_OBJ := $(patsubst $(DEV_SRC_DIR)/%.c, $(DEV_OBJ_DIR)/%.o, $(DEV))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring controller,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring device.o,$a),,$a))
+DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring communication,$a),,$a))
 
 # All .o files, both commons and specific ones
 ALL_OBJ := $(OBJ)

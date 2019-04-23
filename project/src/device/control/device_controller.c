@@ -1,6 +1,9 @@
 
+#include <fcntl.h>
 #include <string.h>
+#include <signal.h>
 #include "device/control/device_controller.h"
+#include "device/device_communication.h"
 #include "cli/command/command.h"
 #include "cli/cli.h"
 #include "author.h"
@@ -29,15 +32,24 @@ static bool controller_check_controller(void);
 
 /**
  * Replaces the current running process with a new device process described in the Device Descriptor
+ * @param pid The parent pid
  * @param device_descriptor The descriptor of the device to be created
  */
-static void controller_fork_child(const DeviceDescriptor *device_descriptor);
+static void controller_fork_child(pid_t pid, const DeviceDescriptor *device_descriptor);
 
 /**
  * Add the new child process to the controller devices list
  * @param pid The pid of the child process
  */
-static void controller_fork_parent(pid_t pid);
+
+/**
+ * Add the new child process to the controller devices list for communication
+ * @param pid The pid of the child process
+ * @param device_descriptor The Device Descriptor of the new process
+ * @param com_read File Descriptor for parent -> READ
+ * @param com_write File Descriptor for parent -> WRITE
+ */
+static void controller_fork_parent(pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write);
 
 /**
  * Change the state of the controller
@@ -45,6 +57,12 @@ static void controller_fork_parent(pid_t pid);
  * @return true if the operation was successful, false otherwise
  */
 static bool controller_master_switch(bool state);
+
+/**
+ * Wake Up the controller to read the read pipes
+ * @param signal_number SIGUSR1 signal for reading
+ */
+static void controller_read(int signal_number);
 
 void controller_start(void) {
     controller_init();
@@ -61,6 +79,8 @@ static void controller_init(void) {
                        new_controller_registry(),
                        controller_master_switch),
             new_list(NULL, NULL));
+    /* Attach to SIGUSR1 the signal to force the controller to check new messages */
+    signal(SIGUSR1, controller_read);
 
     command_init();
     author_init();
@@ -100,122 +120,91 @@ static bool controller_check_controller(void) {
            controller->device->registry != NULL && controller->device->master_switch != NULL;
 }
 
-/*
 bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
-    pid_t pid;
+    pid_t pid_child;
+    pid_t pid_parent;
+    int write_parent_read_child[2];
+    int write_child_read_parent[2];
     if (device_descriptor == NULL) return false;
 
-    pid = fork();
-    if (pid == -1) {
-        fprintf(stderr, "Controller Fork: Unable to fork\n");
+    if (pipe(write_parent_read_child) == -1
+        || pipe(write_child_read_parent) == -1) {
+        perror("Controller Fork Pipe");
         exit(EXIT_FAILURE);
-    } else if (pid == 0) {
-        controller_fork_child(device_descriptor);
-        return true;
-    } else {
-        controller_fork_parent(pid);
-        return true;
     }
-    return false;
-}
-*/
-
-/* /todo PIPE SUPPORT EXAMPLE!*/
-#include <sys/types.h>
-#include <sys/wait.h>
-
-bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
-    int pid, n, c, p, k, nbread;
-    char buf1[12], buf2[12];
-    int fd1[2], fd2[2];
-
-    pipe(fd1);
-    pipe(fd2);
-    pid = fork();
-
-    if (pid == 0) {
-        close(fd1[1]);
-        close(fd2[0]);
-        read(fd1[0], buf2, sizeof(buf2));
-        n = atoi(buf2);
-        printf("Child read %d\n", n);
-        int i;
-        for (i = 0; i < n; i++) {
-            printf("child dozes...\n");
-            sleep(3);
-            printf("child wakes...\n");
-            nbread = read(fd1[0], buf2, sizeof(buf2));
-            if (nbread == -1) {
-                fprintf(stderr, "child exits after read failure\n");
-                exit(1);
-            }
-            c = atoi(buf2);
-            c = c * 2;
-            sprintf(buf2, "%d", c);
-            write(fd2[1], buf2, sizeof(buf2));
-            printf("Child wrote [%s]\n", buf2);
-        }
-        close(fd1[0]);
-        close(fd2[1]);
-        printf("Child done\n");
-        exit(0);
-    } else {
-        close(fd1[0]);
-        close(fd2[1]);
-        printf("Enter integer: ");
-        scanf("%d", &p);
-        sprintf(buf1, "%d", p);
-        write(fd1[1], buf1, sizeof(buf1));
-        printf("Parent wrote [%s]\n", buf1);
-        printf("parent dozes...\n");
-        sleep(3);
-        printf("parent wakes...\n");
-        int i;
-        for (i = 0; i < p; i++) {
-            sprintf(buf1, "%d", i);
-            write(fd1[1], buf1, sizeof(buf1));
-            printf("parent wrote [%s]\n", buf1);
-            read(fd2[0], buf2, sizeof(buf2));
-            printf("number is: %s\n", buf2);
-        }
-        close(fd1[1]);
-        close(fd2[0]);
-        wait(NULL);
+    if (fcntl(write_parent_read_child[0], F_SETFL, O_NONBLOCK) == -1
+        || fcntl(write_child_read_parent[0], F_SETFL, O_NONBLOCK) == -1) {
+        perror("Controller Fork fcntl");
+        exit(EXIT_FAILURE);
     }
+
+    pid_parent = getpid();
+    switch (pid_child = fork()) {
+        case -1: {
+            perror("Controller Fork Forking");
+            exit(EXIT_FAILURE);
+        }
+        case 0: {
+            close(write_parent_read_child[1]);
+            close(write_child_read_parent[0]);
+            /* Attach child stdout to write child pipe */
+            dup2(write_child_read_parent[1], DEVICE_COMMUNICATION_CHILD_WRITE);
+
+            controller_fork_child(pid_parent, device_descriptor);
+            break;
+        }
+        default: {
+            close(write_parent_read_child[0]);
+            close(write_child_read_parent[1]);
+
+            controller_fork_parent(pid_child, device_descriptor, write_child_read_parent[0],
+                                   write_parent_read_child[1]);
+            break;
+        }
+    }
+
+    return true;
 }
 
-static void controller_fork_child(const DeviceDescriptor *device_descriptor) {
+static void controller_fork_child(pid_t pid, const DeviceDescriptor *device_descriptor) {
+    char device_name[DEVICE_NAME_LENGTH];
+    char parent_pid[10];
     if (device_descriptor == NULL) return;
 
-    char device_name[DEVICE_NAME_LENGTH];
     strncpy(device_name, device_descriptor->name, DEVICE_NAME_LENGTH);
+    sprintf(parent_pid, "%d", pid);
+
     char *const device_args[] = {
+            parent_pid,
             device_name,
             NULL
     };
 
-    execv(device_descriptor->file_name, device_args);
-}
-
-/*\todo WARNING, CHANGE IN FUTURE*/
-static void controller_fork_parent(pid_t pid) {
-    ControllerRegistry *registry;
-    /* todo Future this is a Struct */
-    pid_t *pid_child;
-    if (!controller_check_controller()) return;
-    if (pid < 0) return;
-
-    pid_child = (pid_t *) malloc(sizeof(pid_t));
-    if (pid_child == NULL) {
-        perror("Controller Fork Parent Memory Allocation");
+    if (execv(device_descriptor->file_name, device_args) == -1) {
+        perror("Error exec Controller Fork Child");
         exit(EXIT_FAILURE);
     }
+}
 
-    *pid_child = pid;
+static void controller_fork_parent(pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write) {
+    ControllerRegistry *registry;
+    if (!controller_check_controller()) return;
+    if (pid < 0 || com_read < 0 || com_write < 0) return;
 
-    list_add_last(controller->devices, pid_child);
-    registry = controller->device->registry;
+    list_add_last(controller->devices, new_device_communication(pid, device_descriptor, com_read, com_write));
+    registry = (ControllerRegistry *) controller->device->registry;
     registry->connected_directly = registry->connected_total = controller->devices->size;
+}
+
+static void controller_read(int signal_number) {
+    if (signal_number == SIGUSR1) {
+        DeviceCommunication *data;
+        if (!controller_check_controller()) return;
+
+        list_for_each(data, controller->devices) {
+            device_communication_read(data->com_read);
+        }
+    }
 }
 
 size_t controller_connected_directly(void) {

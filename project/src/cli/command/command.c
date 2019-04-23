@@ -77,6 +77,7 @@ Command *new_command(char name[], char description[], char syntax[], int (*execu
 }
 
 /* \todo Implement with HashMap O(1) instead of O(n) */
+#include "device/control/device_controller.h"
 int command_execute(char **args) {
     Command *data;
     if (args[0] == NULL) {
