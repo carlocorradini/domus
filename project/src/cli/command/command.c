@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include "collection/collection_list.h"
+#include "collection/collection_trie.h"
 #include "cli/command/command.h"
 #include "cli/cli.h"
 #include "util/util_printer.h"
@@ -24,39 +26,36 @@
  * List of Supported Commands
  */
 static List *commands = NULL;
+/**
+ * Trie of Supported Commands
+ */
 static Trie *autocomplete = NULL;
 
 void command_init(void) {
-    if (commands != NULL) return;
+    if (commands != NULL || autocomplete != NULL) return;
     commands = new_list(NULL, NULL);
-
-    if(autocomplete != NULL) return;
     autocomplete = new_trie(NULL, NULL);
 
     list_add_last(commands, command_add());
-    autocomplete = insert(autocomplete, command_add()->name, 1);
+    autocomplete = trie_insert(autocomplete, command_add()->name, 1);
     list_add_last(commands, command_clear());
-    autocomplete = insert(autocomplete, command_clear()->name, 1);
+    autocomplete = trie_insert(autocomplete, command_clear()->name, 1);
     list_add_last(commands, command_del());
-    autocomplete = insert(autocomplete, command_del()->name, 1);
+    autocomplete = trie_insert(autocomplete, command_del()->name, 1);
     list_add_last(commands, command_device());
-    autocomplete = insert(autocomplete, command_device()->name, 1);
+    autocomplete = trie_insert(autocomplete, command_device()->name, 1);
     list_add_last(commands, command_exit());
-    autocomplete = insert(autocomplete, command_exit()->name, 1);
+    autocomplete = trie_insert(autocomplete, command_exit()->name, 1);
     list_add_last(commands, command_help());
-    autocomplete = insert(autocomplete, command_help()->name, 1);
+    autocomplete = trie_insert(autocomplete, command_help()->name, 1);
     list_add_last(commands, command_info());
-    autocomplete = insert(autocomplete, command_info()->name, 1);
+    autocomplete = trie_insert(autocomplete, command_info()->name, 1);
     list_add_last(commands, command_link());
-    autocomplete = insert(autocomplete, command_link()->name, 1);
+    autocomplete = trie_insert(autocomplete, command_link()->name, 1);
     list_add_last(commands, command_list());
-    autocomplete = insert(autocomplete, command_list()->name, 1);
+    autocomplete = trie_insert(autocomplete, command_list()->name, 1);
     list_add_last(commands, command_switch());
-    autocomplete = insert(autocomplete, command_switch()->name, 1);
-}
-
-char* autocomplete_search(char * buffer, char * dat){
-    return search(autocomplete->root, buffer, dat);
+    autocomplete = trie_insert(autocomplete, command_switch()->name, 1);
 }
 
 void command_tini(void) {
@@ -113,4 +112,8 @@ void command_print_all(void) {
 void command_print(const Command *command) {
     print_color(COLOR_YELLOW, "\t%-*s", COMMAND_SYNTAX_LENGTH, command->syntax);
     println("%s", command->description);
+}
+
+char *command_autocomplete_search(char *buffer, char *dat) {
+    return trie_search(autocomplete->root, buffer, dat);
 }

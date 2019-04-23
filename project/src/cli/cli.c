@@ -3,6 +3,8 @@
 #include "cli/cli.h"
 #include "cli/command/command.h"
 #include "util/util_printer.h"
+#include "collection/collection_list.h"
+#include "collection/collection_trie.h"
 
 
 static List *cli_list = NULL;
@@ -34,6 +36,8 @@ void cli_start(void) {
     char *line;
     char **args;
     int status;
+
+    cli_list = new_list(NULL, NULL);
 
     do {
         print("%s ", CLI_POINTER);
@@ -67,44 +71,39 @@ static char *cli_read_line(void) {
         perror("Read Line Memory Allocation");
         exit(EXIT_FAILURE);
     }
-
-    if(cli_list == NULL){
-        cli_list = new_list(NULL, NULL);
+    if (cli_list == NULL) {
+        fprintf(stderr, "Cli List has not been initialized\n");
+        exit(EXIT_FAILURE);
     }
 
     system("stty raw");
-    while (1) {
+
+    while (true) {
 
         c = getchar();
 
         switch (c) {
-
-            //Ctrl + C
-            case 3:
+            case CLI_ASCII_END_OF_TEXT: {
                 printf("\033[100D");
-                exit(0);
-                break;
-
-            // Tab
-            case 9:
+                exit(EXIT_SUCCESS);
+            }
+            case CLI_ASCII_TAB: {
                 printf("\033[6D");
-                buffer[position] = '\0';
-                char *res = autocomplete_search(buffer, dat);
+                buffer[position] = CLI_STRING_TERMINATOR;
+                char *res = command_autocomplete_search(buffer, dat);
                 if (res != NULL) {
                     printf("\033[100D");
                     printf("\033[2C");
                     strcpy(buffer, res);
                     printf("%s", buffer);
                     position = (int) strlen(buffer);
-                }
-                else{
+                } else {
                     printf("%s", buffer);
                 }
                 break;
-
-            // Enter
-            case 13:
-                buffer[position] = '\0';
+            }
+            case CLI_ASCII_CARRIAGE_RETURN: {
+                buffer[position] = CLI_STRING_TERMINATOR;
                 printf("\033[2D");
                 printf("   ");
                 printf("\033[2D\n");
@@ -126,28 +125,27 @@ static char *cli_read_line(void) {
                 cli_node = cli_list->head;
 
                 return buffer;
-                break;
-
+            }
             case 65:
                 printf("\033[4D");
                 printf("    ");
                 printf("\033[4D");
 
-                if(cli_node == NULL){
+                if (cli_node == NULL) {
                     cli_node = cli_list->head;
                 }
 
                 printf("\033[100D");
                 printf("\033[2C");
                 int i = 0;
-                for(i; i< 100; i++){
+                for (i; i < 100; i++) {
                     printf(" ");
                 }
                 printf("\033[%dD", 100);
 
 
-                char * data;
-                data =  (char *) cli_node->data;
+                char *data;
+                data = (char *) cli_node->data;
                 printf("%s", data);
                 strcpy(buffer, data);
                 position = (int) strlen(data);
@@ -170,29 +168,29 @@ static char *cli_read_line(void) {
                 printf("\033[4D");
                 printf("new");
                 break;
-            // Delete
-            case 127:
-                if(position > 0) {
+                // Delete
+            case CLI_ASCII_DELETE: {
+                if (position > 0) {
                     printf("\033[3D");
                     printf("   ");
                     printf("\033[3D");
                     position--;
-                }
-                else{
+                } else {
                     printf("\033[2D");
                     printf("   ");
                     printf("\033[3D");
                 }
                 break;
+            }
 
-            default:
+            default: {
                 if (c == EOF) {
                     exit(EXIT_SUCCESS);
                 } else {
                     buffer[position] = c;
                     position++;
                 }
-
+            }
         }
     }
 }

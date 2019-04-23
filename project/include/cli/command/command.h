@@ -1,9 +1,6 @@
 #ifndef _COMMAND_H
 #define _COMMAND_H
 
-#include "collection/collection_list.h"
-#include "collection/collection_trie.h"
-
 #define COMMAND_NAME_LENGTH 25
 #define COMMAND_DESCRIPTION_LENGTH 250
 #define COMMAND_SYNTAX_LENGTH 35
@@ -57,6 +54,12 @@ void command_print_all(void);
  */
 void command_print(const Command *command);
 
-char* autocomplete_search(char * buffer, char * dat);
+/**
+ *
+ * @param buffer
+ * @param dat
+ * @return
+ */
+char *command_autocomplete_search(char *buffer, char *dat);
 
 #endif
