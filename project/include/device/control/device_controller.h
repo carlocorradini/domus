@@ -10,6 +10,7 @@
  * Struct Controller Registry
  */
 typedef struct ControllerRegistry {
+    size_t next_id;
     size_t connected_directly;
     size_t connected_total;
 } ControllerRegistry;

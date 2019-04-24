@@ -11,6 +11,7 @@
 #define DEVICE_NAME_LENGTH 35
 #define DEVICE_DESCRIPTION_LENGTH 250
 #define DEVICE_PATH_LENGTH 256
+#define DEVICE_CHILD_ARGS_LENGTH 3
 
 /**
  * Struct generic Device
@@ -65,6 +66,20 @@ void device_tini(void);
 Device *new_device(pid_t pid, size_t id, bool state, void *registry, bool (*master_switch)(bool));
 
 /**
+ * Free a Device
+ * @param device The Device to free
+ * @return true if the Device has been freed, false otherwise
+ */
+bool free_device(Device *device);
+
+/**
+ * Check if a Device is correctly initialized
+ * @param device The Device to check
+ * @return true if correctly initialized, false otherwise
+ */
+bool device_check_device(const Device *device);
+
+/**
  * Create a new generic Control Device
  * @param device The generic Device
  * @param devices The List for all controlled Devices
@@ -78,6 +93,13 @@ ControlDevice *new_control_device(Device *device, List *devices);
  * @return true if the Control Device has been freed, false otherwise
  */
 bool free_control_device(ControlDevice *control_device);
+
+/**
+ * Check if a Control Device is correctly initialized
+ * @param control_device The Control Device to check
+ * @return true if correctly initialized, false otherwise
+ */
+bool device_check_control_device(const ControlDevice *control_device);
 
 /**
  * Create a new Device Descriptor

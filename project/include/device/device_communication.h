@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include "device/device.h"
 
+#define DEVICE_COMMUNICATION_CHILD_READ 0
 #define DEVICE_COMMUNICATION_CHILD_WRITE 1
 #define DEVICE_COMMUNICATION_MESSAGE_LENGTH 256
 
@@ -23,9 +24,9 @@ typedef struct DeviceCommunicationMessage {
 DeviceCommunication *
 new_device_communication(pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write);
 
-void device_communication_read(int com_read);
+bool device_communication_read_message(const DeviceCommunication *device_communication);
 
-void device_communication_write(int com_write, const DeviceCommunicationMessage *message);
+bool device_communication_write_message(const DeviceCommunication *device_communication, const DeviceCommunicationMessage *message);
 
 void device_communication_notify(pid_t pid);
 

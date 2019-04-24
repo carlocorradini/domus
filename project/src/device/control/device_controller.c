@@ -25,22 +25,12 @@ static void controller_init(void);
 static void controller_tini(void);
 
 /**
- * Check if the controller is correctly initialized
- * @return true if correctly initialized, false otherwise
- */
-static bool controller_check_controller(void);
-
-/**
  * Replaces the current running process with a new device process described in the Device Descriptor
  * @param pid The parent pid
+ * @param id The child id
  * @param device_descriptor The descriptor of the device to be created
  */
-static void controller_fork_child(pid_t pid, const DeviceDescriptor *device_descriptor);
-
-/**
- * Add the new child process to the controller devices list
- * @param pid The pid of the child process
- */
+static void controller_fork_child(pid_t pid, size_t id, const DeviceDescriptor *device_descriptor);
 
 /**
  * Add the new child process to the controller devices list for communication
@@ -95,14 +85,14 @@ static void controller_tini(void) {
 }
 
 static bool controller_master_switch(bool state) {
-    if (!controller_check_controller()) return false;
+    if (!device_check_control_device(controller)) return false;
     controller->device->state = state;
     return true;
 }
 
 ControllerRegistry *new_controller_registry(void) {
     ControllerRegistry *controller_registry;
-    if (controller_check_controller()) return NULL;
+    if (device_check_control_device(controller)) return NULL;
 
     controller_registry = (ControllerRegistry *) malloc(sizeof(ControllerRegistry));
     if (controller_registry == NULL) {
@@ -110,22 +100,22 @@ ControllerRegistry *new_controller_registry(void) {
         exit(EXIT_FAILURE);
     }
 
+    controller_registry->next_id = 1;
     controller_registry->connected_directly = controller_registry->connected_total = 0;
 
     return controller_registry;
 }
 
-static bool controller_check_controller(void) {
-    return controller != NULL && controller->device != NULL && controller->devices != NULL &&
-           controller->device->registry != NULL && controller->device->master_switch != NULL;
-}
+
+#include <sys/wait.h>
 
 bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
     pid_t pid_child;
     pid_t pid_parent;
+    size_t next_id;
     int write_parent_read_child[2];
     int write_child_read_parent[2];
-    if (device_descriptor == NULL) return false;
+    if (!device_check_control_device(controller) || device_descriptor == NULL) return false;
 
     if (pipe(write_parent_read_child) == -1
         || pipe(write_child_read_parent) == -1) {
@@ -139,6 +129,10 @@ bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
     }
 
     pid_parent = getpid();
+    /* Get next valid id and after increment by one */
+    next_id = ((ControllerRegistry *) controller->device->registry)->next_id;
+    ((ControllerRegistry *) controller->device->registry)->next_id++;
+    /* Fork the current process */
     switch (pid_child = fork()) {
         case -1: {
             perror("Controller Fork Forking");
@@ -147,10 +141,11 @@ bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
         case 0: {
             close(write_parent_read_child[1]);
             close(write_child_read_parent[0]);
+
             /* Attach child stdout to write child pipe */
             dup2(write_child_read_parent[1], DEVICE_COMMUNICATION_CHILD_WRITE);
 
-            controller_fork_child(pid_parent, device_descriptor);
+            controller_fork_child(pid_parent, next_id, device_descriptor);
             break;
         }
         default: {
@@ -166,19 +161,21 @@ bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
     return true;
 }
 
-static void controller_fork_child(pid_t pid, const DeviceDescriptor *device_descriptor) {
+static void controller_fork_child(pid_t pid, size_t id, const DeviceDescriptor *device_descriptor) {
+    char *device_args[DEVICE_CHILD_ARGS_LENGTH + 1];
+    char device_id[sizeof(size_t) + 1];
     char device_name[DEVICE_NAME_LENGTH];
-    char parent_pid[10];
+    char device_description[DEVICE_DESCRIPTION_LENGTH];
     if (device_descriptor == NULL) return;
 
+    snprintf(device_id, sizeof(size_t) + 1, "%ld", id);
     strncpy(device_name, device_descriptor->name, DEVICE_NAME_LENGTH);
-    sprintf(parent_pid, "%d", pid);
+    strncpy(device_description, device_descriptor->description, DEVICE_DESCRIPTION_LENGTH);
 
-    char *const device_args[] = {
-            parent_pid,
-            device_name,
-            NULL
-    };
+    device_args[0] = device_id;
+    device_args[1] = device_name;
+    device_args[2] = device_description;
+    device_args[3] = NULL;
 
     if (execv(device_descriptor->file_name, device_args) == -1) {
         perror("Error exec Controller Fork Child");
@@ -188,7 +185,7 @@ static void controller_fork_child(pid_t pid, const DeviceDescriptor *device_desc
 
 static void controller_fork_parent(pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write) {
     ControllerRegistry *registry;
-    if (!controller_check_controller()) return;
+    if (!device_check_control_device(controller)) return;
     if (pid < 0 || com_read < 0 || com_write < 0) return;
 
     list_add_last(controller->devices, new_device_communication(pid, device_descriptor, com_read, com_write));
@@ -199,17 +196,17 @@ static void controller_fork_parent(pid_t pid, const DeviceDescriptor *device_des
 static void controller_read(int signal_number) {
     if (signal_number == SIGUSR1) {
         DeviceCommunication *data;
-        if (!controller_check_controller()) return;
+        if (!device_check_control_device(controller)) return;
 
         list_for_each(data, controller->devices) {
-            device_communication_read(data->com_read);
+            device_communication_read_message(data);
         }
     }
 }
 
 size_t controller_connected_directly(void) {
     ControllerRegistry *registry;
-    if (!controller_check_controller()) return -1;
+    if (!device_check_control_device(controller)) return -1;
 
     registry = (ControllerRegistry *) controller->device->registry;
     if (controller->devices->size != registry->connected_directly) return -1;
@@ -219,7 +216,7 @@ size_t controller_connected_directly(void) {
 
 size_t controller_connected_total(void) {
     ControllerRegistry *registry;
-    if (!controller_check_controller()) return -1;
+    if (!device_check_control_device(controller)) return -1;
 
     registry = (ControllerRegistry *) controller->device->registry;
 

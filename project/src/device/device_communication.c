@@ -5,10 +5,7 @@
 
 DeviceCommunication *
 new_device_communication(pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write) {
-    DeviceCommunication *device_communication;
-    if (device_descriptor == NULL) return NULL;
-
-    device_communication = (DeviceCommunication *) malloc(sizeof(DeviceCommunication));
+    DeviceCommunication *device_communication = (DeviceCommunication *) malloc(sizeof(DeviceCommunication));
     if (device_communication == NULL) {
         perror("Device Communication Memory Allocation");
         exit(EXIT_FAILURE);
@@ -22,12 +19,13 @@ new_device_communication(pid_t pid, const DeviceDescriptor *device_descriptor, i
     return device_communication;
 }
 
-void device_communication_read(int com_read) {
+bool device_communication_read_message(const DeviceCommunication *device_communication) {
     DeviceCommunicationMessage message;
     int read_result;
-    if (com_read < 0) return;
+    if (device_communication == NULL || device_communication->com_read < 0) return false;
 
-    while ((read_result = read(com_read, &message, sizeof(DeviceCommunicationMessage))) != 0) {
+    while ((read_result = read(device_communication->com_read, &message, sizeof(DeviceCommunicationMessage))) != 0) {
+
         switch (read_result) {
             case -1: {
                 /* Empty or Error */
@@ -39,7 +37,7 @@ void device_communication_read(int com_read) {
             }
             case 0: {
                 /* End of Messages */
-                return;
+                return true;
             }
             default: {
                 /* Message Found */
@@ -48,12 +46,19 @@ void device_communication_read(int com_read) {
             }
         }
     }
+
+    return true;
 }
 
-void device_communication_write(int com_write, const DeviceCommunicationMessage *message) {
-    if (message == NULL) return;
-    if (com_write < 0) return;
-    write(com_write, message, sizeof(DeviceCommunicationMessage));
+bool device_communication_write_message(const DeviceCommunication *device_communication,
+                                        const DeviceCommunicationMessage *message) {
+    if (device_communication == NULL || message == NULL
+        || device_communication->com_write < 0 || device_communication->pid < 0)
+        return false;
+
+    write(device_communication->com_write, message, sizeof(DeviceCommunicationMessage));
+    device_communication_notify(device_communication->pid);
+    return true;
 }
 
 void device_communication_notify(pid_t pid) {

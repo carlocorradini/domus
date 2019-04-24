@@ -1,4 +1,5 @@
 
+#include <stdio.h>
 #include "cli/cli.h"
 #include "cli/command/command_link.h"
 

@@ -45,6 +45,20 @@ Device *new_device(pid_t pid, size_t id, bool state, void *registry, bool (*mast
     return device;
 }
 
+bool free_device(Device *device) {
+    if (device == NULL) return false;
+    if (device->registry == NULL) return false;
+
+    free(device->registry);
+    free(device);
+
+    return true;
+}
+
+bool device_check_device(const Device *device) {
+    return device != NULL && device->registry != NULL && device->master_switch != NULL;
+}
+
 ControlDevice *new_control_device(Device *device, List *devices) {
     ControlDevice *control_device;
     if (device == NULL || devices == NULL) {
@@ -64,14 +78,18 @@ ControlDevice *new_control_device(Device *device, List *devices) {
 }
 
 bool free_control_device(ControlDevice *control_device) {
-    if(control_device == NULL) return false;
-    if(control_device->device == NULL || control_device->devices == NULL) return false;
+    if (control_device == NULL) return false;
+    if (control_device->device == NULL || control_device->devices == NULL) return false;
 
     free_list(control_device->devices);
-    free(control_device->device);
+    if (!free_device(control_device->device)) return false;
     free(control_device);
 
     return true;
+}
+
+bool device_check_control_device(const ControlDevice *control_device) {
+    return control_device != NULL && device_check_device(control_device->device) && control_device->devices != NULL;
 }
 
 DeviceDescriptor *new_device_descriptor(char name[], char description[], char file_name[]) {
