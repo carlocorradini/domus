@@ -115,5 +115,7 @@ void command_print(const Command *command) {
 }
 
 char *command_autocomplete_search(char *buffer, char *dat) {
-    return trie_search(autocomplete->root, buffer, dat);
+    char* tmp = (char *) malloc(sizeof(char)*strlen(buffer));
+    strcpy(tmp,buffer);
+    return trie_search(autocomplete->root, tmp, dat);
 }

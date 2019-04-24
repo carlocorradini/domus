@@ -4,6 +4,18 @@
 #include <string.h>
 #include "collection/collection_trie.h"
 
+/**
+ * Finds the word stored in the trie structure
+ * starting from the node "node" (assuming trie_search
+ * has already run in order to check if the inserted prefix
+ * exists)
+ * @param node the node currently working on
+ * @param tmp the word found so far
+ * @param dat the result
+ * @return
+ */
+static char *trie_find_possible(Trie_node *node, char *tmp, char *dat);
+
 Trie *new_trie(void (*destroy)(void *), bool(*equals)(const void *, const void *)) {
     Trie *trie = (Trie *) malloc(sizeof(Trie));
     if (trie == NULL) {
@@ -52,7 +64,7 @@ Trie *trie_insert(Trie *trie, char *word, int value) {
     return trie;
 }
 
-char *trie_find_possible(Trie_node *node, char *tmp, char *dat) {
+static char *trie_find_possible(Trie_node *node, char *tmp, char *dat) {
     unsigned short int i;
     char a[2];
     if (node == NULL) return NULL;
