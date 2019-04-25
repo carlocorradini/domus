@@ -63,9 +63,9 @@ static int cli_execute(char **args) {
  * Move the cursor to the left
  * @param value # of positions (if null, it's set to 100)
  */
-static void cursor_left(void * value){
-    if(value != NULL){
-        printf("\033[%dD", (int) value);
+static void cursor_left(int value){
+    if(value != 0){
+        printf("\033[%dD", value);
     }
     else{
         printf("\033[100D");
@@ -76,9 +76,9 @@ static void cursor_left(void * value){
  * Move the cursor to the right
  * @param value # of positions (if null, it's set to 100)
  */
-static void cursor_right(void * value){
-    if(value != NULL){
-        printf("\033[%dC", (int) value);
+static void cursor_right(int value){
+    if(value != 0){
+        printf("\033[%dC", value);
     }
     else{
         printf("\033[100C");
@@ -89,7 +89,7 @@ static void cursor_right(void * value){
  * Print white spaces
  * @param value # of white spaces to print
  */
-static void white_space(int* value){
+static void white_space(int value){
     int i = 0;
     for(i; i<value; i++){
         printf(" ");
@@ -102,7 +102,7 @@ static void white_space(int* value){
  * @param position the buffer position
  */
 static void clear_from_char(int position){
-    cursor_left(NULL);
+    cursor_left(0);
     cursor_right(position + 2);
     white_space(7);
     cursor_left(7);
@@ -112,7 +112,7 @@ static void clear_from_char(int position){
  * Move cursor to the left right after the ">" character
  */
 static void move_left(){
-    cursor_left(NULL);
+    cursor_left(0);
     cursor_right(2);
 }
 
@@ -121,7 +121,7 @@ static void move_left(){
  * @param c the char
  * @return return true/false
  */
-static bool isNumber(char* c){
+static bool isNumber(char c){
     return c > 47 && c < 58;
 }
 
@@ -130,7 +130,7 @@ static bool isNumber(char* c){
  * @param c the char
  * @return return true/false
  */
-static bool isCapital(char* c){
+static bool isCapital(char c){
     return c > 64 && c < 9;
 }
 
@@ -139,7 +139,7 @@ static bool isCapital(char* c){
  * @param c the char
  * @return return true/false
  */
-static bool isLower(char* c){
+static bool isLower(char c){
     return c > 96 && c < 123;
 }
 
@@ -150,11 +150,11 @@ static char *cli_read_line(void) {
     int buffer_size = CLI_READ_LINE_BUFFER_SIZE;
     char *buffer = (char *) malloc(sizeof(char) * buffer_size);
 
-    if (buffer == NULL) {
+    if (buffer == 0) {
         perror("Read Line Memory Allocation");
         exit(EXIT_FAILURE);
     }
-    if (cli_list == NULL) {
+    if (cli_list == 0) {
         fprintf(stderr, "Cli List has not been initialized\n");
         exit(EXIT_FAILURE);
     }
@@ -212,8 +212,6 @@ static char *cli_read_line(void) {
                         strcpy(buffer, res);
                         printf("%s", buffer);
                         position = (int) strlen(buffer);
-                    } else {
-                        //printf("%s", buffer);
                     }
                     break;
                 }
@@ -225,7 +223,7 @@ static char *cli_read_line(void) {
                     buffer[position] = CLI_STRING_TERMINATOR;
                     cursor_left(2);
                     white_space(3);
-                    cursor_left(NULL);
+                    cursor_left(0);
                     printf("\n");
                     system("stty cooked");
 
