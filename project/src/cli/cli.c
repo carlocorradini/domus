@@ -225,7 +225,45 @@ static char *cli_read_line(void) {
                             if (cli_node == NULL) {
                                 cli_node = cli_list->head;
                             }
+                            move_left();
+                            /*
+                             * Clear everything
+                             */
+                            white_space(100);
+                            cursor_left(100);
 
+                            char *data;
+                            data = (char *) cli_node->data;
+                            printf("%s", data);
+                            strcpy(buffer, data);
+                            position = (int) strlen(data);
+                            cli_node = cli_node->next;
+                            if (cli_node == NULL) {
+                                cli_node = cli_list->head;
+                            }
+
+
+                        }
+                        break;
+                    }
+
+                    /*
+                     * If is down arrow
+                     */
+                    if (c == CLI_CHARACTER_DOWN_ARROW) {
+                        if(cli_node != NULL){
+                            if(cli_node->prev == NULL) {
+                                cli_node = cli_list->tail;
+                            }
+                            else{
+                                cli_node = cli_node->prev;
+                            }
+                            if(cli_node->prev == NULL) {
+                                cli_node = cli_list->tail;
+                            }
+                            else{
+                                cli_node = cli_node->prev;
+                            }
                             move_left();
                             /*
                              * Clear everything
@@ -243,48 +281,6 @@ static char *cli_read_line(void) {
                                 cli_node = cli_list->head;
                             }
                         }
-                        break;
-                    }
-
-                    /*
-                     * If is down arrow
-                     */
-                    if (c == CLI_CHARACTER_DOWN_ARROW) {
-
-                        Node *tmp;
-                        tmp = cli_list->head;
-
-                        while (cli_node != NULL && tmp != NULL) {
-
-                            if (tmp->next == NULL) {
-                                tmp->next = cli_list->head;
-                            }
-
-                            if (tmp->next->next == NULL) {
-                                tmp->next->next = cli_list->head;
-                            }
-                            if (tmp->next->next == cli_node) {
-                                move_left();
-                                /*
-                                 * Clear everything
-                                 */
-                                white_space(100);
-                                cursor_left(100);
-
-
-                                char *data;
-                                data = (char *) tmp->data;
-                                printf("%s", data);
-                                strcpy(buffer, data);
-                                position = (int) strlen(data);
-
-                                cli_node = tmp->next;
-                                break;
-                            }
-                            tmp = tmp->next;
-                            printf("j");
-                        }
-
                         break;
                     }
                     break;
