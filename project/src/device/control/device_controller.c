@@ -5,6 +5,7 @@
 #include "device/device_communication.h"
 #include "device/device_child.h"
 #include "cli/command/command.h"
+#include "util/util_printer.h"
 #include "cli/cli.h"
 #include "author.h"
 
@@ -49,12 +50,12 @@ static bool controller_master_switch(bool state);
 
 /**
  * Wake Up the controller to read the read pipes
- * @param signal_number SIGUSR1 signal for reading
+ * @param signal_number DEVICE_COMMUNICATION_READ_PIPE signal for reading
  */
 static void controller_read_pipe(int signal_number);
 
 /**
- * Handle messages
+ * Handle incoming message
  * @param message The message to handle
  */
 static void controller_message_handler(DeviceCommunicationMessage message);
@@ -74,8 +75,8 @@ static void controller_init(void) {
                        new_controller_registry(),
                        controller_master_switch),
             new_list(NULL, NULL));
-    /* Attach to SIGUSR1 the signal to force the controller to check new messages */
-    signal(SIGUSR1, controller_read_pipe);
+    /* Attach a macro to DEVICE_COMMUNICATION_READ_PIPE the signal to force the controller to check new messages */
+    signal(DEVICE_COMMUNICATION_READ_PIPE, controller_read_pipe);
 
     command_init();
     author_init();
@@ -196,7 +197,30 @@ static void controller_fork_parent(pid_t pid, const DeviceDescriptor *device_des
 }
 
 static void controller_message_handler(DeviceCommunicationMessage message) {
-    printf("\t{%d, %s}\n", message.type, message.message);
+    switch (message.type) {
+        case MESSAGE_TYPE_DEBUG: {
+            println("\tDEBUG MESSAGE");
+            println("\t{%s}", message.message);
+            break;
+        }
+        case MESSAGE_TYPE_ERROR: {
+            println_color(COLOR_RED, "\tERROR MESSAGE");
+            println("\t%s", message.message);
+            break;
+        }
+        case MESSAGE_TYPE_STATE: {
+            println("\t%s", message.message);
+            break;
+        }
+        case MESSAGE_TYPE_TERMINATE: {
+            println("\t%s", message.message);
+            break;
+        }
+        default: {
+            println_color(COLOR_RED, "\tMessage type [%d] | [%s] not supported", message.type, message.message);
+            break;
+        }
+    }
 }
 
 static void controller_read_pipe(int signal_number) {
@@ -210,32 +234,26 @@ static void controller_read_pipe(int signal_number) {
     }
 }
 
-size_t controller_connected_directly(void) {
-    ControllerRegistry *registry;
-    if (!device_check_control_device(controller)) return -1;
-
-    registry = (ControllerRegistry *) controller->device->registry;
-    if (controller->devices->size != registry->connected_directly) return -1;
-
-    return registry->connected_directly;
-}
-
-size_t controller_connected_total(void) {
-    ControllerRegistry *registry;
-    if (!device_check_control_device(controller)) return -1;
-
-    registry = (ControllerRegistry *) controller->device->registry;
-
-    return registry->connected_total;
-}
-
 void controller_list(void) {
     DeviceCommunication *data;
     DeviceCommunicationMessage message;
-    message.type = 0;
-    snprintf(message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "Boh");
+
+    message.type = MESSAGE_TYPE_STATE;
 
     list_for_each(data, controller->devices) {
         device_communication_write_message(data, &message);
     }
+}
+
+bool controller_del(size_t id) {
+    DeviceCommunication *data;
+    DeviceCommunicationMessage message;
+
+    message.type = MESSAGE_TYPE_TERMINATE;
+
+    list_for_each(data, controller->devices) {
+        device_communication_write_message(data, &message);
+    }
+
+    return true;
 }

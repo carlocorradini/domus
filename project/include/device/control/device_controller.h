@@ -35,20 +35,15 @@ ControllerRegistry *new_controller_registry(void);
 bool controller_fork_device(const DeviceDescriptor *device_descriptor);
 
 /**
- * Return the number of directly connected devices
- * @return directly connected devices, -1 otherwise
- */
-size_t controller_connected_directly(void);
-
-/**
- * Return the number of total connected devices
- * @return total connected devices, -1 otherwise
- */
-size_t controller_connected_total(void);
-
-/**
- * Show all devices
+ * Show all connected devices and all information about them
  */
 void controller_list(void);
+
+/**
+ * Delete a device given the id
+ * @param id The id of the device to remove
+ * @return true if removed, false otherwise
+ */
+bool controller_del(size_t id);
 
 #endif

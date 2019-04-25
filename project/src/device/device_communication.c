@@ -30,7 +30,7 @@ bool device_communication_read_message(const DeviceCommunication *device_communi
             case -1: {
                 /* Empty or Error */
                 if (errno == EAGAIN) {
-                    println("\tPipe of %ld pid is empty", device_communication->pid);
+                    /* No Error */
                     return true;
                 } else {
                     perror("Error pipe read");
