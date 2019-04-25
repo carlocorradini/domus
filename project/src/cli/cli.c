@@ -63,7 +63,7 @@ static int cli_execute(char **args) {
 static char *cli_read_line(void) {
     int c;
     int position = 0;
-    char dat[100] = "";
+    char dat[CLI_READ_LINE_BUFFER_SIZE] = "";
     int buffer_size = CLI_READ_LINE_BUFFER_SIZE;
     char *buffer = (char *) malloc(sizeof(char) * buffer_size);
 
@@ -76,121 +76,215 @@ static char *cli_read_line(void) {
         exit(EXIT_FAILURE);
     }
 
+    /*
+     * switch to raw terminal mode in order
+     * to catch special characters
+     */
     system("stty raw");
 
     while (true) {
 
         c = getchar();
 
-        switch (c) {
-            case CLI_ASCII_END_OF_TEXT: {
-                printf("\033[100D");
-                exit(EXIT_SUCCESS);
-            }
-            case CLI_ASCII_TAB: {
-                printf("\033[6D");
-                buffer[position] = CLI_STRING_TERMINATOR;
-                char *res = command_autocomplete_search(buffer, dat);
-                if (res != NULL) {
-                    printf("\033[100D");
-                    printf("\033[2C");
-                    strcpy(buffer, res);
-                    printf("%s", buffer);
-                    position = (int) strlen(buffer);
-                } else {
-                    printf("%s", buffer);
-                }
-                break;
-            }
-            case CLI_ASCII_CARRIAGE_RETURN: {
-                buffer[position] = CLI_STRING_TERMINATOR;
-                printf("\033[2D");
-                printf("   ");
-                printf("\033[2D\n");
-                printf("\033[100D");
-                system("stty cooked");
+        bool isCapital = (c > 64 && c < 91);
+        bool isLower = (c > 96 && c < 123);
 
+        //printf("%d", c==127);
+        if (isCapital || isLower || c == CLI_CHARACTER_DELETE || c == CLI_CHARACTER_CARRIAGE_RETURN || c == CLI_CHARACTER_TAB || c == CLI_CHARACTER_ARROW || c == CLI_CHARACTER_EXIT || c==CLI_CHARACTER_SPACE)
+        {
+            switch (c) {
                 /*
-                int i = 0;
-                for(i; i< strlen(buffer); i++){
-                    printf("%d ", buffer[i]);
-                }
-                printf("\n");
-                */
-
-                char *tmp = (char *) malloc(sizeof(char) * 512);
-                strcpy(tmp, buffer);
-                list_add_first(cli_list, tmp);
-
-                cli_node = cli_list->head;
-
-                return buffer;
-            }
-            case 65:
-                printf("\033[4D");
-                printf("    ");
-                printf("\033[4D");
-
-                if (cli_node == NULL) {
-                    cli_node = cli_list->head;
-                }
-
-                printf("\033[100D");
-                printf("\033[2C");
-                int i = 0;
-                for (i; i < 100; i++) {
-                    printf(" ");
-                }
-                printf("\033[%dD", 100);
-
-
-                char *data;
-                data = (char *) cli_node->data;
-                printf("%s", data);
-                strcpy(buffer, data);
-                position = (int) strlen(data);
-                cli_node = cli_node->next;
-
-
-                /*
-                char * data;
-
-                list_for_each(data, cli_list){
-                    printf("%s ", data);
-                }
+                 * If Ctrl + C is typed
                  */
+                case CLI_CHARACTER_EXIT: {
+                    /*
+                     * return the cursor to the most left column
+                     */
+                    printf("\033[100D");
+                    /*
+                    * switch back to normal terminal
+                    */
+                    system("stty cooked");
+                    exit(EXIT_SUCCESS);
+                }
 
-                break;
+                    /*
+                     * If Tab is pressed
+                     */
+                case CLI_CHARACTER_TAB: {
+                    /*
+                     * Go 6 column left to overwrite the tabulation
+                     */
 
-            case 66:
-                printf("\033[4D");
-                printf("    ");
-                printf("\033[4D");
-                printf("new");
-                break;
-                // Delete
-            case CLI_ASCII_DELETE: {
-                if (position > 0) {
-                    printf("\033[3D");
-                    printf("   ");
-                    printf("\033[3D");
-                    position--;
-                } else {
+                    printf("\033[6D");
+                    /*
+                     * "Close" the current buffer
+                     */
+                    buffer[position] = CLI_STRING_TERMINATOR;
+
+                    char *res = command_autocomplete_search(buffer, dat);
+
+                    /*
+                     * if exists a word with that prefix
+                     */
+                    if (res != NULL) {
+                        printf("\033[100D");
+                        printf("\033[2C");
+                        strcpy(buffer, res);
+                        printf("%s", buffer);
+                        position = (int) strlen(buffer);
+                    } else {
+                        //printf("%s", buffer);
+                    }
+                    break;
+                }
+
+                    /*
+                     * if Enter is pressed
+                     */
+                case CLI_CHARACTER_CARRIAGE_RETURN: {
+                    buffer[position] = CLI_STRING_TERMINATOR;
                     printf("\033[2D");
                     printf("   ");
-                    printf("\033[3D");
-                }
-                break;
-            }
+                    printf("\033[2D\n");
+                    printf("\033[100D");
+                    system("stty cooked");
 
-            default: {
-                if (c == EOF) {
-                    exit(EXIT_SUCCESS);
-                } else {
-                    buffer[position] = c;
-                    position++;
+                    char *tmp = (char *) malloc(sizeof(char) * 512);
+                    strcpy(tmp, buffer);
+                    list_add_first(cli_list, tmp);
+
+                    cli_node = cli_list->head;
+
+                    return buffer;
+                }
+
+
+                    /*
+                     * if an Arrow is pressed
+                     */
+                case CLI_CHARACTER_ARROW:
+
+                    /*
+                     * Check which arrow was pressed
+                     */
+                    c = getchar();
+
+                    /*
+                     * If is up arrow
+                     */
+                    if (c == CLI_CHARACTER_UP_ARROW) {
+
+
+                        if (cli_list->head != NULL) {
+                            if (cli_node == NULL) {
+                                cli_node = cli_list->head;
+                            }
+
+                            printf("\033[100D");
+                            printf("\033[2C");
+                            int i = 0;
+                            for (i; i < 100; i++) {
+                                printf(" ");
+                            }
+                            printf("\033[%dD", 100);
+
+
+                            char *data;
+                            data = (char *) cli_node->data;
+                            printf("%s", data);
+                            strcpy(buffer, data);
+                            position = (int) strlen(data);
+                            cli_node = cli_node->next;
+                            if (cli_node == NULL) {
+                                cli_node = cli_list->head;
+                            }
+                        }
+                        break;
+                    }
+
+                    /*
+                     * If is down arrow
+                     */
+                    if (c == CLI_CHARACTER_DOWN_ARROW) {
+
+                        Node *tmp;
+                        tmp = cli_list->head;
+
+                        while (cli_node != NULL && tmp != NULL) {
+
+                            if (tmp->next == NULL) {
+                                tmp->next = cli_list->head;
+                            }
+
+                            if (tmp->next->next == NULL) {
+                                tmp->next->next = cli_list->head;
+                            }
+                            if (tmp->next->next == cli_node) {
+                                printf("\033[100D");
+                                printf("\033[2C");
+                                int i = 0;
+                                for (i; i < 100; i++) {
+                                    printf(" ");
+                                }
+                                printf("\033[%dD", 100);
+
+
+                                char *data;
+                                data = (char *) tmp->data;
+                                printf("%s", data);
+                                strcpy(buffer, data);
+                                position = (int) strlen(data);
+
+                                cli_node = tmp->next;
+                                break;
+                            }
+                            tmp = tmp->next;
+                            printf("j");
+                        }
+
+                        break;
+                    }
+                    printf("\033[4D");
+                    printf("     ");
+                    printf("\033[5D");
+                    break;
+
+                    /*
+                     * If Delete was pressed
+                     */
+                case CLI_CHARACTER_DELETE: {
+                    /*
+                     * If it's after ">" character
+                     */
+                    if (position > 0) {
+                        printf("\033[3D");
+                        printf("   ");
+                        printf("\033[3D");
+                        position--;
+                    } else {
+                        printf("\033[2D");
+                        printf("   ");
+                        printf("\033[3D");
+                    }
+                    break;
+                }
+
+                default: {
+                    if (c == EOF) {
+                        exit(EXIT_SUCCESS);
+                    } else {
+
+                        buffer[position] = c;
+                        position++;
+                    }
                 }
             }
+        }
+        else{
+            printf("\033[1D");
+            printf(" ");
+            printf("\033[1D");
         }
     }
 }
