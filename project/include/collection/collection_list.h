@@ -4,7 +4,7 @@
 
 #define list_for_each(data, list) \
     Node *node; \
-    for(node = list->head, data = node->data; node != NULL; node = node->next, data = list_node_data(node))
+    for(node = list->head, data = list_node_data(node); node != NULL; node = node->next, data = list_node_data(node))
 
 #include <stdio.h>
 #include <stdlib.h>

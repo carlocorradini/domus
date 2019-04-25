@@ -25,11 +25,12 @@ DEV_BIN := $(BIN_DIR)/device
 SRC := $(shell find $(SRC_DIR)/ -type f -name '*.c')
 OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 DEV := $(shell find $(DEV_SRC_DIR) -type f -name '*.c')
-# Take all .c file in src/device/, but device.c and device_controller.c
+# Take all .c file in src/device/, exclude controller.c | device.c | communication.c | child.c
 DEV_OBJ := $(patsubst $(DEV_SRC_DIR)/%.c, $(DEV_OBJ_DIR)/%.o, $(DEV))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring controller,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring device.o,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring communication,$a),,$a))
+DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring child,$a),,$a))
 
 # All .o files, both commons and specific ones
 ALL_OBJ := $(OBJ)

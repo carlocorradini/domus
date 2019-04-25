@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "cli/cli.h"
 #include "cli/command/command_list.h"
+#include "device/control/device_controller.h"
 
 /**
  * Display all available devices and their features
@@ -9,7 +10,7 @@
  * @return CLI status code
  */
 static int _list(char **args) {
-    printf("\tNOT SUPPORTED YET\n");
+    controller_list();
 
     return CLI_CONTINUE;
 }

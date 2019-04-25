@@ -1,9 +1,9 @@
 
 #include <fcntl.h>
 #include <string.h>
-#include <signal.h>
 #include "device/control/device_controller.h"
 #include "device/device_communication.h"
+#include "device/device_child.h"
 #include "cli/command/command.h"
 #include "cli/cli.h"
 #include "author.h"
@@ -26,11 +26,10 @@ static void controller_tini(void);
 
 /**
  * Replaces the current running process with a new device process described in the Device Descriptor
- * @param pid The parent pid
  * @param id The child id
  * @param device_descriptor The descriptor of the device to be created
  */
-static void controller_fork_child(pid_t pid, size_t id, const DeviceDescriptor *device_descriptor);
+static void controller_fork_child(size_t id, const DeviceDescriptor *device_descriptor);
 
 /**
  * Add the new child process to the controller devices list for communication
@@ -52,7 +51,13 @@ static bool controller_master_switch(bool state);
  * Wake Up the controller to read the read pipes
  * @param signal_number SIGUSR1 signal for reading
  */
-static void controller_read(int signal_number);
+static void controller_read_pipe(int signal_number);
+
+/**
+ * Handle messages
+ * @param message The message to handle
+ */
+static void controller_message_handler(DeviceCommunicationMessage message);
 
 void controller_start(void) {
     controller_init();
@@ -70,7 +75,7 @@ static void controller_init(void) {
                        controller_master_switch),
             new_list(NULL, NULL));
     /* Attach to SIGUSR1 the signal to force the controller to check new messages */
-    signal(SIGUSR1, controller_read);
+    signal(SIGUSR1, controller_read_pipe);
 
     command_init();
     author_init();
@@ -106,12 +111,8 @@ ControllerRegistry *new_controller_registry(void) {
     return controller_registry;
 }
 
-
-#include <sys/wait.h>
-
 bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
     pid_t pid_child;
-    pid_t pid_parent;
     size_t next_id;
     int write_parent_read_child[2];
     int write_child_read_parent[2];
@@ -122,16 +123,15 @@ bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
         perror("Controller Fork Pipe");
         exit(EXIT_FAILURE);
     }
+    /* Async Pipe Reading */
     if (fcntl(write_parent_read_child[0], F_SETFL, O_NONBLOCK) == -1
         || fcntl(write_child_read_parent[0], F_SETFL, O_NONBLOCK) == -1) {
         perror("Controller Fork fcntl");
         exit(EXIT_FAILURE);
     }
 
-    pid_parent = getpid();
     /* Get next valid id and after increment by one */
-    next_id = ((ControllerRegistry *) controller->device->registry)->next_id;
-    ((ControllerRegistry *) controller->device->registry)->next_id++;
+    next_id = ((ControllerRegistry *) controller->device->registry)->next_id++;
     /* Fork the current process */
     switch (pid_child = fork()) {
         case -1: {
@@ -144,8 +144,10 @@ bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
 
             /* Attach child stdout to write child pipe */
             dup2(write_child_read_parent[1], DEVICE_COMMUNICATION_CHILD_WRITE);
+            /* Attach child stdin to read child pipe */
+            dup2(write_parent_read_child[0], DEVICE_COMMUNICATION_CHILD_READ);
 
-            controller_fork_child(pid_parent, next_id, device_descriptor);
+            controller_fork_child(next_id, device_descriptor);
             break;
         }
         default: {
@@ -161,7 +163,7 @@ bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
     return true;
 }
 
-static void controller_fork_child(pid_t pid, size_t id, const DeviceDescriptor *device_descriptor) {
+static void controller_fork_child(size_t id, const DeviceDescriptor *device_descriptor) {
     char *device_args[DEVICE_CHILD_ARGS_LENGTH + 1];
     char device_id[sizeof(size_t) + 1];
     char device_name[DEVICE_NAME_LENGTH];
@@ -193,13 +195,17 @@ static void controller_fork_parent(pid_t pid, const DeviceDescriptor *device_des
     registry->connected_directly = registry->connected_total = controller->devices->size;
 }
 
-static void controller_read(int signal_number) {
-    if (signal_number == SIGUSR1) {
+static void controller_message_handler(DeviceCommunicationMessage message) {
+    printf("\t{%d, %s}\n", message.type, message.message);
+}
+
+static void controller_read_pipe(int signal_number) {
+    if (signal_number == DEVICE_COMMUNICATION_READ_PIPE) {
         DeviceCommunication *data;
         if (!device_check_control_device(controller)) return;
 
         list_for_each(data, controller->devices) {
-            device_communication_read_message(data);
+            device_communication_read_message(data, controller_message_handler);
         }
     }
 }
@@ -221,4 +227,15 @@ size_t controller_connected_total(void) {
     registry = (ControllerRegistry *) controller->device->registry;
 
     return registry->connected_total;
+}
+
+void controller_list(void) {
+    DeviceCommunication *data;
+    DeviceCommunicationMessage message;
+    message.type = 0;
+    snprintf(message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "Boh");
+
+    list_for_each(data, controller->devices) {
+        device_communication_write_message(data, &message);
+    }
 }

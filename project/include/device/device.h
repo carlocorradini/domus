@@ -11,7 +11,6 @@
 #define DEVICE_NAME_LENGTH 35
 #define DEVICE_DESCRIPTION_LENGTH 250
 #define DEVICE_PATH_LENGTH 256
-#define DEVICE_CHILD_ARGS_LENGTH 3
 
 /**
  * Struct generic Device

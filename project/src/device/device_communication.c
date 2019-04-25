@@ -2,6 +2,7 @@
 #include <errno.h>
 #include <signal.h>
 #include "device/device_communication.h"
+#include "util/util_printer.h"
 
 DeviceCommunication *
 new_device_communication(pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write) {
@@ -19,48 +20,49 @@ new_device_communication(pid_t pid, const DeviceDescriptor *device_descriptor, i
     return device_communication;
 }
 
-bool device_communication_read_message(const DeviceCommunication *device_communication) {
+bool device_communication_read_message(const DeviceCommunication *device_communication,
+                                       void (*message_handler)(DeviceCommunicationMessage message)) {
     DeviceCommunicationMessage message;
-    int read_result;
     if (device_communication == NULL || device_communication->com_read < 0) return false;
 
-    while ((read_result = read(device_communication->com_read, &message, sizeof(DeviceCommunicationMessage))) != 0) {
-
-        switch (read_result) {
+    while (true) {
+        switch (read(device_communication->com_read, &message, sizeof(DeviceCommunicationMessage))) {
             case -1: {
                 /* Empty or Error */
-                if (errno != EAGAIN) {
+                if (errno == EAGAIN) {
+                    println("\tPipe of %ld pid is empty", device_communication->pid);
+                    return true;
+                } else {
                     perror("Error pipe read");
                     exit(EXIT_FAILURE);
                 }
-                break;
             }
             case 0: {
-                /* End of Messages */
+                /* Process is terminated */
+                println("\tProcess with pid %ld has terminated, closing", device_communication->pid);
+                close(device_communication->com_read);
+                close(device_communication->com_write);
                 return true;
             }
             default: {
                 /* Message Found */
-                printf("\t{%d, %s}\n", message.type, message.message);
+                message_handler(message);
                 break;
             }
         }
     }
-
-    return true;
 }
 
 bool device_communication_write_message(const DeviceCommunication *device_communication,
                                         const DeviceCommunicationMessage *message) {
-    if (device_communication == NULL || message == NULL
-        || device_communication->com_write < 0 || device_communication->pid < 0)
-        return false;
+    if (device_communication == NULL || message == NULL || device_communication->com_write < 0) return false;
 
     write(device_communication->com_write, message, sizeof(DeviceCommunicationMessage));
     device_communication_notify(device_communication->pid);
+
     return true;
 }
 
 void device_communication_notify(pid_t pid) {
-    kill(pid, SIGUSR1);
+    kill(pid, DEVICE_COMMUNICATION_READ_PIPE);
 }

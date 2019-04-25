@@ -46,4 +46,9 @@ size_t controller_connected_directly(void);
  */
 size_t controller_connected_total(void);
 
+/**
+ * Show all devices
+ */
+void controller_list(void);
+
 #endif
