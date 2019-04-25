@@ -59,7 +59,10 @@ static int cli_execute(char **args) {
     }
     return status;
 }
-
+/**
+ * Move the cursor to the left
+ * @param value # of positions (if null, it's set to 100)
+ */
 static void cursor_left(void * value){
     if(value != NULL){
         printf("\033[%dD", (int) value);
@@ -69,6 +72,10 @@ static void cursor_left(void * value){
     }
 }
 
+/**
+ * Move the cursor to the right
+ * @param value # of positions (if null, it's set to 100)
+ */
 static void cursor_right(void * value){
     if(value != NULL){
         printf("\033[%dC", (int) value);
@@ -78,6 +85,10 @@ static void cursor_right(void * value){
     }
 }
 
+/**
+ * Print white spaces
+ * @param value # of white spaces to print
+ */
 static void white_space(int* value){
     int i = 0;
     for(i; i<value; i++){
@@ -85,6 +96,11 @@ static void white_space(int* value){
     }
 }
 
+/**
+ * "Delete" 1 character by getting last buffer postion and
+ * deleting everything after that
+ * @param position the buffer position
+ */
 static void clear_from_char(int position){
     cursor_left(NULL);
     cursor_right(position + 2);
@@ -92,19 +108,37 @@ static void clear_from_char(int position){
     cursor_left(7);
 }
 
+/**
+ * Move cursor to the left right after the ">" character
+ */
 static void move_left(){
     cursor_left(NULL);
     cursor_right(2);
 }
 
+/**
+ * Check if c is a number
+ * @param c the char
+ * @return return true/false
+ */
 static bool isNumber(char* c){
     return c > 47 && c < 58;
 }
 
+/**
+ * Check if c is a capital letter
+ * @param c the char
+ * @return return true/false
+ */
 static bool isCapital(char* c){
     return c > 64 && c < 9;
 }
 
+/**
+ * Check if c is a lowcase letter
+ * @param c the char
+ * @return return true/false
+ */
 static bool isLower(char* c){
     return c > 96 && c < 123;
 }
