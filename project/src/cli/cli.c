@@ -60,6 +60,55 @@ static int cli_execute(char **args) {
     return status;
 }
 
+static void cursor_left(void * value){
+    if(value != NULL){
+        printf("\033[%dD", (int) value);
+    }
+    else{
+        printf("\033[100D");
+    }
+}
+
+static void cursor_right(void * value){
+    if(value != NULL){
+        printf("\033[%dC", (int) value);
+    }
+    else{
+        printf("\033[100C");
+    }
+}
+
+static void white_space(int* value){
+    int i = 0;
+    for(i; i<value; i++){
+        printf(" ");
+    }
+}
+
+static void clear_from_char(int position){
+    cursor_left(NULL);
+    cursor_right(position + 2);
+    white_space(7);
+    cursor_left(7);
+}
+
+static void move_left(){
+    cursor_left(NULL);
+    cursor_right(2);
+}
+
+static bool isNumber(char* c){
+    return c > 47 && c < 58;
+}
+
+static bool isCapital(char* c){
+    return c > 64 && c < 9;
+}
+
+static bool isLower(char* c){
+    return c > 96 && c < 123;
+}
+
 static char *cli_read_line(void) {
     int c;
     int position = 0;
@@ -86,11 +135,7 @@ static char *cli_read_line(void) {
 
         c = getchar();
 
-        bool isCapital = (c > 64 && c < 91);
-        bool isLower = (c > 96 && c < 123);
-
-        //printf("%d", c==127);
-        if (isCapital || isLower || c == CLI_CHARACTER_DELETE || c == CLI_CHARACTER_CARRIAGE_RETURN || c == CLI_CHARACTER_TAB || c == CLI_CHARACTER_ARROW || c == CLI_CHARACTER_EXIT || c==CLI_CHARACTER_SPACE)
+        if (isCapital(c) || isLower(c) || isNumber(c) || c == CLI_CHARACTER_DELETE || c == CLI_CHARACTER_CARRIAGE_RETURN || c == CLI_CHARACTER_TAB || c == CLI_CHARACTER_ARROW || c == CLI_CHARACTER_EXIT || c==CLI_CHARACTER_SPACE)
         {
             switch (c) {
                 /*
@@ -100,23 +145,24 @@ static char *cli_read_line(void) {
                     /*
                      * return the cursor to the most left column
                      */
-                    printf("\033[100D");
+                    clear_from_char(position);
+                    printf("\n");
                     /*
                     * switch back to normal terminal
                     */
                     system("stty cooked");
-                    exit(EXIT_SUCCESS);
+                    strcpy(buffer, "exit");
+                    return (buffer);
                 }
 
-                    /*
-                     * If Tab is pressed
-                     */
+                /*
+                 * If Tab is pressed
+                 */
                 case CLI_CHARACTER_TAB: {
                     /*
-                     * Go 6 column left to overwrite the tabulation
+                     * Clear
                      */
-
-                    printf("\033[6D");
+                    clear_from_char(position);
                     /*
                      * "Close" the current buffer
                      */
@@ -128,8 +174,7 @@ static char *cli_read_line(void) {
                      * if exists a word with that prefix
                      */
                     if (res != NULL) {
-                        printf("\033[100D");
-                        printf("\033[2C");
+                        move_left();
                         strcpy(buffer, res);
                         printf("%s", buffer);
                         position = (int) strlen(buffer);
@@ -139,15 +184,15 @@ static char *cli_read_line(void) {
                     break;
                 }
 
-                    /*
-                     * if Enter is pressed
-                     */
+                /*
+                 * if Enter is pressed
+                 */
                 case CLI_CHARACTER_CARRIAGE_RETURN: {
                     buffer[position] = CLI_STRING_TERMINATOR;
-                    printf("\033[2D");
-                    printf("   ");
-                    printf("\033[2D\n");
-                    printf("\033[100D");
+                    cursor_left(2);
+                    white_space(3);
+                    cursor_left(NULL);
+                    printf("\n");
                     system("stty cooked");
 
                     char *tmp = (char *) malloc(sizeof(char) * 512);
@@ -163,7 +208,7 @@ static char *cli_read_line(void) {
                     /*
                      * if an Arrow is pressed
                      */
-                case CLI_CHARACTER_ARROW:
+                case CLI_CHARACTER_ARROW: {
 
                     /*
                      * Check which arrow was pressed
@@ -181,14 +226,12 @@ static char *cli_read_line(void) {
                                 cli_node = cli_list->head;
                             }
 
-                            printf("\033[100D");
-                            printf("\033[2C");
-                            int i = 0;
-                            for (i; i < 100; i++) {
-                                printf(" ");
-                            }
-                            printf("\033[%dD", 100);
-
+                            move_left();
+                            /*
+                             * Clear everything
+                             */
+                            white_space(100);
+                            cursor_left(100);
 
                             char *data;
                             data = (char *) cli_node->data;
@@ -221,13 +264,12 @@ static char *cli_read_line(void) {
                                 tmp->next->next = cli_list->head;
                             }
                             if (tmp->next->next == cli_node) {
-                                printf("\033[100D");
-                                printf("\033[2C");
-                                int i = 0;
-                                for (i; i < 100; i++) {
-                                    printf(" ");
-                                }
-                                printf("\033[%dD", 100);
+                                move_left();
+                                /*
+                                 * Clear everything
+                                 */
+                                white_space(100);
+                                cursor_left(100);
 
 
                                 char *data;
@@ -245,27 +287,25 @@ static char *cli_read_line(void) {
 
                         break;
                     }
-                    printf("\033[4D");
-                    printf("     ");
-                    printf("\033[5D");
                     break;
+                }
 
-                    /*
-                     * If Delete was pressed
-                     */
+                /*
+                 * If Delete was pressed
+                 */
                 case CLI_CHARACTER_DELETE: {
                     /*
                      * If it's after ">" character
                      */
                     if (position > 0) {
-                        printf("\033[3D");
-                        printf("   ");
-                        printf("\033[3D");
+                        cursor_left(3);
+                        white_space(3);
+                        cursor_left(3);
                         position--;
                     } else {
-                        printf("\033[2D");
-                        printf("   ");
-                        printf("\033[3D");
+                        cursor_left(2);
+                        white_space(3);
+                        cursor_left(3);
                     }
                     break;
                 }
@@ -282,9 +322,7 @@ static char *cli_read_line(void) {
             }
         }
         else{
-            printf("\033[1D");
-            printf(" ");
-            printf("\033[1D");
+            clear_from_char(position);
         }
     }
 }
