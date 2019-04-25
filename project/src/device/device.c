@@ -105,8 +105,7 @@ DeviceDescriptor *new_device_descriptor(char name[], char description[], char fi
     strncpy(device_descriptor->description, description, DEVICE_DESCRIPTION_LENGTH);
     /* Copy the file name to file */
     strncpy(file, file_name, DEVICE_PATH_LENGTH - DEVICE_NAME_LENGTH);
-    /* Get absolute path & attach the file*/
-    getcwd(real_path, sizeof(real_path));
+    /* Get path & attach the file*/
     strcat(real_path, DEVICE_PATH);
     strcat(real_path, file);
     strncpy(device_descriptor->file_name, real_path, DEVICE_PATH_LENGTH);

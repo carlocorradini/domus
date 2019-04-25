@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <errno.h>
 #include "device/device_child.h"
+#include "util/util_converter.h"
 
 /**
  * Function for handling signal when receiving a message
@@ -29,45 +30,22 @@ static void (*device_child_message_handler)(DeviceCommunicationMessage) = NULL;
 static bool device_child_check_args(int argc, char **args);
 
 Device *device_child_new_device(int argc, char **args, void *registry, bool (*master_switch)(bool)) {
-    size_t id;
-    const char *id_str;
-    char *id_str_end = NULL;
     if (!device_child_check_args(argc, args)) return NULL;
 
-    id_str = args[0];
-    id_str_end = NULL;
-    errno = 0;
-    id = strtol(id_str, &id_str_end, 10);
-
-    if (id_str == id_str_end) {
-        fprintf(stderr, "Device Child Device Conversion Error: No digits found\n");
-        exit(EXIT_FAILURE);
-    } else if (errno == EINVAL) {
-        fprintf(stderr, "Device Child Device Conversion Error: Base contains unsupported value\n");
-        exit(EXIT_FAILURE);
-    } else if (errno != 0 && id == 0) {
-        fprintf(stderr, "Device Child Device Conversion Error: Unspecified error occurred\n");
-        exit(EXIT_FAILURE);
-    } else if (errno == 0 && id_str && *id_str_end != 0) {
-        fprintf(stderr, "Device Child Device Conversion Error: Additional characters remain\n");
-        exit(EXIT_FAILURE);
-    } else if (id <= 0) {
-        fprintf(stderr, "Device Child Device: id %ld is invalid\n", id);
-        exit(EXIT_FAILURE);
-    }
-
-    return new_device(getpid(), id, DEVICE_STATE, registry, master_switch);
+    return new_device(getpid(), converter_char_to_long(args[0]), DEVICE_STATE, registry, master_switch);
 }
 
 DeviceCommunication *
-device_child_new_device_communication(void (*message_handler)(DeviceCommunicationMessage)) {
+device_child_new_device_communication(int argc, char **args, void (*message_handler)(DeviceCommunicationMessage)) {
+    size_t id;
     if (message_handler == NULL || device_child_message_handler != NULL || device_child_communication != NULL)
         return NULL;
 
+    id = converter_char_to_long(args[1]);
     device_child_message_handler = message_handler;
     signal(DEVICE_COMMUNICATION_READ_PIPE, device_child_read_pipe);
 
-    device_child_communication = new_device_communication(getppid(), NULL,
+    device_child_communication = new_device_communication(id, getppid(), NULL,
                                                           DEVICE_COMMUNICATION_CHILD_READ,
                                                           DEVICE_COMMUNICATION_CHILD_WRITE);
     return device_child_communication;

@@ -5,13 +5,14 @@
 #include "util/util_printer.h"
 
 DeviceCommunication *
-new_device_communication(pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write) {
+new_device_communication(size_t id, pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write) {
     DeviceCommunication *device_communication = (DeviceCommunication *) malloc(sizeof(DeviceCommunication));
     if (device_communication == NULL) {
         perror("Device Communication Memory Allocation");
         exit(EXIT_FAILURE);
     }
 
+    device_communication->id = id;
     device_communication->pid = pid;
     device_communication->device_descriptor = device_descriptor;
     device_communication->com_read = com_read;
@@ -19,6 +20,8 @@ new_device_communication(pid_t pid, const DeviceDescriptor *device_descriptor, i
 
     return device_communication;
 }
+
+#include <sys/wait.h>
 
 bool device_communication_read_message(const DeviceCommunication *device_communication,
                                        void (*message_handler)(DeviceCommunicationMessage message)) {
@@ -39,9 +42,9 @@ bool device_communication_read_message(const DeviceCommunication *device_communi
             }
             case 0: {
                 /* Process is terminated */
-                println("\tProcess with pid %ld has terminated, closing", device_communication->pid);
                 close(device_communication->com_read);
                 close(device_communication->com_write);
+                waitpid(device_communication->pid, 0, 0);
                 return true;
             }
             default: {

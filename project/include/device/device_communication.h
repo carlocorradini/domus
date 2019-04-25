@@ -23,6 +23,7 @@
  * Struct Device Communication for handling pipe & signal communication
  */
 typedef struct DeviceCommunication {
+    size_t id;
     pid_t pid;
     const DeviceDescriptor *device_descriptor;
     int com_read;
@@ -33,12 +34,14 @@ typedef struct DeviceCommunication {
  * Struct Device Message for
  */
 typedef struct DeviceCommunicationMessage {
+    size_t id_sender;
     unsigned short int type;
     char message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
 } DeviceCommunicationMessage;
 
 /**
  *
+ * @param id
  * @param pid
  * @param device_descriptor
  * @param com_read
@@ -46,7 +49,7 @@ typedef struct DeviceCommunicationMessage {
  * @return
  */
 DeviceCommunication *
-new_device_communication(pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write);
+new_device_communication(size_t id, pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write);
 
 /**
  *

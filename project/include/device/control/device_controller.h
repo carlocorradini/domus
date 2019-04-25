@@ -46,4 +46,11 @@ void controller_list(void);
  */
 bool controller_del(size_t id);
 
+/**
+ * Check if the id is present
+ * @param id The id to check
+ * @return The id if found, -1 otherwise
+ */
+size_t controller_valid_id(size_t id);
+
 #endif

@@ -5,7 +5,11 @@
 #include "util/util_converter.h"
 
 int converter_char_to_int(const char *char_string) {
-    int toRtn;
+    return converter_char_to_long(char_string);
+}
+
+long converter_char_to_long(const char *char_string) {
+    long toRtn;
     const char *toRtn_str;
     char *toRtn_str_end = NULL;
 

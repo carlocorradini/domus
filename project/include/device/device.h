@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include "collection/collection_list.h"
 
-#define DEVICE_PATH "/device/"
+#define DEVICE_PATH "device/"
 #define DEVICE_STATE true
 #define DEVICE_NAME_LENGTH 35
 #define DEVICE_DESCRIPTION_LENGTH 250

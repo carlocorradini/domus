@@ -12,6 +12,13 @@
 int converter_char_to_int(const char *char_string);
 
 /**
+ * Convert a String to long
+ * @param char_string The String to convert
+ * @return The long value
+ */
+long converter_char_to_long(const char *char_string);
+
+/**
  * Convert a String to bool
  * @param char_string The String to convert
  * @return The bool value

@@ -4,6 +4,7 @@
 #include "device/device_communication.h"
 #include "device/device_child.h"
 #include "device/interaction/device_bulb.h"
+#include "util/util_converter.h"
 
 /**
  * The bulb Device
@@ -51,34 +52,40 @@ bool bulb_master_switch(bool state) {
 
 static void bulb_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
+    out_message.id_sender = bulb->id;
 
     switch (in_message.type) {
         case MESSAGE_TYPE_IS_ON: {
             out_message.type = MESSAGE_TYPE_IS_ON;
             snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%d", bulb->state);
-            device_communication_write_message(bulb_communication, &out_message);
             break;
         }
         case MESSAGE_TYPE_SET_ON: {
             out_message.type = MESSAGE_TYPE_SET_ON;
-            snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%d", bulb_master_switch());
+            snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%d",
+                     bulb_master_switch(converter_char_to_bool(in_message.message)));
+            break;
+        }
+        case MESSAGE_TYPE_TERMINATE: {
+            out_message.type = MESSAGE_TYPE_TERMINATE;
+            snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%d", true);
             device_communication_write_message(bulb_communication, &out_message);
             exit(EXIT_SUCCESS);
         }
         default: {
             out_message.type = MESSAGE_TYPE_ERROR;
-            snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH,
-                     "Bulb received something wrong: {%d, %s}",
-                     in_message.type, in_message.message);
-            device_communication_write_message(bulb_communication, &out_message);
+            snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "{%d, %s}", in_message.type,
+                     in_message.message);
             break;
         }
     }
+
+    device_communication_write_message(bulb_communication, &out_message);
 }
 
 int main(int argc, char **args) {
     bulb = device_child_new_device(argc, args, new_bulb_registry, bulb_master_switch);
-    bulb_communication = device_child_new_device_communication(bulb_message_handler);
+    bulb_communication = device_child_new_device_communication(argc, args, bulb_message_handler);
 
     while (true);
 

@@ -6,7 +6,7 @@
 #include "device/device.h"
 #include "device/device_communication.h"
 
-#define DEVICE_CHILD_ARGS_LENGTH 3
+#define DEVICE_CHILD_ARGS_LENGTH 4
 
 /**
  * Create and return a Device like but with arguments parameters.
@@ -23,9 +23,12 @@ Device *device_child_new_device(int argc, char **args, void *registry, bool (*ma
  * Create and return a Device Communication like,
  *  For easy of use, pass a message handler function
  *  Only for child process!
+ * @param argc The number of arguments
+ * @param args The arguments
  * @param message_handler The message handler function for child
  * @return The new Device Communication, NULL otherwise
  */
-DeviceCommunication *device_child_new_device_communication(void (*message_handler)(DeviceCommunicationMessage));
+DeviceCommunication *
+device_child_new_device_communication(int argc, char **args, void (*message_handler)(DeviceCommunicationMessage));
 
 #endif
