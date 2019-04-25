@@ -14,11 +14,14 @@
  * @return CLI status code
  */
 static int _del(char **args) {
+    size_t id;
     if (args[1] == NULL) {
         println("\tPlease add a device id");
     } else {
-        size_t id = converter_char_to_long(args[1]);
-        if (controller_valid_id(id) == -1) {
+        id = converter_char_to_long(args[1]);
+        if (id == 0) {
+            println("\tCannot delete the Controller");
+        } else if (controller_valid_id(id) == -1) {
             println("\tCannot find a Device with id %ld", id);
         } else {
             controller_del(id);
