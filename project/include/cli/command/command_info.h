@@ -4,6 +4,8 @@
 
 #include "command.h"
 
+#define COMMAND_INFO_ALL "--all"
+
 /**
  * Definition of info Command
  * @return The info Command

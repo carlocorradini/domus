@@ -68,11 +68,17 @@ static void controller_message_handler(DeviceCommunicationMessage message);
  * Methods to compare DeviceCommunication and id
  * @param data1 DeviceCommunication data (element of controller->devices)
  * @param data2 id
- * @return
+ * @return true if  equals, false otherwise
  */
-static bool process_equals(const DeviceCommunication * data1, const size_t * data2){
-    return  data1->id == (size_t) data2;
+static bool process_equals(const DeviceCommunication *data1, const size_t *data2) {
+    return data1->id == (size_t) data2;
 }
+
+/**
+ * Print information about a Device given a Device Communication
+ * @param device_communication The Device Communication
+ */
+static void controller_info_print(const DeviceCommunication *device_communication);
 
 void controller_start(void) {
     controller_init();
@@ -267,6 +273,11 @@ static void controller_read_pipe(int signal_number) {
     }
 }
 
+bool controller_has_devices(void) {
+    if (!device_check_control_device(controller)) return false;
+    return !list_is_empty(controller->devices);
+}
+
 void controller_list(void) {
     DeviceCommunication *data;
     DeviceCommunicationMessage message;
@@ -296,18 +307,43 @@ bool controller_del(size_t id) {
 }
 
 size_t controller_valid_id(size_t id) {
-    if (id <= 0) return (size_t) -1;
+    if (!device_check_control_device(controller)) return -1;
 
-    if(list_contains(controller->devices, (size_t *) id)){
+    if (id <= 0) return -1;
+
+    if (list_contains(controller->devices, (size_t *) id)) {
         return id;
     }
 
-    return (size_t) -1;
+    return -1;
 }
 
-void getInfo(size_t id){
-    if(list_contains(controller->devices, (size_t *) id)){
-        DeviceCommunication * tmp = list_get(controller->devices, (size_t) list_get_index(controller->devices, (size_t *) id));
-        println("\tI have id %ld and I'm a %s, just %s" , id, tmp->device_descriptor->name, tmp->device_descriptor->description);
+void controller_info_all(void) {
+    DeviceCommunication *data;
+    if (!device_check_control_device(controller)) return;
+
+    if (controller_has_devices()) {
+        list_for_each(data, controller->devices) {
+            controller_info_print(data);
+        }
     }
+}
+
+void controller_info_by_id(size_t id) {
+    if (!device_check_control_device(controller)) return;
+
+    if (list_contains(controller->devices, (size_t *) id)) {
+        controller_info_print(list_get(controller->devices,
+                                       (size_t) list_get_index(controller->devices,
+                                                               (size_t *) id)));
+    }
+}
+
+static void controller_info_print(const DeviceCommunication *device_communication) {
+    println("\t%-*ld     %-*s     %-*s",
+            sizeof(device_communication->id) + 1, device_communication->id,
+            DEVICE_NAME_LENGTH,
+            device_communication->device_descriptor->name,
+            DEVICE_DESCRIPTION_LENGTH,
+            device_communication->device_descriptor->description);
 }

@@ -35,6 +35,12 @@ ControllerRegistry *new_controller_registry(void);
 bool controller_fork_device(const DeviceDescriptor *device_descriptor);
 
 /**
+ * Check if the Controller has devices
+ * @return true if has devices, false otherwise
+ */
+bool controller_has_devices(void);
+
+/**
  * Show all connected devices and all information about them
  */
 void controller_list(void);
@@ -54,9 +60,13 @@ bool controller_del(size_t id);
 size_t controller_valid_id(size_t id);
 
 /**
- * Given a id, returns info on the device
- * @param id
- * @return
+ * Show info about all devices
  */
-void getInfo(size_t id);
+void controller_info_all(void);
+/**
+ * Given a id, returns info on the device
+ * @param id The Device id
+ */
+void controller_info_by_id(size_t id);
+
 #endif
