@@ -30,22 +30,35 @@ static void (*device_child_message_handler)(DeviceCommunicationMessage) = NULL;
 static bool device_child_check_args(int argc, char **args);
 
 Device *device_child_new_device(int argc, char **args, void *registry, bool (*master_switch)(bool)) {
+    ConverterResult result;
     if (!device_child_check_args(argc, args)) return NULL;
 
-    return new_device(getpid(), converter_char_to_long(args[0]), DEVICE_STATE, registry, master_switch);
+    result = converter_char_to_long(args[0]);
+    if (result.error) {
+        fprintf(stderr, "Conversion Error: %s\n", result.error_message);
+        exit(EXIT_FAILURE);
+    }
+
+    return new_device(getpid(), result.data.Long, DEVICE_STATE, registry, master_switch);
 }
 
 DeviceCommunication *
 device_child_new_device_communication(int argc, char **args, void (*message_handler)(DeviceCommunicationMessage)) {
-    size_t id;
+    ConverterResult result;
+    if (!device_child_check_args(argc, args)) return NULL;
     if (message_handler == NULL || device_child_message_handler != NULL || device_child_communication != NULL)
         return NULL;
 
-    id = converter_char_to_long(args[1]);
+    result = converter_char_to_long(args[1]);
+    if (result.error) {
+        fprintf(stderr, "Conversion Error: %s\n", result.error_message);
+        exit(EXIT_FAILURE);
+    }
+
     device_child_message_handler = message_handler;
     signal(DEVICE_COMMUNICATION_READ_PIPE, device_child_read_pipe);
 
-    device_child_communication = new_device_communication(id, getppid(), NULL,
+    device_child_communication = new_device_communication(result.data.Long, getppid(), NULL,
                                                           DEVICE_COMMUNICATION_CHILD_READ,
                                                           DEVICE_COMMUNICATION_CHILD_WRITE);
     return device_child_communication;

@@ -1,6 +1,4 @@
 
-#include <stdio.h>
-#include <errno.h>
 #include "cli/cli.h"
 #include "cli/command/command_del.h"
 #include "util/util_printer.h"
@@ -14,17 +12,21 @@
  * @return CLI status code
  */
 static int _del(char **args) {
-    size_t id;
+    ConverterResult result;
+
     if (args[1] == NULL) {
         println("\tPlease add a device id");
     } else {
-        id = converter_char_to_long(args[1]);
-        if (id == 0) {
+        result = converter_char_to_long(args[1]);
+
+        if (result.error) {
+            println("\tConversion Error: %s", result.error_message);
+        } else if (result.data.Long == 0) {
             println("\tCannot delete the Controller");
-        } else if (controller_valid_id(id) == -1) {
-            println("\tCannot find a Device with id %ld", id);
+        } else if (controller_valid_id(result.data.Long) == -1) {
+            println("\tCannot find a Device with id %ld", result.data.Long);
         } else {
-            controller_del(id);
+            controller_del(result.data.Long);
         }
     }
 

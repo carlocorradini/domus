@@ -52,6 +52,8 @@ bool bulb_master_switch(bool state) {
 
 static void bulb_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
+    ConverterResult result;
+
     out_message.id_sender = bulb->id;
 
     switch (in_message.type) {
@@ -61,9 +63,18 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         case MESSAGE_TYPE_SET_ON: {
+            result = converter_char_to_bool(in_message.message);
+
+            if (result.error) {
+                out_message.type = MESSAGE_TYPE_ERROR;
+                snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "SET ON Invalid value: %s",
+                         result.error_message);
+                break;
+            }
+
             out_message.type = MESSAGE_TYPE_SET_ON;
             snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%d",
-                     bulb_master_switch(converter_char_to_bool(in_message.message)));
+                     bulb_master_switch(result.data.Bool));
             break;
         }
         case MESSAGE_TYPE_TERMINATE: {

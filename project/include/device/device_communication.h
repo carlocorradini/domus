@@ -58,7 +58,7 @@ new_device_communication(size_t id, pid_t pid, const DeviceDescriptor *device_de
  * @return
  */
 bool device_communication_read_message(const DeviceCommunication *device_communication,
-                                       void (*message_handler)(DeviceCommunicationMessage message));
+                                       void (*message_handler)(DeviceCommunicationMessage));
 
 /**
  *

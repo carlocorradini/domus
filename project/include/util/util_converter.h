@@ -4,25 +4,37 @@
 
 #include <stdbool.h>
 
+#define CONVERTER_RESULT_ERROR_LENGTH 64
+
+typedef struct ConverterResult {
+    bool error;
+    char error_message[CONVERTER_RESULT_ERROR_LENGTH];
+    union data {
+        bool Bool;
+        int Int;
+        long Long;
+    } data;
+} ConverterResult;
+
 /**
  * Convert a String to int
  * @param char_string The String to convert
- * @return The int value
+ * @return The Converter Result
  */
-int converter_char_to_int(const char *char_string);
+ConverterResult converter_char_to_int(const char *char_string);
 
 /**
  * Convert a String to long
  * @param char_string The String to convert
- * @return The long value
+ * @return The Converter Result
  */
-long converter_char_to_long(const char *char_string);
+ConverterResult converter_char_to_long(const char *char_string);
 
 /**
  * Convert a String to bool
  * @param char_string The String to convert
- * @return The bool value
+ * @return The Converter Result
  */
-bool converter_char_to_bool(const char *char_string);
+ConverterResult converter_char_to_bool(const char *char_string);
 
 #endif
