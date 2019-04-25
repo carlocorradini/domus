@@ -58,7 +58,7 @@ static void command_info_print_header(void) {
 Command *command_info(void) {
     return new_command(
             "info",
-            "Show device info with <id>",
-            "info <id>",
+            "Show device info with <id>. Show all devices info with [--all]",
+            "info <id> [--all]",
             _info);
 }
