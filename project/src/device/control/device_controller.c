@@ -64,6 +64,10 @@ static void controller_read_pipe(int signal_number);
  */
 static void controller_message_handler(DeviceCommunicationMessage message);
 
+static bool process_equals(const DeviceCommunication * data1, const size_t * data2){
+    return data1->id == data2;
+}
+
 void controller_start(void) {
     controller_init();
     cli_start();
@@ -78,7 +82,7 @@ static void controller_init(void) {
                        DEVICE_STATE,
                        new_controller_registry(),
                        controller_master_switch),
-            new_list(NULL, NULL));
+            new_list(NULL, process_equals));
     /* Attach a macro to DEVICE_COMMUNICATION_READ_PIPE the signal to force the controller to check new messages */
     signal(DEVICE_COMMUNICATION_READ_PIPE, controller_read_pipe);
 
@@ -289,11 +293,10 @@ size_t controller_valid_id(size_t id) {
     DeviceCommunication *data;
     if (id <= 0) return -1;
 
-    list_for_each(data, controller->devices) {
-        if (data->id == id) {
-            return id;
-        }
+    if(list_contains(controller->devices, id)){
+        return id;
     }
 
     return -1;
 }
+
