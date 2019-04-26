@@ -169,7 +169,7 @@ static char *cli_read_line(void) {
 
         c = getchar();
 
-        if (isCapital(c) || isLower(c) || isNumber(c) || c == CLI_CHARACTER_DELETE || c == CLI_CHARACTER_CARRIAGE_RETURN || c == CLI_CHARACTER_TAB || c == CLI_CHARACTER_ARROW || c == CLI_CHARACTER_EXIT || c==CLI_CHARACTER_SPACE)
+        if (isCapital(c) || isLower(c) || isNumber(c) || c == CLI_CHARACTER_DELETE || c == CLI_CHARACTER_CARRIAGE_RETURN || c == CLI_CHARACTER_TAB || c == CLI_CHARACTER_ARROW || c == CLI_CHARACTER_EXIT || c==CLI_CHARACTER_SPACE || c==CLI_CHARACTER_MINUS)
         {
             switch (c) {
                 /*
