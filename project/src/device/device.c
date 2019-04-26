@@ -16,6 +16,7 @@ void device_init(void) {
     supported_devices = new_list(NULL, NULL);
 
     list_add_last(supported_devices, new_device_descriptor("bulb", "A Simple Bulb", "bulb"));
+    list_add_last(supported_devices, new_device_descriptor("window", "A Simple Window", "window"));
     list_add_last(supported_devices, new_device_descriptor("hub", "A Simple Hub", "hub"));
     list_add_last(supported_devices, new_device_descriptor("timer", "A Simple Timer", "timer"));
 }
@@ -106,7 +107,7 @@ DeviceDescriptor *new_device_descriptor(char name[], char description[], char fi
     /* Copy the file name to file */
     strncpy(file, file_name, DEVICE_PATH_LENGTH - DEVICE_NAME_LENGTH);
     /* Get path & attach the file*/
-    strcat(real_path, DEVICE_PATH);
+    strcpy(real_path, DEVICE_PATH);
     strcat(real_path, file);
     strncpy(device_descriptor->file_name, real_path, DEVICE_PATH_LENGTH);
 
