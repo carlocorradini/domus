@@ -92,6 +92,14 @@ bool list_add_last(List *list, void *data);
 void *list_get(const List *list, size_t index);
 
 /**
+ * Return the index of the data value using equals method
+ * @param list input list
+ * @param data value we are looking for
+ * @return index
+ */
+size_t *list_get_index(const List *list, void * data);
+
+/**
  * Returns the first element in this list
  * @param list The List to get from
  * @return The Node at the specified position, NULL otherwise

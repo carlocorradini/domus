@@ -116,6 +116,7 @@ static Node *list_get_node(const List *list, size_t index) {
     return node;
 }
 
+
 bool list_add(List *list, size_t index, void *data) {
     Node *new_node;
     Node *node;
@@ -184,6 +185,20 @@ void *list_get(const List *list, size_t index) {
     if (list_is_empty(list) || !list_check_index(list, index)) return NULL;
 
     return list_get_node(list, index)->data;
+}
+
+size_t *list_get_index(const List *list, void * data){
+    if(!list_contains(list, data)){
+        return (size_t *) -1;
+    }
+    size_t index = 0;
+    void * tmp;
+    list_for_each(tmp, list) {
+        if(list->equals(tmp, data)){
+            return (size_t *) index;
+        }
+        index++;
+    }
 }
 
 void *list_get_first(const List *list) {
