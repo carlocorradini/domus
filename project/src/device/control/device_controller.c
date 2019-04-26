@@ -64,8 +64,14 @@ static void controller_read_pipe(int signal_number);
  */
 static void controller_message_handler(DeviceCommunicationMessage message);
 
+/**
+ * Methods to compare DeviceCommunication and id
+ * @param data1 DeviceCommunication data (element of controller->devices)
+ * @param data2 id
+ * @return
+ */
 static bool process_equals(const DeviceCommunication * data1, const size_t * data2){
-    return data1->id == data2;
+    return  data1->id == (size_t) data2;
 }
 
 void controller_start(void) {
@@ -290,13 +296,18 @@ bool controller_del(size_t id) {
 }
 
 size_t controller_valid_id(size_t id) {
-    DeviceCommunication *data;
-    if (id <= 0) return -1;
+    if (id <= 0) return (size_t) -1;
 
-    if(list_contains(controller->devices, id)){
+    if(list_contains(controller->devices, (size_t *) id)){
         return id;
     }
 
-    return -1;
+    return (size_t) -1;
 }
 
+void getInfo(size_t id){
+    if(list_contains(controller->devices, (size_t *) id)){
+        DeviceCommunication * tmp = list_get(controller->devices, (size_t) list_get_index(controller->devices, (size_t *) id));
+        println("\tI have id %ld and I'm a %s, just %s" , id, tmp->device_descriptor->name, tmp->device_descriptor->description);
+    }
+}

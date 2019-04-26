@@ -53,4 +53,10 @@ bool controller_del(size_t id);
  */
 size_t controller_valid_id(size_t id);
 
+/**
+ * Given a id, returns info on the device
+ * @param id
+ * @return
+ */
+void getInfo(size_t id);
 #endif
