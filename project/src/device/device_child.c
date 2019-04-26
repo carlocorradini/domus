@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -69,7 +68,7 @@ static void device_child_read_pipe(int signal_number) {
         /* I need to read */
         if (device_child_communication == NULL || device_child_message_handler == NULL)
             return;
-        device_communication_read_message(device_child_communication, device_child_message_handler);
+        device_child_message_handler(device_communication_read_message(device_child_communication));
     }
 }
 

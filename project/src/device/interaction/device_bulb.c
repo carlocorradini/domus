@@ -17,17 +17,17 @@ static Device *bulb = NULL;
 static DeviceCommunication *bulb_communication = NULL;
 
 /**
- * Handle the incoming message
- * @param in_message The received message
- */
-static void bulb_message_handler(DeviceCommunicationMessage in_message);
-
-/**
  * Set the bulb switch state
  * @param state the state to set
  * @return true if successful, false otherwise
  */
-static bool bulb_set_switch_state(char name[], bool * state);
+static bool bulb_set_switch_state(char name[], bool *state);
+
+/**
+ * Handle the incoming message
+ * @param in_message The received message
+ */
+static void bulb_message_handler(DeviceCommunicationMessage in_message);
 
 BulbRegistry *new_bulb_registry(void) {
     BulbRegistry *bulb_registry;
@@ -44,12 +44,12 @@ BulbRegistry *new_bulb_registry(void) {
     return bulb_registry;
 }
 
-static bool bulb_set_switch_state(char name[], bool * state){
-    BulbRegistry * bulb_registry;
+static bool bulb_set_switch_state(char name[], bool *state) {
+    BulbRegistry *bulb_registry;
     DeviceSwitch *bulb_switch;
 
-    if(list_contains(bulb->switches, name)){
-        if(bulb->state == (bool) state) return true;
+    if (list_contains(bulb->switches, name)) {
+        if (bulb->state == (bool) state) return true;
 
         bulb_switch = list_get(bulb->switches, (size_t) list_get_index(bulb->switches, name));
         bulb_switch->state = state;
@@ -63,7 +63,6 @@ static bool bulb_set_switch_state(char name[], bool * state){
     return false;
 }
 
-
 static void bulb_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
     ConverterResult result;
@@ -71,24 +70,12 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
     out_message.id_sender = bulb->id;
 
     switch (in_message.type) {
-        case MESSAGE_TYPE_IS_ON: {
-            out_message.type = MESSAGE_TYPE_IS_ON;
-            snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%d", bulb->state);
-            break;
-        }
-        case MESSAGE_TYPE_SET_ON: {
-            result = converter_char_to_bool(in_message.message);
-
-            if (result.error) {
-                out_message.type = MESSAGE_TYPE_ERROR;
-                snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "SET ON Invalid value: %s",
-                         result.error_message);
-                break;
-            }
-
-            out_message.type = MESSAGE_TYPE_SET_ON;
-            snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%d",
-                     true);
+        case MESSAGE_TYPE_INFO: {
+            out_message.type = MESSAGE_TYPE_INFO;
+            snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%ld     %s     %s",
+                     bulb->id,
+                     "bulbo",
+                     "semplice bulbo");
             break;
         }
         case MESSAGE_TYPE_TERMINATE: {
@@ -107,10 +94,10 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
     device_communication_write_message(bulb_communication, &out_message);
 }
+
 int main(int argc, char **args) {
     bulb = device_child_new_device(argc, args, new_bulb_registry);
     list_add_last(bulb->switches, new_device_switch("turn", DEVICE_STATE, bulb_set_switch_state));
-
 
     bulb_communication = device_child_new_device_communication(argc, args, bulb_message_handler);
 

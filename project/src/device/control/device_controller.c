@@ -1,6 +1,6 @@
 
-#include <fcntl.h>
 #include <string.h>
+#include <sys/wait.h>
 #include "device/control/device_controller.h"
 #include "device/device_communication.h"
 #include "device/device_child.h"
@@ -46,25 +46,6 @@ static void controller_fork_parent(size_t child_id, pid_t pid, const DeviceDescr
                                    int com_write);
 
 /**
- * Change the state of the controller
- * @param state The state to change to
- * @return true if the operation was successful, false otherwise
- */
-static bool controller_master_switch(bool state);
-
-/**
- * Wake Up the controller to read the read pipes
- * @param signal_number DEVICE_COMMUNICATION_READ_PIPE signal for reading
- */
-static void controller_read_pipe(int signal_number);
-
-/**
- * Handle incoming message
- * @param message The message to handle
- */
-static void controller_message_handler(DeviceCommunicationMessage message);
-
-/**
  * Methods to compare DeviceCommunication and id
  * @param data1 DeviceCommunication data (element of controller->devices)
  * @param data2 id
@@ -93,10 +74,8 @@ static void controller_init(void) {
                        0,
                        DEVICE_STATE,
                        new_controller_registry()
-                       ),
+            ),
             new_list(NULL, process_equals));
-    /* Attach a macro to DEVICE_COMMUNICATION_READ_PIPE the signal to force the controller to check new messages */
-    signal(DEVICE_COMMUNICATION_READ_PIPE, controller_read_pipe);
 
     command_init();
     author_init();
@@ -143,12 +122,6 @@ bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
     if (pipe(write_parent_read_child) == -1
         || pipe(write_child_read_parent) == -1) {
         perror("Controller Fork Pipe");
-        exit(EXIT_FAILURE);
-    }
-    /* Async Pipe Reading */
-    if (fcntl(write_parent_read_child[0], F_SETFL, O_NONBLOCK) == -1
-        || fcntl(write_child_read_parent[0], F_SETFL, O_NONBLOCK) == -1) {
-        perror("Controller Fork fcntl");
         exit(EXIT_FAILURE);
     }
 
@@ -223,52 +196,40 @@ static void controller_fork_parent(size_t child_id, pid_t pid, const DeviceDescr
     registry->connected_directly = registry->connected_total = controller->devices->size;
 }
 
-static void controller_message_handler(DeviceCommunicationMessage message) {
-    switch (message.type) {
+static void controller_message_handler(DeviceCommunicationMessage in_message) {
+    switch (in_message.type) {
         case MESSAGE_TYPE_DEBUG: {
             println("\tDEBUG MESSAGE");
-            println("\tMessage from %ld: %s", message.id_sender, message.message);
+            println("\tMessage from %ld: %s", in_message.id_sender, in_message.message);
             break;
         }
         case MESSAGE_TYPE_ERROR: {
             println_color(COLOR_RED, "\tERROR MESSAGE");
-            println("\tMessage from %ld: %s", message.id_sender, message.message);
+            println("\tMessage from %ld: %s", in_message.id_sender, in_message.message);
+            break;
+        }
+        case MESSAGE_TYPE_INFO: {
+            println("\t%s", in_message.message);
             break;
         }
         case MESSAGE_TYPE_TERMINATE: {
             DeviceCommunication *data;
             size_t index = 0;
             list_for_each(data, controller->devices) {
-                if (data->id == message.id_sender) {
+                if (data->id == in_message.id_sender) {
+                    close(data->com_read);
+                    close(data->com_write);
+                    waitpid(data->pid, 0, 0);
                     list_remove_index(controller->devices, index);
                 }
                 index++;
             }
-            println("\tDevice %ld has been terminated with status {%s}", message.id_sender, message.message);
-            break;
-        }
-        case MESSAGE_TYPE_IS_ON: {
-            println("\tDevice %ld is %s", message.id_sender, message.message);
-            break;
-        }
-        case MESSAGE_TYPE_SET_ON: {
-            println("\tDevice %ld has been changed", message.id_sender);
+            println("\tDevice %ld has been terminated with status {%s}", in_message.id_sender, in_message.message);
             break;
         }
         default: {
-            println_color(COLOR_RED, "\tMessage type [%d] | [%s] not supported", message.type, message.message);
+            println_color(COLOR_RED, "\tMessage type [%d] | [%s] not supported", in_message.type, in_message.message);
             break;
-        }
-    }
-}
-
-static void controller_read_pipe(int signal_number) {
-    if (signal_number == DEVICE_COMMUNICATION_READ_PIPE) {
-        DeviceCommunication *data;
-        if (!device_check_control_device(controller)) return;
-
-        list_for_each(data, controller->devices) {
-            device_communication_read_message(data, controller_message_handler);
         }
     }
 }
@@ -280,14 +241,14 @@ bool controller_has_devices(void) {
 
 void controller_list(void) {
     DeviceCommunication *data;
-    DeviceCommunicationMessage message;
+    DeviceCommunicationMessage out_message;
     if (!device_check_control_device(controller)) return;
 
-    message.type = MESSAGE_TYPE_IS_ON;
-    message.id_sender = 0;
+    out_message.type = MESSAGE_TYPE_INFO;
+    out_message.id_sender = 0;
 
     list_for_each(data, controller->devices) {
-        device_communication_write_message(data, &message);
+        controller_message_handler(device_communication_write_message_with_ack(data, &out_message));
     }
 }
 
@@ -300,7 +261,7 @@ bool controller_del(size_t id) {
     message.id_sender = 0;
 
     list_for_each(data, controller->devices) {
-        device_communication_write_message(data, &message);
+        controller_message_handler(device_communication_write_message_with_ack(data, &message));
     }
 
     return false;
@@ -324,26 +285,23 @@ void controller_info_all(void) {
 
     if (controller_has_devices()) {
         list_for_each(data, controller->devices) {
-            controller_info_print(data);
+            controller_info_by_id(data->id);
         }
     }
 }
 
 void controller_info_by_id(size_t id) {
+    DeviceCommunication *device_communication;
+    DeviceCommunicationMessage out_message;
     if (!device_check_control_device(controller)) return;
 
-    if (list_contains(controller->devices, (size_t *) id)) {
-        controller_info_print(list_get(controller->devices,
-                                       (size_t) list_get_index(controller->devices,
-                                                               (size_t *) id)));
-    }
-}
+    out_message.type = MESSAGE_TYPE_INFO;
+    out_message.id_sender = 0;
 
-static void controller_info_print(const DeviceCommunication *device_communication) {
-    println("\t%-*ld     %-*s     %-*s",
-            sizeof(device_communication->id) + 1, device_communication->id,
-            DEVICE_NAME_LENGTH,
-            device_communication->device_descriptor->name,
-            DEVICE_DESCRIPTION_LENGTH,
-            device_communication->device_descriptor->description);
+    if (list_contains(controller->devices, (size_t *) id)) {
+        device_communication = (DeviceCommunication *) list_get(controller->devices,
+                                                                (size_t) list_get_index(controller->devices,
+                                                                                        (size_t *) id));
+        controller_message_handler(device_communication_write_message_with_ack(device_communication, &out_message));
+    }
 }

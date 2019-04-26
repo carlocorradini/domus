@@ -14,7 +14,6 @@
  * @param argc The number of arguments
  * @param args The arguments
  * @param registry Device registry
- * @param master_switch Function to change state and make custom operations
  * @return The new Device, NULL otherwise
  */
 Device *device_child_new_device(int argc, char **args, void *registry);

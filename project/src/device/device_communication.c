@@ -1,8 +1,15 @@
 
 #include <errno.h>
 #include <signal.h>
+#include <sys/wait.h>
 #include "device/device_communication.h"
 #include "util/util_printer.h"
+
+/**
+ *
+ * @param pid
+ */
+static void device_communication_notify(pid_t pid);
 
 DeviceCommunication *
 new_device_communication(size_t id, pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write) {
@@ -21,51 +28,69 @@ new_device_communication(size_t id, pid_t pid, const DeviceDescriptor *device_de
     return device_communication;
 }
 
-#include <sys/wait.h>
+DeviceCommunicationMessage device_communication_read_message(const DeviceCommunication *device_communication) {
+    DeviceCommunicationMessage in_message;
+    in_message.type = MESSAGE_TYPE_ERROR;
 
-bool device_communication_read_message(const DeviceCommunication *device_communication,
-                                       void (*message_handler)(DeviceCommunicationMessage)) {
-    DeviceCommunicationMessage message;
-    if (device_communication == NULL || device_communication->com_read < 0) return false;
+    if (device_communication == NULL) {
+        snprintf(in_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH,
+                 "Device Communication has not been initialized");
+        return in_message;
+    }
 
-    while (true) {
-        switch (read(device_communication->com_read, &message, sizeof(DeviceCommunicationMessage))) {
-            case -1: {
-                /* Empty or Error */
-                if (errno == EAGAIN) {
-                    /* No Error */
-                    return true;
-                } else {
-                    perror("Error pipe read");
-                    exit(EXIT_FAILURE);
-                }
+    switch (read(device_communication->com_read, &in_message, sizeof(DeviceCommunicationMessage))) {
+        case -1: {
+            /* Empty or Error */
+            if (errno != EAGAIN) {
+                perror("Error pipe read");
+                exit(EXIT_FAILURE);
             }
-            case 0: {
-                /* Process is terminated */
-                close(device_communication->com_read);
-                close(device_communication->com_write);
-                waitpid(device_communication->pid, 0, 0);
-                return true;
-            }
-            default: {
-                /* Message Found */
-                message_handler(message);
-                break;
-            }
+            break;
         }
+        case 0: {
+            /* Process is terminated */
+            close(device_communication->com_read);
+            close(device_communication->com_write);
+            waitpid(device_communication->pid, 0, 0);
+            break;
+        }
+        default: {
+            /* Message was correctly received */
+            break;
+        }
+    }
+
+    return in_message;
+}
+
+DeviceCommunicationMessage device_communication_write_message_with_ack(const DeviceCommunication *device_communication,
+                                                                       const DeviceCommunicationMessage *out_message) {
+    DeviceCommunicationMessage in_message;
+    in_message.type = MESSAGE_TYPE_ERROR;
+
+    if (device_communication == NULL || out_message == NULL) {
+        snprintf(in_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH,
+                 "Device Communication OR Message has not been initialized");
+        return in_message;
+    }
+
+    device_communication_write_message(device_communication, out_message);
+
+    device_communication_notify(device_communication->pid);
+
+    return device_communication_read_message(device_communication);
+}
+
+void device_communication_write_message(const DeviceCommunication *device_communication,
+                                        const DeviceCommunicationMessage *out_message) {
+    if (device_communication == NULL) return;
+
+    if (write(device_communication->com_write, out_message, sizeof(DeviceCommunicationMessage)) == -1) {
+        perror("Error Writing Message");
+        exit(EXIT_FAILURE);
     }
 }
 
-bool device_communication_write_message(const DeviceCommunication *device_communication,
-                                        const DeviceCommunicationMessage *message) {
-    if (device_communication == NULL || message == NULL || device_communication->com_write < 0) return false;
-
-    write(device_communication->com_write, message, sizeof(DeviceCommunicationMessage));
-    device_communication_notify(device_communication->pid);
-
-    return true;
-}
-
-void device_communication_notify(pid_t pid) {
+static void device_communication_notify(pid_t pid) {
     kill(pid, DEVICE_COMMUNICATION_READ_PIPE);
 }
