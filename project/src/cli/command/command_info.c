@@ -12,19 +12,25 @@
  * @return CLI status code
  */
 static int _info(char **args) {
-    size_t id;
+    ConverterResult result;
+
     if (args[1] == NULL) {
         println("\tPlease add a device id");
     } else {
-        id = (size_t) converter_char_to_long(args[1]);
+        result = converter_char_to_long(args[1]);
 
-        if(controller_valid_id(id)==-1){
-            println("\tPlease enter a valid device id");
-        }
-        else{
-            getInfo(id);
+        if (result.error) {
+            println("\tConversion Error: %s", result.error_message);
+        } else if (result.data.Long == 0) {
+            println("\tCannot show controller info");
+        } else if (controller_valid_id(result.data.Long) == -1) {
+            println("\tCannot find a Device with id %ld", result.data.Long);
+        } else {
+            getInfo(result.data.Long);
         }
     }
+
+
     return CLI_CONTINUE;
 }
 

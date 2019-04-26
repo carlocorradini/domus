@@ -55,8 +55,7 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
         }
         case MESSAGE_TYPE_SET_ON: {
             out_message.type = MESSAGE_TYPE_SET_ON;
-            bool tmp = converter_char_to_bool((char *) in_message.message);
-            switch_->setFunction(tmp);
+            switch_->setFunction(true);
             snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%d", window->state);
             device_communication_write_message(window_communication, &out_message);
             exit(EXIT_SUCCESS);

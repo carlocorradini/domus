@@ -24,7 +24,7 @@ new_device_communication(size_t id, pid_t pid, const DeviceDescriptor *device_de
 #include <sys/wait.h>
 
 bool device_communication_read_message(const DeviceCommunication *device_communication,
-                                       void (*message_handler)(DeviceCommunicationMessage message)) {
+                                       void (*message_handler)(DeviceCommunicationMessage)) {
     DeviceCommunicationMessage message;
     if (device_communication == NULL || device_communication->com_read < 0) return false;
 
