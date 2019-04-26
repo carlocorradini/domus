@@ -59,15 +59,15 @@ static int cli_execute(char **args) {
     }
     return status;
 }
+
 /**
  * Move the cursor to the left
  * @param value # of positions (if null, it's set to 100)
  */
-static void cursor_left(int value){
-    if(value != 0){
+static void cursor_left(int value) {
+    if (value != 0) {
         printf("\033[%dD", value);
-    }
-    else{
+    } else {
         printf("\033[100D");
     }
 }
@@ -76,11 +76,10 @@ static void cursor_left(int value){
  * Move the cursor to the right
  * @param value # of positions (if null, it's set to 100)
  */
-static void cursor_right(int value){
-    if(value != 0){
+static void cursor_right(int value) {
+    if (value != 0) {
         printf("\033[%dC", value);
-    }
-    else{
+    } else {
         printf("\033[100C");
     }
 }
@@ -89,9 +88,9 @@ static void cursor_right(int value){
  * Print white spaces
  * @param value # of white spaces to print
  */
-static void white_space(int value){
+static void white_space(int value) {
     int i = 0;
-    for(i; i<value; i++){
+    for (i; i < value; i++) {
         printf(" ");
     }
 }
@@ -101,7 +100,7 @@ static void white_space(int value){
  * deleting everything after that
  * @param position the buffer position
  */
-static void clear_from_char(int position){
+static void clear_from_char(int position) {
     cursor_left(0);
     cursor_right(position + 2);
     white_space(7);
@@ -111,7 +110,7 @@ static void clear_from_char(int position){
 /**
  * Move cursor to the left right after the ">" character
  */
-static void move_left(){
+static void move_left() {
     cursor_left(0);
     cursor_right(2);
 }
@@ -121,7 +120,7 @@ static void move_left(){
  * @param c the char
  * @return return true/false
  */
-static bool isNumber(char c){
+static bool isNumber(char c) {
     return c > 47 && c < 58;
 }
 
@@ -130,7 +129,7 @@ static bool isNumber(char c){
  * @param c the char
  * @return return true/false
  */
-static bool isCapital(char c){
+static bool isCapital(char c) {
     return c > 64 && c < 9;
 }
 
@@ -139,7 +138,7 @@ static bool isCapital(char c){
  * @param c the char
  * @return return true/false
  */
-static bool isLower(char c){
+static bool isLower(char c) {
     return c > 96 && c < 123;
 }
 
@@ -169,8 +168,9 @@ static char *cli_read_line(void) {
 
         c = getchar();
 
-        if (isCapital(c) || isLower(c) || isNumber(c) || c == CLI_CHARACTER_DELETE || c == CLI_CHARACTER_CARRIAGE_RETURN || c == CLI_CHARACTER_TAB || c == CLI_CHARACTER_ARROW || c == CLI_CHARACTER_EXIT || c==CLI_CHARACTER_SPACE || c==CLI_CHARACTER_MINUS)
-        {
+        if (isCapital(c) || isLower(c) || isNumber(c) || c == CLI_CHARACTER_DELETE ||
+            c == CLI_CHARACTER_CARRIAGE_RETURN || c == CLI_CHARACTER_TAB || c == CLI_CHARACTER_ARROW ||
+            c == CLI_CHARACTER_EXIT || c == CLI_CHARACTER_SPACE || c == CLI_CHARACTER_MINUS) {
             switch (c) {
                 /*
                  * If Ctrl + C is typed
@@ -189,9 +189,9 @@ static char *cli_read_line(void) {
                     return (buffer);
                 }
 
-                /*
-                 * If Tab is pressed
-                 */
+                    /*
+                     * If Tab is pressed
+                     */
                 case CLI_CHARACTER_TAB: {
                     /*
                      * Clear
@@ -216,9 +216,9 @@ static char *cli_read_line(void) {
                     break;
                 }
 
-                /*
-                 * if Enter is pressed
-                 */
+                    /*
+                     * if Enter is pressed
+                     */
                 case CLI_CHARACTER_CARRIAGE_RETURN: {
                     buffer[position] = CLI_STRING_TERMINATOR;
                     cursor_left(2);
@@ -227,10 +227,14 @@ static char *cli_read_line(void) {
                     printf("\n");
                     system("stty cooked");
 
-                    char *tmp = (char *) malloc(sizeof(char) * 512);
-                    strcpy(tmp, buffer);
-                    list_add_first(cli_list, tmp);
-
+                    /*
+                     * Do not add empty buffer to list
+                     */
+                    if (strlen(buffer) > 0) {
+                        char *tmp = (char *) malloc(sizeof(char) * 512);
+                        strcpy(tmp, buffer);
+                        list_add_first(cli_list, tmp);
+                    }
                     cli_node = cli_list->head;
 
                     return buffer;
@@ -283,17 +287,15 @@ static char *cli_read_line(void) {
                      * If is down arrow
                      */
                     if (c == CLI_CHARACTER_DOWN_ARROW) {
-                        if(cli_node != NULL){
-                            if(cli_node->prev == NULL) {
+                        if (cli_node != NULL) {
+                            if (cli_node->prev == NULL) {
                                 cli_node = cli_list->tail;
-                            }
-                            else{
+                            } else {
                                 cli_node = cli_node->prev;
                             }
-                            if(cli_node->prev == NULL) {
+                            if (cli_node->prev == NULL) {
                                 cli_node = cli_list->tail;
-                            }
-                            else{
+                            } else {
                                 cli_node = cli_node->prev;
                             }
                             move_left();
@@ -318,9 +320,9 @@ static char *cli_read_line(void) {
                     break;
                 }
 
-                /*
-                 * If Delete was pressed
-                 */
+                    /*
+                     * If Delete was pressed
+                     */
                 case CLI_CHARACTER_DELETE: {
                     /*
                      * If it's after ">" character
@@ -348,8 +350,7 @@ static char *cli_read_line(void) {
                     }
                 }
             }
-        }
-        else{
+        } else {
             clear_from_char(position);
         }
     }
