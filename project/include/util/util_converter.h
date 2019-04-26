@@ -1,6 +1,6 @@
 
-#ifndef UTIL_CONVERTER_H
-#define UTIL_CONVERTER_H
+#ifndef _UTIL_CONVERTER_H
+#define _UTIL_CONVERTER_H
 
 #include <stdbool.h>
 

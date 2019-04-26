@@ -29,7 +29,7 @@ static void (*device_child_message_handler)(DeviceCommunicationMessage) = NULL;
  */
 static bool device_child_check_args(int argc, char **args);
 
-Device *device_child_new_device(int argc, char **args, void *registry, bool (*master_switch)(bool)) {
+Device *device_child_new_device(int argc, char **args, void *registry) {
     ConverterResult result;
     if (!device_child_check_args(argc, args)) return NULL;
 
@@ -39,7 +39,7 @@ Device *device_child_new_device(int argc, char **args, void *registry, bool (*ma
         exit(EXIT_FAILURE);
     }
 
-    return new_device(getpid(), result.data.Long, DEVICE_STATE, registry, master_switch);
+    return new_device(getpid(), result.data.Long, DEVICE_STATE, registry);
 }
 
 DeviceCommunication *

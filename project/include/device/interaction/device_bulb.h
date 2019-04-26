@@ -1,4 +1,4 @@
-
+#include "device/device.h"
 #ifndef _DEVICE_BULB_H
 #define _DEVICE_BULB_H
 
@@ -14,12 +14,5 @@ typedef struct BulbRegistry {
  * @return The new Bulb Registry, NULL otherwise
  */
 BulbRegistry *new_bulb_registry(void);
-
-/**
- * Change the state of the bulb
- * @param state The state to change to
- * @return true if the change was successful, false otherwise
- */
-bool bulb_master_switch(bool state);
 
 #endif

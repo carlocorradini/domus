@@ -92,8 +92,8 @@ static void controller_init(void) {
             new_device(getpid(),
                        0,
                        DEVICE_STATE,
-                       new_controller_registry(),
-                       controller_master_switch),
+                       new_controller_registry()
+                       ),
             new_list(NULL, process_equals));
     /* Attach a macro to DEVICE_COMMUNICATION_READ_PIPE the signal to force the controller to check new messages */
     signal(DEVICE_COMMUNICATION_READ_PIPE, controller_read_pipe);

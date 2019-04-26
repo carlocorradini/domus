@@ -17,7 +17,7 @@
  * @param master_switch Function to change state and make custom operations
  * @return The new Device, NULL otherwise
  */
-Device *device_child_new_device(int argc, char **args, void *registry, bool (*master_switch)(bool));
+Device *device_child_new_device(int argc, char **args, void *registry);
 
 /**
  * Create and return a Device Communication like,

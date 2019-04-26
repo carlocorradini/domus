@@ -11,17 +11,52 @@
 #define DEVICE_NAME_LENGTH 15
 #define DEVICE_DESCRIPTION_LENGTH 35
 #define DEVICE_PATH_LENGTH 256
+#define DEVICE_SWITCH_NAME_LENGTH 256
+
+#define DEVICE_TYPE_BULB 0
+#define DEVICE_TYPE_WINDOW 1
+#define DEVICE_TYPE_FRIDGE 2
+#define DEVICE_TYPE_CONTROLLER 3
+#define DEVICE_TYPE_HUB 4
+#define DEVICE_TYPE_TIMER 5
+
+
+/**
+ * Struct Device Descriptor,
+ *  Information About a Device
+ */
+typedef struct DeviceDescriptor {
+    char name[DEVICE_NAME_LENGTH];
+    char description[DEVICE_DESCRIPTION_LENGTH];
+    char file_name[DEVICE_PATH_LENGTH];
+
+    int type;
+} DeviceDescriptor;
+
+/**
+ * Struct generic switch
+ */
+typedef struct DeviceSwitch {
+    char name[DEVICE_SWITCH_NAME_LENGTH];
+    void *state;
+
+    bool (*set_state)(char name[], void *state);
+} DeviceSwitch;
+
 
 /**
  * Struct generic Device
  */
 typedef struct Device {
-    pid_t pid;
     size_t id;
+
+    pid_t pid;
     bool state;
     void *registry;
 
-    bool (*master_switch)(bool state);
+    List *switches;
+
+    DeviceDescriptor *device_descriptor;
 } Device;
 
 /**
@@ -33,15 +68,6 @@ typedef struct ControlDevice {
     List *devices;
 } ControlDevice;
 
-/**
- * Struct Device Descriptor,
- *  Information About a Device
- */
-typedef struct DeviceDescriptor {
-    char name[DEVICE_NAME_LENGTH];
-    char description[DEVICE_DESCRIPTION_LENGTH];
-    char file_name[DEVICE_PATH_LENGTH];
-} DeviceDescriptor;
 
 /**
  * Initialize the List of supported Devices
@@ -62,7 +88,7 @@ void device_tini(void);
  * @param master_switch Function to change state and make custom operations
  * @return The new Device, NULL otherwise
  */
-Device *new_device(pid_t pid, size_t id, bool state, void *registry, bool (*master_switch)(bool));
+Device *new_device(pid_t pid, size_t id, bool state, void *registry);
 
 /**
  * Free a Device
@@ -70,6 +96,16 @@ Device *new_device(pid_t pid, size_t id, bool state, void *registry, bool (*mast
  * @return true if the Device has been freed, false otherwise
  */
 bool free_device(Device *device);
+
+/**
+ * Create a new device switch
+ * @param name switch name
+ * @param state switch state
+ * @param set_state method that set the state to the device
+ * @return the created switch
+ */
+DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(void *state));
+
 
 /**
  * Check if a Device is correctly initialized
@@ -108,15 +144,6 @@ bool device_check_control_device(const ControlDevice *control_device);
  * @return The new DeviceDescriptor
  */
 DeviceDescriptor *new_device_descriptor(char name[], char description[], char file_name[]);
-
-/**
- * Change the state of a Device calling it's custom function master_switch,
- *  if the operation was successful return true, false otherwise
- * @param device The Device to change state
- * @param state The state to change to
- * @return true if the operation was successful, false otherwise
- */
-bool device_change_state(Device *device, bool state);
 
 /**
  * Check if a device is supported,

@@ -11,6 +11,14 @@
  */
 static List *supported_devices = NULL;
 
+/**
+ * Return true if data1==data2, false otherwise
+ * @param data1 first string
+ * @param data2 second string
+ * @return false/true
+ */
+static bool device_switch_equals(const char data1[], const char data2[]);
+
 void device_init(void) {
     if (supported_devices != NULL) return;
     supported_devices = new_list(NULL, NULL);
@@ -25,9 +33,13 @@ void device_tini(void) {
     free_list(supported_devices);
 }
 
-Device *new_device(pid_t pid, size_t id, bool state, void *registry, bool (*master_switch)(bool)) {
+static bool device_switch_equals(const char data1[], const char data2[]) {
+    return strcmp(data1, data2) == 0;
+}
+
+Device *new_device(pid_t pid, size_t id, bool state, void *registry) {
     Device *device;
-    if (registry == NULL || master_switch == NULL) {
+    if (registry == NULL) {
         fprintf(stderr, "Device: Please define all required function\n");
         return NULL;
     }
@@ -41,7 +53,7 @@ Device *new_device(pid_t pid, size_t id, bool state, void *registry, bool (*mast
     device->id = id;
     device->state = state;
     device->registry = registry;
-    device->master_switch = master_switch;
+    device->switches = new_list(NULL, device_switch_equals);
 
     return device;
 }
@@ -51,13 +63,28 @@ bool free_device(Device *device) {
     if (device->registry == NULL) return false;
 
     free(device->registry);
+    free_list(device->switches);
     free(device);
 
     return true;
 }
 
+DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(void *state)) {
+    DeviceSwitch *device_switch = (DeviceSwitch *) malloc(sizeof(DeviceSwitch));
+    if (device_switch == NULL) {
+        perror("DeviceSwitch Memory Allocation");
+        exit(EXIT_FAILURE);
+    }
+
+    strncpy(device_switch->name, name, DEVICE_SWITCH_NAME_LENGTH);
+    device_switch->state = state;
+    device_switch->set_state = set_state;
+
+    return device_switch;
+}
+
 bool device_check_device(const Device *device) {
-    return device != NULL && device->registry != NULL && device->master_switch != NULL;
+    return device != NULL && device->registry != NULL;
 }
 
 ControlDevice *new_control_device(Device *device, List *devices) {
@@ -112,12 +139,6 @@ DeviceDescriptor *new_device_descriptor(char name[], char description[], char fi
     strncpy(device_descriptor->file_name, real_path, DEVICE_PATH_LENGTH);
 
     return device_descriptor;
-}
-
-bool device_change_state(Device *device, bool state) {
-    if (device == NULL) return false;
-    if (device->state == state) return true;
-    return device->master_switch(state);
 }
 
 DeviceDescriptor *device_is_supported(const char *device) {

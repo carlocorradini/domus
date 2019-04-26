@@ -22,6 +22,13 @@ static DeviceCommunication *bulb_communication = NULL;
  */
 static void bulb_message_handler(DeviceCommunicationMessage in_message);
 
+/**
+ * Set the bulb switch state
+ * @param state the state to set
+ * @return true if successful, false otherwise
+ */
+static bool bulb_set_switch_state(char name[], bool * state);
+
 BulbRegistry *new_bulb_registry(void) {
     BulbRegistry *bulb_registry;
     if (device_check_device(bulb)) return NULL;
@@ -37,18 +44,25 @@ BulbRegistry *new_bulb_registry(void) {
     return bulb_registry;
 }
 
-bool bulb_master_switch(bool state) {
-    BulbRegistry *bulb_registry;
-    if (!device_check_device(bulb)) return false;
-    if (bulb->state == state) return true;
+static bool bulb_set_switch_state(char name[], bool * state){
+    BulbRegistry * bulb_registry;
+    DeviceSwitch *bulb_switch;
 
-    bulb_registry = (BulbRegistry *) bulb->registry;
+    if(list_contains(bulb->switches, name)){
+        if(bulb->state == (bool) state) return true;
 
-    bulb->state = state;
-    (bulb->state) ? time(&bulb_registry->start) : (bulb_registry->start = 0);
+        bulb_switch = list_get(bulb->switches, (size_t) list_get_index(bulb->switches, name));
+        bulb_switch->state = state;
 
-    return true;
+        bulb->state = (bool) state;
+        bulb_registry = (BulbRegistry *) bulb->registry;
+        (state) ? time(&bulb_registry->start) : (bulb_registry->start = 0);
+
+        return true;
+    }
+    return false;
 }
+
 
 static void bulb_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
@@ -74,7 +88,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
             out_message.type = MESSAGE_TYPE_SET_ON;
             snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%d",
-                     bulb_master_switch(result.data.Bool));
+                     true);
             break;
         }
         case MESSAGE_TYPE_TERMINATE: {
@@ -93,9 +107,11 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
     device_communication_write_message(bulb_communication, &out_message);
 }
-
 int main(int argc, char **args) {
-    bulb = device_child_new_device(argc, args, new_bulb_registry, bulb_master_switch);
+    bulb = device_child_new_device(argc, args, new_bulb_registry);
+    list_add_last(bulb->switches, new_device_switch("turn", DEVICE_STATE, bulb_set_switch_state));
+
+
     bulb_communication = device_child_new_device_communication(argc, args, bulb_message_handler);
 
     while (true);
