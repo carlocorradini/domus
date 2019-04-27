@@ -202,6 +202,7 @@ static char *cli_read_line(void) {
                      */
                     buffer[position] = CLI_STRING_TERMINATOR;
 
+                    strncpy(dat, "", CLI_READ_LINE_BUFFER_SIZE);
                     char *res = command_autocomplete_search(buffer, dat);
 
                     /*
@@ -210,6 +211,7 @@ static char *cli_read_line(void) {
                     if (res != NULL) {
                         move_left();
                         strncpy(buffer, res, sizeof(res));
+                        strcat(buffer, "\0");
                         printf("%s", buffer);
                         position = (int) strlen(buffer);
                     }
