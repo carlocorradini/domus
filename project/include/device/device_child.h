@@ -9,6 +9,12 @@
 #define DEVICE_CHILD_ARGS_LENGTH 4
 
 /**
+ * An endless loop with pause for low LEVEL CUP LOAD
+ * @param do_on_wake_up A function called when the process has woke up
+ */
+void device_child_run(void (*do_on_wake_up)(void));
+
+/**
  * Create and return a Device like but with arguments parameters.
  *  Only for child process!
  * @param argc The number of arguments
