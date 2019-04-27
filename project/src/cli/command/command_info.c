@@ -38,7 +38,7 @@ static int _info(char **args) {
             println("\tCannot find a Device with id %ld", result.data.Long);
         } else {
             command_info_print_header();
-            controller_command_info_by_id(result.data.Long);
+            controller_info_by_id(result.data.Long);
         }
     }
 

@@ -10,14 +10,14 @@
 static volatile sig_atomic_t _device_child_run = true;
 
 /**
- * A pointer to the child Device Communication for easy of use
- */
-static DeviceCommunication *device_child_communication = NULL;
-
-/**
  * A pointer to the child Device for easy of use
  */
 static Device *device_child = NULL;
+
+/**
+ * A pointer to the child Device Communication for easy of use
+ */
+static DeviceCommunication *device_child_communication = NULL;
 
 /**
  * Function for handling signal when receiving a message

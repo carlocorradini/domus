@@ -32,7 +32,7 @@
 typedef struct DeviceCommunication {
     size_t id;
     pid_t pid;
-    const DeviceDescriptor *device_descriptor;
+    const struct DeviceDescriptor *device_descriptor;
     int com_read;
     int com_write;
 } DeviceCommunication;
@@ -58,7 +58,7 @@ typedef struct DeviceCommunicationMessage {
  * @return The new Device Communication, NULL otherwise
  */
 DeviceCommunication *
-new_device_communication(size_t id, pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write);
+new_device_communication(size_t id, pid_t pid, const struct DeviceDescriptor *device_descriptor, int com_read, int com_write);
 
 /**
  * Read a Message from the pipe given in device_communication
@@ -90,7 +90,7 @@ void device_communication_write_message(const DeviceCommunication *device_commun
  * @param device The device to get the id from
  * @param message The message to initialize
  */
-void device_communication_message_init(const Device *device, DeviceCommunicationMessage *message);
+void device_communication_message_init(const struct Device *device, DeviceCommunicationMessage *message);
 
 /**
  * Modify a message:
