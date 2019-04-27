@@ -12,29 +12,31 @@
 static List *supported_devices = NULL;
 
 /**
- * Return true if data1==data2, false otherwise
- * @param data1 first string
- * @param data2 second string
- * @return false/true
+ * Compare the two Strings
+ * @param data_1 first string
+ * @param data_2 second string
+ * @return true if the two Strings are equals, false otherwise
  */
-static bool device_switch_equals(const char data1[], const char data2[]);
+static bool device_switch_equals(const char *data_1, const char *data_2);
 
 void device_init(void) {
     if (supported_devices != NULL) return;
     supported_devices = new_list(NULL, NULL);
 
-    list_add_last(supported_devices, new_device_descriptor("bulb", "A Simple Bulb", "bulb"));
-    list_add_last(supported_devices, new_device_descriptor("window", "A Simple Window", "window"));
-    list_add_last(supported_devices, new_device_descriptor("hub", "A Simple Hub", "hub"));
-    list_add_last(supported_devices, new_device_descriptor("timer", "A Simple Timer", "timer"));
+    list_add_last(supported_devices, new_device_descriptor("bulb",
+                                                           "An electric light with a wire filament heated to such a high temperature that it glows with visible light",
+                                                           "bulb"));
+    list_add_last(supported_devices, new_device_descriptor("window",
+                                                           "An opening in a wall, door, roof or vehicle that allows the passage of light, sound, and air",
+                                                           "window"));
 }
 
 void device_tini(void) {
     free_list(supported_devices);
 }
 
-static bool device_switch_equals(const char data1[], const char data2[]) {
-    return strcmp(data1, data2) == 0;
+static bool device_switch_equals(const char *data_1, const char *data_2) {
+    return strcmp(data_1, data_2) == 0;
 }
 
 Device *new_device(pid_t pid, size_t id, bool state, void *registry) {
@@ -69,7 +71,7 @@ bool free_device(Device *device) {
     return true;
 }
 
-DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(void *state)) {
+DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(const char *, void *)) {
     DeviceSwitch *device_switch = (DeviceSwitch *) malloc(sizeof(DeviceSwitch));
     if (device_switch == NULL) {
         perror("DeviceSwitch Memory Allocation");

@@ -1,7 +1,6 @@
 
 #include <string.h>
 #include <time.h>
-#include "device/device_communication.h"
 #include "device/device_child.h"
 #include "device/interaction/device_bulb.h"
 #include "util/util_converter.h"
@@ -18,10 +17,11 @@ static DeviceCommunication *bulb_communication = NULL;
 
 /**
  * Set the bulb switch state
- * @param state the state to set
+ * @param name The switch name
+ * @param state The state to set
  * @return true if successful, false otherwise
  */
-static bool bulb_set_switch_state(char name[], bool *state);
+static bool bulb_set_switch_state(const char *name, bool state);
 
 /**
  * Handle the incoming message
@@ -51,26 +51,21 @@ BulbRegistry *new_bulb_registry(void) {
     return bulb_registry;
 }
 
-static bool bulb_set_switch_state(char name[], bool *state) {
+static bool bulb_set_switch_state(const char *name, bool state) {
     BulbRegistry *bulb_registry;
     DeviceSwitch *bulb_switch;
+    if (!list_contains(bulb->switches, name)) return false;
 
-    if (list_contains(bulb->switches, name)) {
+    if (bulb->state == state) return true;
 
-        if (bulb->state == (bool) state) return true;
+    bulb_switch = list_get(bulb->switches, list_get_index(bulb->switches, name));
+    bulb_registry = (BulbRegistry *) bulb->registry;
 
-        bulb_switch = list_get(bulb->switches, (size_t) list_get_index(bulb->switches, name));
-        bulb_switch->state = state;
+    bulb_switch->state = (bool *)state;
+    bulb->state = state;
+    bulb_registry->start = (state) ? time(NULL) : (time_t) 0;
 
-        bulb->state = (bool) state;
-        bulb_registry = (BulbRegistry *) bulb->registry;
-
-        bulb_registry->start = (state) ? time(NULL) : (time_t) 0;
-
-        return true;
-    }
-
-    return false;
+    return true;
 }
 
 static bool bulb_check_value(const char *input) {
@@ -94,21 +89,21 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
         }
         case MESSAGE_TYPE_SET_ON: {
             out_message.type = MESSAGE_TYPE_SET_ON;
-            char *switch_name;
-            char *switch_value;
-            bool bool_switch_value;
+            char *switch_label;
+            char *switch_pos;
+            bool bool_switch_pos;
 
-            switch_name = strtok(in_message.message, MESSAGE_DELIMITER);
-            switch_value = strtok(NULL, MESSAGE_DELIMITER);
+            switch_label = strtok(in_message.message, MESSAGE_DELIMITER);
+            switch_pos = strtok(NULL, MESSAGE_DELIMITER);
 
-            if (!bulb_check_value(switch_value)) {
+            if (!bulb_check_value(switch_pos)) {
                 device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ERROR);
                 break;
             }
 
-            bool_switch_value = strcmp(switch_value, "on") == 0 ? true : false;
+            bool_switch_pos = strcmp(switch_pos, "on") == 0 ? true : false;
 
-            bulb_set_switch_state(switch_name, (bool *) bool_switch_value)
+            bulb_set_switch_state(switch_label, bool_switch_pos)
             ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
             : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
 

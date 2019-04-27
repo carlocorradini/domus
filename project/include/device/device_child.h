@@ -1,6 +1,6 @@
 
-#ifndef DEVICE_CHILD_H
-#define DEVICE_CHILD_H
+#ifndef _DEVICE_CHILD_H
+#define _DEVICE_CHILD_H
 
 #include <stdbool.h>
 #include "device/device.h"

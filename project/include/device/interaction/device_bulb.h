@@ -3,7 +3,7 @@
 #define _DEVICE_BULB_H
 
 /**
- * The Registry of the bulb
+ * The Registry of the Bulb
  */
 typedef struct BulbRegistry {
     time_t start;

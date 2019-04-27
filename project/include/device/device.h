@@ -8,15 +8,14 @@
 
 #define DEVICE_PATH "./device/"
 #define DEVICE_STATE true
-#define DEVICE_NAME_LENGTH 15
-#define DEVICE_DESCRIPTION_LENGTH 35
-#define DEVICE_PATH_LENGTH 256
+#define DEVICE_NAME_LENGTH 36
+#define DEVICE_DESCRIPTION_LENGTH 128
+#define DEVICE_PATH_LENGTH 64
 #define DEVICE_SWITCH_NAME_LENGTH 256
 
 #define DEVICE_TYPE_BULB 0
 #define DEVICE_TYPE_WINDOW 1
 #define DEVICE_TYPE_FRIDGE 2
-#define DEVICE_TYPE_CONTROLLER 3
 #define DEVICE_TYPE_HUB 4
 #define DEVICE_TYPE_TIMER 5
 
@@ -40,7 +39,7 @@ typedef struct DeviceSwitch {
     char name[DEVICE_SWITCH_NAME_LENGTH];
     void *state;
 
-    bool (*set_state)(char name[], void *state);
+    bool (*set_state)(const char *, void *);
 } DeviceSwitch;
 
 
@@ -104,7 +103,7 @@ bool free_device(Device *device);
  * @param set_state method that set the state to the device
  * @return the created switch
  */
-DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(void *state));
+DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(const char *, void *));
 
 
 /**

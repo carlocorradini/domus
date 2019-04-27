@@ -47,8 +47,8 @@ static void controller_fork_parent(size_t child_id, pid_t pid, const DeviceDescr
 
 /**
  * Methods to compare DeviceCommunication and id
- * @param data1 DeviceCommunication data (element of controller->devices)
- * @param data2 id
+ * @param data_1 DeviceCommunication data (element of controller->devices)
+ * @param data_2 id
  * @return true if  equals, false otherwise
  */
 static bool process_equals(const DeviceCommunication *data_1, const DeviceCommunication *data_2);

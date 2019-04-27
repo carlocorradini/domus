@@ -1,6 +1,6 @@
 
-#ifndef COMMAND_DEVICE_H
-#define COMMAND_DEVICE_H
+#ifndef _COMMAND_DEVICE_H
+#define _COMMAND_DEVICE_H
 
 #include "command.h"
 

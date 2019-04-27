@@ -1,4 +1,7 @@
 
+#ifndef _COLLECTION_TRIE_H
+#define _COLLECTION_TRIE_H
+
 #include <stdbool.h>
 
 #define TRIE_ALPHABET 26
@@ -59,3 +62,5 @@ Trie *trie_insert(Trie *trie, char *word, int value);
  * @return
  */
 char *trie_search(Trie_node *node, char *word, char *dat);
+
+#endif

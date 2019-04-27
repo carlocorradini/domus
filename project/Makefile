@@ -9,7 +9,7 @@ SLOGAN := Unicuique sua domus nota
 DESCRIPTION := Home Automation at your CLI
 
 # MAINS
-TARGET:= main hub timer bulb
+TARGET:= main bulb window
 
 # DIRECTORIES
 SRC_DIR := ./src

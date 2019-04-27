@@ -1,6 +1,6 @@
 
-#ifndef OS_H
-#define OS_H
+#ifndef _OS_H
+#define _OS_H
 
 #include <stdbool.h>
 

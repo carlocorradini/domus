@@ -1,6 +1,6 @@
 
-#ifndef DEVICE_COMMUNICATION_H
-#define DEVICE_COMMUNICATION_H
+#ifndef _DEVICE_COMMUNICATION_H
+#define _DEVICE_COMMUNICATION_H
 
 #include <unistd.h>
 #include <sys/signal.h>
