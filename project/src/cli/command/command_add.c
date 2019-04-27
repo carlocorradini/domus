@@ -12,14 +12,16 @@
  */
 static int _add(char **args) {
     const DeviceDescriptor *device_descriptor;
+    size_t id;
+
     if (args[1] == NULL) {
         println("\tPlease choose a device");
     } else if ((device_descriptor = device_is_supported(args[1])) == NULL) {
         println("\tDevice %s is not supported", args[1]);
-    } else if (controller_fork_device(device_descriptor)) {
-        println_color(COLOR_GREEN, "\tDevice %s has been added", device_descriptor->name);
-    } else {
+    } else if ((id = controller_fork_device(device_descriptor)) == -1) {
         println_color(COLOR_RED, "\tSomething goes wrong");
+    } else {
+        println_color(COLOR_GREEN, "\t%s added with id %ld", device_descriptor->name, id);
     }
 
     return CLI_CONTINUE;

@@ -110,13 +110,13 @@ ControllerRegistry *new_controller_registry(void) {
     return controller_registry;
 }
 
-bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
-    pid_t pid_child;
+size_t controller_fork_device(const DeviceDescriptor *device_descriptor) {
+    pid_t child_pid;
     size_t child_id;
     size_t parent_id;
     int write_parent_read_child[2];
     int write_child_read_parent[2];
-    if (!device_check_control_device(controller) || device_descriptor == NULL) return false;
+    if (!device_check_control_device(controller) || device_descriptor == NULL) return -1;
 
     if (pipe(write_parent_read_child) == -1
         || pipe(write_child_read_parent) == -1) {
@@ -129,7 +129,7 @@ bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
     /* Get parent id */
     parent_id = controller->device->id;
     /* Fork the current process */
-    switch (pid_child = fork()) {
+    switch (child_pid = fork()) {
         case -1: {
             perror("Controller Fork Forking");
             exit(EXIT_FAILURE);
@@ -150,13 +150,13 @@ bool controller_fork_device(const DeviceDescriptor *device_descriptor) {
             close(write_parent_read_child[0]);
             close(write_child_read_parent[1]);
 
-            controller_fork_parent(child_id, pid_child, device_descriptor, write_child_read_parent[0],
+            controller_fork_parent(child_id, child_pid, device_descriptor, write_child_read_parent[0],
                                    write_parent_read_child[1]);
             break;
         }
     }
 
-    return true;
+    return child_id;
 }
 
 static void controller_fork_child(size_t child_id, size_t parent_id, const DeviceDescriptor *device_descriptor) {

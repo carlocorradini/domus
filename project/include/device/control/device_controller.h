@@ -30,9 +30,9 @@ ControllerRegistry *new_controller_registry(void);
  * Create a new process using fork() and save it to the controller devices list
  *  The child process execute an exec and change itself
  * @param device_descriptor The descriptor of the device to add
- * @return true if fork was successful, false otherwise
+ * @return ID of the newly created process, -1 otherwise
  */
-bool controller_fork_device(const DeviceDescriptor *device_descriptor);
+size_t controller_fork_device(const DeviceDescriptor *device_descriptor);
 
 /**
  * Check if the Controller has devices
