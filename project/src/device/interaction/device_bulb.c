@@ -101,16 +101,10 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             bool_switch_value = strcmp(switch_value, "on") == 0 ? true : false;
 
             bulb_set_switch_state(switch_name, (bool *) bool_switch_value) ? snprintf(out_message.message,
-                                                                                     DEVICE_COMMUNICATION_MESSAGE_LENGTH,
-                                                                                     "Success") : snprintf(
+                                                                                      DEVICE_COMMUNICATION_MESSAGE_LENGTH,
+                                                                                      "Success") : snprintf(
                     out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "Error");
             break;
-        }
-        case MESSAGE_TYPE_TERMINATE: {
-            out_message.type = MESSAGE_TYPE_TERMINATE;
-            snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%d", true);
-            device_communication_write_message(bulb_communication, &out_message);
-            exit(EXIT_SUCCESS);
         }
         default: {
             out_message.type = MESSAGE_TYPE_ERROR;
@@ -129,7 +123,7 @@ int main(int argc, char **args) {
 
     bulb_communication = device_child_new_device_communication(argc, args, bulb_message_handler);
 
-    while (true);
+    device_child_run(NULL);
 
     return EXIT_SUCCESS;
 }
