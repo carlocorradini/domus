@@ -68,5 +68,13 @@ void controller_info_all(void);
  * @param id The Device id
  */
 void controller_info_by_id(size_t id);
+/**
+ * Given an ID, set the switch name with switch_value
+ * @param id child ID
+ * @param switch_name switch name
+ * @param switch_value switch value
+ * @return true is successful
+ */
+bool set_device_switch(size_t id, char switch_name[], char switch_value[]);
 
 #endif

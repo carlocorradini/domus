@@ -305,3 +305,21 @@ void controller_info_by_id(size_t id) {
         controller_message_handler(device_communication_write_message_with_ack(device_communication, &out_message));
     }
 }
+
+bool set_device_switch(size_t id, char switch_name[], char switch_value[]){
+    DeviceCommunication *data;
+    DeviceCommunicationMessage out_message;
+    DeviceCommunicationMessage in_message;
+    if (!device_check_control_device(controller)) return false;
+    if (controller_valid_id(id) == -1) return false;
+
+    out_message.type = MESSAGE_TYPE_SET_ON;
+    out_message.id_sender = 0;
+    snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%s\n%s\n", switch_name, switch_value);
+
+    data = list_get(controller->devices, list_get_index(controller->devices, id));
+
+    in_message = device_communication_write_message_with_ack(data, &out_message);
+
+    return strcmp(in_message.message, "Success") == 0;
+}

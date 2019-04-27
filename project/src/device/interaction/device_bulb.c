@@ -1,3 +1,4 @@
+
 #include <string.h>
 #include <time.h>
 #include "device/device_communication.h"
@@ -87,7 +88,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             out_message.type = MESSAGE_TYPE_SET_ON;
 
             const char delimiter[2] = MESSAGE_DELIMITER;
-            char switch_name, switch_value;
+            char *switch_name, *switch_value;
 
             switch_name = strtok(in_message.message, delimiter);
             switch_value = strtok(NULL, delimiter);
@@ -100,8 +101,8 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             bool_switch_value = strcmp(switch_value, "on") == 0 ? true : false;
 
             bulb_set_switch_state(switch_name, (bool *) bool_switch_value) ? snprintf(out_message.message,
-                                                                                      DEVICE_COMMUNICATION_MESSAGE_LENGTH,
-                                                                                      "Success") : snprintf(
+                                                                                     DEVICE_COMMUNICATION_MESSAGE_LENGTH,
+                                                                                     "Success") : snprintf(
                     out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "Error");
             break;
         }

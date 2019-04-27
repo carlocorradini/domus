@@ -16,7 +16,10 @@
 #define MESSAGE_TYPE_ERROR 1
 #define MESSAGE_TYPE_TERMINATE 2
 #define MESSAGE_TYPE_INFO 3
+#define MESSAGE_TYPE_SET_ON 4
 /* EDN Message types */
+
+#define MESSAGE_DELIMITER "\n"
 
 /**
  *
