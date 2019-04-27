@@ -102,7 +102,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             switch_value = strtok(NULL, delimiter);
 
             if (!bulb_check_value(switch_value)) {
-                snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "Error");
+                snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, MESSAGE_RETURN_VALUE_ERROR);
                 break;
             }
             bool bool_switch_value;
@@ -110,8 +110,8 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
             bulb_set_switch_state(switch_name, (bool *) bool_switch_value) ? snprintf(out_message.message,
                                                                                       DEVICE_COMMUNICATION_MESSAGE_LENGTH,
-                                                                                      "Success") : snprintf(
-                    out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "Error");
+                                                                                      MESSAGE_RETURN_SUCCESS) : snprintf(
+                    out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, MESSAGE_RETURN_NAME_ERROR);
             break;
         }
         default: {

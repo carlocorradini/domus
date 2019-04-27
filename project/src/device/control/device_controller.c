@@ -306,7 +306,7 @@ void controller_info_by_id(size_t id) {
     }
 }
 
-bool set_device_switch(size_t id, char switch_name[], char switch_value[]){
+int set_device_switch(size_t id, char switch_name[], char switch_value[]){
     DeviceCommunication *data;
     DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage in_message;
@@ -321,5 +321,20 @@ bool set_device_switch(size_t id, char switch_name[], char switch_value[]){
 
     in_message = device_communication_write_message_with_ack(data, &out_message);
 
-    return strcmp(in_message.message, "Success") == 0;
+    if(strcmp(in_message.message, "Success") == 0){
+        return 0;
+    }
+    const char delimiter[2] = MESSAGE_DELIMITER;
+    char *error;
+
+    error = strtok(in_message.message, delimiter);
+    error = strtok(NULL, delimiter);
+
+    if(strcmp(error, "Name") == 0){
+        return 1;
+    }
+    if(strcmp(error, "Value") == 0){
+        return 2;
+    }
+    return 3;
 }

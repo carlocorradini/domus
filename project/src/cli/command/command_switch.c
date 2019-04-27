@@ -26,11 +26,35 @@ static int _switch(char **args) {
         println("\tPlease enter a valid device id");
         return CLI_CONTINUE;
     }
-    if (set_device_switch((size_t) result.data.Long, args[2], args[3])) {
-    } else {
-        println("\tError while setting switch %s", args[2]);
-    }
+    int device_result = set_device_switch((size_t) result.data.Long, args[2], args[3]);
 
+    switch (device_result) {
+        case 0: {
+            print_color(COLOR_GREEN, "\tSet switch ");
+            print_color(COLOR_BLUE, "\"%s\"", args[2]);
+            print_color(COLOR_GREEN, " to value ");
+            println_color(COLOR_BLUE, "\"%s\"", args[3]);
+
+            break;
+        }
+
+        case 1: {
+            println_color(COLOR_RED, "\tError while setting switch \"%s\" to value \"%s\" : Switch name doesn't exist",
+                          args[2], args[3]);
+            break;
+        }
+
+        case 2: {
+            println_color(COLOR_RED, "\tError while setting switch \"%s\" to value \"%s\" : Switch value doesn't exist",
+                          args[2], args[3]);
+            break;
+        }
+
+        case 3: {
+            println_color(COLOR_RED, "\tError while setting switch \"%s\" to value \"%s\" : Unknown error", args[2], args[3]);
+            break;
+        }
+    }
     return CLI_CONTINUE;
 }
 

@@ -209,7 +209,7 @@ static char *cli_read_line(void) {
                      */
                     if (res != NULL) {
                         move_left();
-                        strcpy(buffer, res);
+                        strncpy(buffer, res, sizeof(res));
                         printf("%s", buffer);
                         position = (int) strlen(buffer);
                     }
