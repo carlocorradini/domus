@@ -29,6 +29,13 @@ static bool bulb_set_switch_state(char name[], bool *state);
  */
 static void bulb_message_handler(DeviceCommunicationMessage in_message);
 
+/**
+ * Check the input value if it is correct
+ * @param input The input value param
+ * @return true if correct, false otherwise
+ */
+static bool bulb_check_value(const char *input);
+
 BulbRegistry *new_bulb_registry(void) {
     BulbRegistry *bulb_registry;
     if (bulb != NULL) return NULL;
@@ -62,10 +69,11 @@ static bool bulb_set_switch_state(char name[], bool *state) {
 
         return true;
     }
+
     return false;
 }
 
-static bool check_value(char *input) {
+static bool bulb_check_value(const char *input) {
     return strcmp(input, "on") == 0 || strcmp(input, "off") == 0;
 }
 
@@ -93,7 +101,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             switch_name = strtok(in_message.message, delimiter);
             switch_value = strtok(NULL, delimiter);
 
-            if (!check_value(switch_value)) {
+            if (!bulb_check_value(switch_value)) {
                 snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "Error");
                 break;
             }
