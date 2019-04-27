@@ -50,31 +50,39 @@ void controller_list(void);
  * @param id The id of the device to remove
  * @return true if removed, false otherwise
  */
-bool controller_del(size_t id);
+bool controller_del_by_id(size_t id);
 
 /**
- * Check if the id is present
- * @param id The id to check
- * @return The id if found, -1 otherwise
+ * Delete all devices
+ * @return true if removed, false otherwise
  */
-size_t controller_valid_id(size_t id);
+bool controller_del_all(void);
+
+/**
+ * Check if the id is a valid id
+ * @param id The id to check
+ * @return true if valid, false otherwise
+ */
+bool controller_valid_id(size_t id);
 
 /**
  * Show info about all devices
  */
 void controller_info_all(void);
+
 /**
- * Given a id, returns info on the device
+ * Given an id, returns info of the device
  * @param id The Device id
  */
-void controller_info_by_id(size_t id);
+void controller_command_info_by_id(size_t id);
+
 /**
- * Given an ID, set the switch name with switch_value
- * @param id child ID
- * @param switch_name switch name
- * @param switch_value switch value
- * @return true is successful
+ * Given an ID, set the switch label to switch_pos
+ * @param id The Device id
+ * @param switch_label The Device Switch Label
+ * @param switch_pos switch pos The Device Switch Position
+ * @return 0 if successful, error value otherwise
  */
-int set_device_switch(size_t id, char switch_name[], char switch_value[]);
+int controller_switch(size_t id, char *switch_label, char *switch_pos);
 
 #endif

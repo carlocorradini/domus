@@ -22,25 +22,23 @@ static int _info(char **args) {
 
     if (args[1] == NULL) {
         println("\tPlease add a device id");
+    } else if (!controller_has_devices()) {
+        println("\tNo Devices");
     } else if (strncmp(args[1], COMMAND_INFO_ALL, strlen(COMMAND_INFO_ALL)) == 0) {
-        if (!controller_has_devices()) {
-            println("\tNo Devices");
-        } else {
-            command_info_print_header();
-            controller_info_all();
-        }
+        command_info_print_header();
+        controller_info_all();
     } else {
-        result = converter_char_to_long(args[1]);
+        result = converter_string_to_long(args[1]);
 
         if (result.error) {
             println("\tConversion Error: %s", result.error_message);
         } else if (result.data.Long == 0) {
             println("\tCannot show controller info");
-        } else if (controller_valid_id(result.data.Long) == -1) {
+        } else if (!controller_valid_id(result.data.Long)) {
             println("\tCannot find a Device with id %ld", result.data.Long);
         } else {
             command_info_print_header();
-            controller_info_by_id(result.data.Long);
+            controller_command_info_by_id(result.data.Long);
         }
     }
 

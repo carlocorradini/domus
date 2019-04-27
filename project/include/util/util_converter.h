@@ -5,6 +5,7 @@
 #include <stdbool.h>
 
 #define CONVERTER_RESULT_ERROR_LENGTH 64
+#define CONVERTER_DATA_STRING_LENGTH 32
 
 typedef struct ConverterResult {
     bool error;
@@ -13,6 +14,7 @@ typedef struct ConverterResult {
         bool Bool;
         int Int;
         long Long;
+        char String[CONVERTER_DATA_STRING_LENGTH];
     } data;
 } ConverterResult;
 
@@ -21,20 +23,27 @@ typedef struct ConverterResult {
  * @param char_string The String to convert
  * @return The Converter Result
  */
-ConverterResult converter_char_to_int(const char *char_string);
+ConverterResult converter_string_to_int(const char *char_string);
 
 /**
  * Convert a String to long
  * @param char_string The String to convert
  * @return The Converter Result
  */
-ConverterResult converter_char_to_long(const char *char_string);
+ConverterResult converter_string_to_long(const char *char_string);
 
 /**
- * Convert a String to bool
- * @param char_string The String to convert
+ * Convert a char to bool
+ * @param char_value The char value to convert
  * @return The Converter Result
  */
-ConverterResult converter_char_to_bool(const char *char_string);
+ConverterResult converter_char_to_bool(char char_value);
+
+/**
+ * Convert a bool to String
+ * @param value The boolean value to convert
+ * @return The Converter Result
+ */
+ConverterResult converter_bool_to_string(bool value);
 
 #endif

@@ -37,12 +37,14 @@ typedef struct DeviceCommunication {
     int com_write;
 } DeviceCommunication;
 
+typedef unsigned short int message_t;
+
 /**
  * Struct Device Communication message describing a message between two processes
  */
 typedef struct DeviceCommunicationMessage {
     size_t id_sender;
-    unsigned short int type;
+    message_t type;
     char message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
 } DeviceCommunicationMessage;
 
@@ -82,5 +84,33 @@ DeviceCommunicationMessage device_communication_write_message_with_ack(const Dev
  */
 void device_communication_write_message(const DeviceCommunication *device_communication,
                                         const DeviceCommunicationMessage *out_message);
+
+/**
+ * Initialize a Message
+ * @param device The device to get the id from
+ * @param message The message to initialize
+ */
+void device_communication_message_init(const Device *device, DeviceCommunicationMessage *message);
+
+/**
+ * Modify a message:
+ *  * The type
+ *  * The message
+ * @param message The message to modify
+ * @param message_type The type to modify to
+ * @param message_message The Message message to modify to
+ * @param ... Format tags
+ */
+void device_communication_message_modify(DeviceCommunicationMessage *message, message_t message_type,
+                                         const char *message_message, ...);
+
+/**
+ * Modify a message:
+ *  * The message
+ * @param message The message to modify
+ * @param message_message The Message message to modify to
+ * @param ... Format tags
+ */
+void device_communication_message_modify_message(DeviceCommunicationMessage *message, const char *message_message, ...);
 
 #endif

@@ -6,13 +6,13 @@
 #include <limits.h>
 #include "util/util_converter.h"
 
-ConverterResult converter_char_to_int(const char *char_string) {
-    ConverterResult result = converter_char_to_long(char_string);
+ConverterResult converter_string_to_int(const char *char_string) {
+    ConverterResult result = converter_string_to_long(char_string);
     result.data.Int = (int) result.data.Long;
     return result;
 }
 
-ConverterResult converter_char_to_long(const char *char_string) {
+ConverterResult converter_string_to_long(const char *char_string) {
     ConverterResult result;
     const char *toRtn_str;
     char *toRtn_str_end = NULL;
@@ -42,14 +42,26 @@ ConverterResult converter_char_to_long(const char *char_string) {
     return result;
 }
 
-ConverterResult converter_char_to_bool(const char *char_string) {
-    ConverterResult result = converter_char_to_int(char_string);
+ConverterResult converter_char_to_bool(char char_value) {
+    const char char_string[2] = { char_value, '\0' };
+    ConverterResult result = converter_string_to_int(char_string);
 
-    if (!result.error && (result.data.Int < false || result.data.Int > true)) {
+    if (!result.error && (result.data.Int != false || result.data.Int != true)) {
         result.error = true;
         strncpy(result.error_message, "Not a valid boolean value", CONVERTER_RESULT_ERROR_LENGTH);
     }
     result.data.Bool = (bool) result.data.Int;
+
+    return result;
+}
+
+ConverterResult converter_bool_to_string(bool value) {
+    ConverterResult result;
+
+    result.error = false;
+    (value)
+    ? strncpy(result.data.String, "true", CONVERTER_DATA_STRING_LENGTH)
+    : strncpy(result.data.String, "false", CONVERTER_DATA_STRING_LENGTH);
 
     return result;
 }

@@ -4,6 +4,8 @@
 
 #include "command.h"
 
+#define COMMAND_DEL_ALL "--all"
+
 /**
  * Definition of del Command
  * @return The del Command

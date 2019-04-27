@@ -93,11 +93,11 @@ void *list_get(const List *list, size_t index);
 
 /**
  * Return the index of the data value using equals method
- * @param list input list
- * @param data value we are looking for
- * @return index
+ * @param list The List to get from
+ * @param _data The data we are looking for
+ * @return The index, -1 otherwise
  */
-size_t *list_get_index(const List *list, void * data);
+size_t list_get_index(const List *list, const void *data);
 
 /**
  * Returns the first element in this list

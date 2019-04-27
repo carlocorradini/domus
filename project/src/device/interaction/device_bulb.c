@@ -81,43 +81,44 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
     ConverterResult result;
 
-    out_message.id_sender = bulb->id;
+    device_communication_message_init(bulb, &out_message);
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
-            out_message.type = MESSAGE_TYPE_INFO;
-            snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%ld     %s     %s",
-                     bulb->id,
-                     "bulbo",
-                     "semplice bulbo");
+            device_communication_message_modify(&out_message, MESSAGE_TYPE_INFO,
+                                                "%ld     %s     %s",
+                                                bulb->id,
+                                                "bulbo",
+                                                "semplice bulbo");
             break;
         }
         case MESSAGE_TYPE_SET_ON: {
             out_message.type = MESSAGE_TYPE_SET_ON;
+            char *switch_name;
+            char *switch_value;
+            bool bool_switch_value;
 
-            const char delimiter[2] = MESSAGE_DELIMITER;
-            char *switch_name, *switch_value;
-
-            switch_name = strtok(in_message.message, delimiter);
-            switch_value = strtok(NULL, delimiter);
+            switch_name = strtok(in_message.message, MESSAGE_DELIMITER);
+            switch_value = strtok(NULL, MESSAGE_DELIMITER);
 
             if (!bulb_check_value(switch_value)) {
-                snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, MESSAGE_RETURN_VALUE_ERROR);
+                device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ERROR);
                 break;
             }
-            bool bool_switch_value;
+
             bool_switch_value = strcmp(switch_value, "on") == 0 ? true : false;
 
-            bulb_set_switch_state(switch_name, (bool *) bool_switch_value) ? snprintf(out_message.message,
-                                                                                      DEVICE_COMMUNICATION_MESSAGE_LENGTH,
-                                                                                      MESSAGE_RETURN_SUCCESS) : snprintf(
-                    out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, MESSAGE_RETURN_NAME_ERROR);
+            bulb_set_switch_state(switch_name, (bool *) bool_switch_value)
+            ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
+            : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+
             break;
         }
         default: {
-            out_message.type = MESSAGE_TYPE_ERROR;
-            snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "{%d, %s}", in_message.type,
-                     in_message.message);
+            device_communication_message_modify(&out_message, MESSAGE_TYPE_ERROR,
+                                                "{%d, %s}",
+                                                in_message.type,
+                                                in_message.message);
             break;
         }
     }

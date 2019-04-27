@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include "cli/cli.h"
 #include "cli/command/command_list.h"
+#include "util/util_printer.h"
 #include "device/control/device_controller.h"
 
 /**
@@ -10,7 +11,11 @@
  * @return CLI status code
  */
 static int _list(char **args) {
-    controller_list();
+    if (!controller_has_devices()) {
+        println("\tNo Devices");
+    } else {
+        controller_list();
+    }
 
     return CLI_CONTINUE;
 }

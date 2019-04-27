@@ -48,7 +48,7 @@ Device *device_child_new_device(int argc, char **args, void *registry) {
     ConverterResult result;
     if (!device_child_check_args(argc, args)) return NULL;
 
-    result = converter_char_to_long(args[0]);
+    result = converter_string_to_long(args[0]);
     if (result.error) {
         fprintf(stderr, "Conversion Error: %s\n", result.error_message);
         exit(EXIT_FAILURE);
@@ -66,7 +66,7 @@ device_child_new_device_communication(int argc, char **args, void (*message_hand
     if (message_handler == NULL || device_child_message_handler != NULL || device_child_communication != NULL)
         return NULL;
 
-    result = converter_char_to_long(args[1]);
+    result = converter_string_to_long(args[1]);
     if (result.error) {
         fprintf(stderr, "Conversion Error: %s\n", result.error_message);
         exit(EXIT_FAILURE);
@@ -105,6 +105,7 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
         case MESSAGE_TYPE_TERMINATE: {
             out_message.type = MESSAGE_TYPE_TERMINATE;
             snprintf(out_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%d", true);
+            /* Stop the Device */
             _device_child_run = false;
             break;
         }

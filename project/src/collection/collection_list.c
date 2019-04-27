@@ -187,18 +187,25 @@ void *list_get(const List *list, size_t index) {
     return list_get_node(list, index)->data;
 }
 
-size_t *list_get_index(const List *list, void * data){
-    if(!list_contains(list, data)){
-        return (size_t *) -1;
+size_t list_get_index(const List *list, const void *data) {
+    Node *node;
+    size_t index;
+    if (list == NULL || data == NULL) return false;
+    if (list_is_empty(list)) return false;
+    if (list->equals == NULL) {
+        fprintf(stderr, "List: Unable to compare, please define a valid equals function\n");
+        return false;
     }
-    size_t index = 0;
-    void * tmp;
-    list_for_each(tmp, list) {
-        if(list->equals(tmp, data)){
-            return (size_t *) index;
-        }
+
+    node = list->head;
+    index = 0;
+    while (node != NULL && !list->equals(node->data, data)) {
+        node = node->next;
         index++;
     }
+
+    if (node != NULL) return index;
+    return -1;
 }
 
 void *list_get_first(const List *list) {
@@ -252,6 +259,7 @@ bool list_remove(List *list, const void *data) {
     void *element;
     if (list == NULL || data == NULL) return false;
     if (list_is_empty(list)) return false;
+    if (!list_contains(list, data)) return false;
     if (list->equals == NULL) {
         fprintf(stderr, "List: Unable to compare, please define a valid equals function\n");
         return false;
