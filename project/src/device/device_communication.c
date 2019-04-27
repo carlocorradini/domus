@@ -6,8 +6,8 @@
 #include "util/util_printer.h"
 
 /**
- *
- * @param pid
+ * Notify from writer to reader an incoming message
+ * @param pid The pid of the reader process
  */
 static void device_communication_notify(pid_t pid);
 
@@ -48,10 +48,14 @@ DeviceCommunicationMessage device_communication_read_message(const DeviceCommuni
             break;
         }
         case 0: {
-            /* Process is terminated */
-            close(device_communication->com_read);
-            close(device_communication->com_write);
-            waitpid(device_communication->pid, 0, 0);
+            /* Process is terminated, close */
+            if (close(device_communication->com_read) == -1
+                || close(device_communication->com_write) == -1
+                || waitpid(device_communication->pid, 0, 0) == -1) {
+                perror("Error closing pipe in Read Message");
+                exit(EXIT_FAILURE);
+            }
+
             break;
         }
         default: {
