@@ -11,21 +11,23 @@
 #define DEVICE_COMMUNICATION_READ_PIPE SIGUSR1
 #define DEVICE_COMMUNICATION_MESSAGE_LENGTH 256
 
+#define MESSAGE_DELIMITER "\n"
+
 /* Message types */
 #define MESSAGE_TYPE_DEBUG 0
 #define MESSAGE_TYPE_ERROR 1
 #define MESSAGE_TYPE_TERMINATE 2
 #define MESSAGE_TYPE_INFO 3
 #define MESSAGE_TYPE_SET_ON 4
-/* EDN Message types */
+/* END Message types */
 
-#define MESSAGE_DELIMITER "\n"
+/* Message Status */
 #define MESSAGE_RETURN_SUCCESS "SUCCESS"
 #define MESSAGE_RETURN_NAME_ERROR "ERROR\nNAME"
 #define MESSAGE_RETURN_VALUE_ERROR "ERROR\nVALUE"
+/* END Message Status */
 
-/**
- *
+/** Struct Device Communication for storing information about a Communication between two processes
  */
 typedef struct DeviceCommunication {
     size_t id;
@@ -36,7 +38,7 @@ typedef struct DeviceCommunication {
 } DeviceCommunication;
 
 /**
- *
+ * Struct Device Communication message describing a message between two processes
  */
 typedef struct DeviceCommunicationMessage {
     size_t id_sender;
@@ -45,37 +47,38 @@ typedef struct DeviceCommunicationMessage {
 } DeviceCommunicationMessage;
 
 /**
- *
- * @param id
- * @param pid
- * @param device_descriptor
- * @param com_read
- * @param com_write
- * @return
+ * Create and return a Device Communication Structure
+ * @param id The id of the destination process
+ * @param pid The pid of the destination process
+ * @param device_descriptor The Device Descriptor of the destination process
+ * @param com_read The read pipe to read from
+ * @param com_write The write pipe to read to
+ * @return The new Device Communication, NULL otherwise
  */
 DeviceCommunication *
 new_device_communication(size_t id, pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write);
 
 /**
- *
- * @param device_communication
- * @return
+ * Read a Message from the pipe given in device_communication
+ * @param device_communication The Device Communication structure
+ * @return The Message received
  */
 DeviceCommunicationMessage device_communication_read_message(const DeviceCommunication *device_communication);
 
-/**
- *
- * @param device_communication
- * @param message
- * @return
- */
-DeviceCommunicationMessage device_communication_write_message_with_ack(const DeviceCommunication *device_communication,
-                                                                       const DeviceCommunicationMessage *message);
 
 /**
- *
- * @param device_communication
- * @param out_message
+ * Write a message and waits for a response(ACK)
+ * @param device_communication The Device Communication structure
+ * @param out_message The message to send
+ * @return The message received(ACK)
+ */
+DeviceCommunicationMessage device_communication_write_message_with_ack(const DeviceCommunication *device_communication,
+                                                                       const DeviceCommunicationMessage *out_message);
+
+/**
+ * Write a message
+ * @param device_communication The Device Communication structure
+ * @param out_message The message to send
  */
 void device_communication_write_message(const DeviceCommunication *device_communication,
                                         const DeviceCommunicationMessage *out_message);
