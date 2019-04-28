@@ -7,6 +7,7 @@
 #include "cli/command/command.h"
 #include "util/util_printer.h"
 #include "util/util_converter.h"
+#include "util/util_string_handler.h"
 #include "cli/cli.h"
 #include "author.h"
 
@@ -348,10 +349,15 @@ int controller_switch(size_t id, char *switch_label, char *switch_pos) {
     if (!controller_valid_id(id)) return -1;
 
     device_communication_message_init(controller->device, &out_message);
+
+    char *a[2];
+    a[0] = malloc(MESSAGE_VALUE_LENGTH);
+    strcpy(a[0], switch_label);
+    a[1] = malloc(MESSAGE_VALUE_LENGTH);
+    strcpy(a[1], switch_pos);
+
     device_communication_message_modify(&out_message, MESSAGE_TYPE_SET_ON,
-                                        "%s\n%s\n",
-                                        switch_label,
-                                        switch_pos);
+                                        string_array_to_string(a));
 
     in_message = device_communication_write_message_with_ack(controller_get_device_communication_by_id(id),
                                                              &out_message);

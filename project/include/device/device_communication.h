@@ -25,6 +25,8 @@
 #define MESSAGE_RETURN_SUCCESS "SUCCESS"
 #define MESSAGE_RETURN_NAME_ERROR "ERROR\nNAME"
 #define MESSAGE_RETURN_VALUE_ERROR "ERROR\nVALUE"
+#define MESSAGE_VALUE_LENGTH 20
+
 /* END Message Status */
 
 /** Struct Device Communication for storing information about a Communication between two processes

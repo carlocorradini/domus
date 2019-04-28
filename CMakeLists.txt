@@ -40,6 +40,8 @@ set(
         project/src/device/interaction/device_bulb.c
         project/src/device/interaction/device_window.c
         project/include/device/interaction/device_window.h
+        project/include/util/util_string_handler.h
+        project/src/util/util_string_handler.c
         project/include/cli/command/command_add.h project/include/cli/command/command_del.h project/include/cli/command/command_link.h project/include/cli/command/command_switch.h project/include/cli/command/command_info.h project/src/cli/command/command_add.c project/src/cli/command/command_del.c project/src/cli/command/command_info.c project/src/cli/command/command_link.c project/src/cli/command/command_switch.c project/include/collection/collection_list.h project/src/collection/collection_list.c project/include/cli/command/command_device.h project/src/cli/command/command_device.c project/include/util/util_os.h project/src/util/util_os.c project/include/device/device_communication.h project/src/device/device_communication.c project/include/device/device_child.h project/src/device/device_child.c project/include/util/util_converter.h project/src/util/util_converter.c project/include/device/interaction/device_window.h project/src/device/interaction/device_window.c)
 
 add_executable(domus ${SOURCE_FILES})
