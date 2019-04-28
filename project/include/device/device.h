@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include "collection/collection_list.h"
+#include "device/device_communication.h"
 
 #define DEVICE_PATH "./device/"
 #define DEVICE_STATE true
@@ -48,7 +49,6 @@ typedef struct DeviceSwitch {
  */
 typedef struct Device {
     size_t id;
-
     pid_t pid;
     bool state;
     void *registry;
@@ -116,10 +116,9 @@ bool device_check_device(const Device *device);
 /**
  * Create a new generic Control Device
  * @param device The generic Device
- * @param devices The List for all controlled Devices
  * @return The new ControlDevice, NULL otherwise
  */
-ControlDevice *new_control_device(Device *device, List *devices);
+ControlDevice *new_control_device(Device *device);
 
 /**
  * Free a Control Device
@@ -162,5 +161,45 @@ void device_print_all(void);
  * @param device_descriptor The device descriptor to retrieve information
  */
 void device_print(const DeviceDescriptor *device_descriptor);
+
+/**
+ * Create a new process using fork() and save it to the controller devices list
+ *  The child process execute an exec and change itself
+ * @param device_descriptor The descriptor of the device to add
+ * @return ID of the newly created process, -1 otherwise
+ */
+
+/**
+ * Create a new process using fork() and save it to the controller devices list
+ *  The child process execute an exec and change itself
+ * @param control_device The control device
+ * @param id the child id
+ * @param device_descriptor The Device Descriptor of the child
+ * @return true if fork was successful, false otherwise
+ */
+bool control_device_fork(const ControlDevice *control_device, size_t id, const DeviceDescriptor *device_descriptor);
+
+/**
+ * Check if the Control Device has Devices
+ * @param control_device The control device to check
+ * @return true if has devices, false otherwise
+ */
+bool control_device_has_devices(const ControlDevice *control_device);
+
+/**
+ * Check if the id is a valid id
+ * @param id The id to check
+ * @param control_device The Control Device
+ * @return true if is a valid id, false otherwise
+ */
+bool control_device_valid_id(size_t id, const ControlDevice *control_device);
+
+/**
+ * Return a DeviceCommunication given an id
+ * @param id The Device id
+ * @param control_device The Control Device to get from
+ * @return The Device Communication, NULL otherwise
+ */
+struct DeviceCommunication *control_device_get_device_communication_by_id(size_t id, const ControlDevice *control_device);
 
 #endif

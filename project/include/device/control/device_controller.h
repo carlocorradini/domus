@@ -35,10 +35,17 @@ ControllerRegistry *new_controller_registry(void);
 size_t controller_fork_device(const DeviceDescriptor *device_descriptor);
 
 /**
- * Check if the Controller has devices
+ * Check if the controller has devices
  * @return true if has devices, false otherwise
  */
 bool controller_has_devices(void);
+
+/**
+ * Check if the id is valid
+ * @param id The id to check
+ * @return true if valid id, false otherwise
+ */
+bool controller_valid_id(size_t id);
 
 /**
  * Show all connected devices and all information about them
@@ -59,22 +66,15 @@ bool controller_del_by_id(size_t id);
 bool controller_del_all(void);
 
 /**
- * Check if the id is a valid id
- * @param id The id to check
- * @return true if valid, false otherwise
+ * Given an id, returns info of the device
+ * @param id The Device id
  */
-bool controller_valid_id(size_t id);
+void controller_info_by_id(size_t id);
 
 /**
  * Show info about all devices
  */
 void controller_info_all(void);
-
-/**
- * Given an id, returns info of the device
- * @param id The Device id
- */
-void controller_command_info_by_id(size_t id);
 
 /**
  * Given an ID, set the switch label to switch_pos
@@ -83,6 +83,6 @@ void controller_command_info_by_id(size_t id);
  * @param switch_pos switch pos The Device Switch Position
  * @return 0 if successful, error value otherwise
  */
-int controller_switch(size_t id, char *switch_label, char *switch_pos);
+int controller_switch(size_t id, const char *switch_label, const char *switch_pos);
 
 #endif
