@@ -58,7 +58,7 @@ static bool window_set_switch_state(const char *name, bool state) {
 
     if (window->state == state) return true;
 
-    window_switch = list_get(window->switches, list_get_index(window->switches, name));
+    window_switch = get_device_switch(window->switches, name);
     window_registry = (WindowRegistry *) window->registry;
 
     window_switch->state = (bool *) true;
@@ -85,7 +85,7 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
             time_t open_time = ((WindowRegistry *) window->registry)->open;
             time_t end_time = time(NULL);
             ConverterResult result_2 = converter_bool_to_string(
-                    (bool) (((DeviceSwitch *) list_get_last(window->switches))->state));
+                    (bool) (get_device_switch_state(window->switches, "open")));
             double difference = (open_time == 0) ? 0 : difftime(end_time, open_time);
 
             device_communication_message_modify(&out_message, MESSAGE_TYPE_INFO,

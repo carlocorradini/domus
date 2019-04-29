@@ -218,9 +218,9 @@ int controller_switch(size_t id, const char *switch_label, const char *switch_po
     device_communication_message_init(controller->device, &out_message);
 
     char *a[2];
-    a[0] = malloc(MESSAGE_VALUE_LENGTH);
+    a[0] = malloc(MESSAGE_VALUE_LENGTH * sizeof(char));
     strcpy(a[0], switch_label);
-    a[1] = malloc(MESSAGE_VALUE_LENGTH);
+    a[1] = malloc(MESSAGE_VALUE_LENGTH * sizeof(char));
     strcpy(a[1], switch_pos);
 
     device_communication_message_modify(&out_message, MESSAGE_TYPE_SET_ON,

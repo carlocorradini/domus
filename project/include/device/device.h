@@ -105,6 +105,21 @@ bool free_device(Device *device);
  */
 DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(const char *, void *));
 
+/**
+ * Get switch state from its name
+ * @param switch_list list of switches
+ * @param name name of the switches
+ * @return pointer to switch
+ */
+void *get_device_switch_state(List * switch_list,char name[]);
+
+/**
+ * Get switch object from its name
+ * @param switch_list list of switches
+ * @param name name of the switches
+ * @return pointer to switch
+ */
+DeviceSwitch *get_device_switch(List * switch_list,char name[]);
 
 /**
  * Check if a Device is correctly initialized

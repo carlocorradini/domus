@@ -59,7 +59,7 @@ static bool bulb_set_switch_state(const char *name, bool state) {
 
     if (bulb->state == state) return true;
 
-    bulb_switch = list_get(bulb->switches, list_get_index(bulb->switches, name));
+    bulb_switch = get_device_switch(bulb->switches, name);
     bulb_registry = (BulbRegistry *) bulb->registry;
 
     bulb_switch->state = (bool *) state;
@@ -85,7 +85,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             time_t open_time = ((BulbRegistry *) bulb->registry)->start;
             time_t end_time = time(NULL);
             ConverterResult result_2 = converter_bool_to_string(
-                    (bool) (((DeviceSwitch *) list_get_last(bulb->switches))->state));
+                    (bool ) (get_device_switch_state(bulb->switches, "turn")));
             double difference = (open_time == 0) ? 0 : difftime(end_time, open_time);
 
             device_communication_message_modify(&out_message, MESSAGE_TYPE_INFO,

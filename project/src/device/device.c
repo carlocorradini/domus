@@ -47,6 +47,9 @@ void device_init(void) {
     list_add_last(supported_devices, new_device_descriptor("window",
                                                            "An opening in a wall, door, roof or vehicle that allows the passage of light, sound, and air",
                                                            "window"));
+    list_add_last(supported_devices, new_device_descriptor("fridge",
+                                                           "An appliance or compartment which is artificially kept cool and used to store food and drink. ",
+                                                           "fridge"));
 }
 
 void device_tini(void) {
@@ -105,6 +108,14 @@ DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(con
     device_switch->set_state = set_state;
 
     return device_switch;
+}
+
+void *get_device_switch_state(List * switch_list,char name[]){
+    return ((DeviceSwitch *) list_get(switch_list, list_get_index(switch_list, name)))->state;
+}
+
+DeviceSwitch *get_device_switch(List * switch_list,char name[]){
+    return list_get(switch_list, list_get_index(switch_list, name));
 }
 
 bool device_check_device(const Device *device) {
