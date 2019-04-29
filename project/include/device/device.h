@@ -54,8 +54,6 @@ typedef struct Device {
     void *registry;
 
     List *switches;
-
-    DeviceDescriptor *device_descriptor;
 } Device;
 
 /**
@@ -84,7 +82,6 @@ void device_tini(void);
  * @param id Device unique id
  * @param state Device state
  * @param registry Device registry
- * @param master_switch Function to change state and make custom operations
  * @return The new Device, NULL otherwise
  */
 Device *new_device(pid_t pid, size_t id, bool state, void *registry);
@@ -111,7 +108,7 @@ DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(con
  * @param name name of the switches
  * @return pointer to switch
  */
-void *get_device_switch_state(List * switch_list,char name[]);
+void *get_device_switch_state(List *switch_list, char name[]);
 
 /**
  * Get switch object from its name
@@ -119,7 +116,7 @@ void *get_device_switch_state(List * switch_list,char name[]);
  * @param name name of the switches
  * @return pointer to switch
  */
-DeviceSwitch *get_device_switch(List * switch_list,char name[]);
+DeviceSwitch *get_device_switch(List *switch_list, char name[]);
 
 /**
  * Check if a Device is correctly initialized
@@ -215,6 +212,7 @@ bool control_device_valid_id(size_t id, const ControlDevice *control_device);
  * @param control_device The Control Device to get from
  * @return The Device Communication, NULL otherwise
  */
-struct DeviceCommunication *control_device_get_device_communication_by_id(size_t id, const ControlDevice *control_device);
+struct DeviceCommunication *
+control_device_get_device_communication_by_id(size_t id, const ControlDevice *control_device);
 
 #endif
