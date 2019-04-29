@@ -40,8 +40,8 @@ $ ./domus
 ~~~~~
 
 ### Extra functionalities
-- history navigation using ![alt text](https://github.githubassets.com/images/icons/emoji/unicode/2b06.png) and ![alt text](https://github.githubassets.com/images/icons/emoji/unicode/2b07.png)
-- autocomplete using Tab
+- history navigation using <img src="https://github.githubassets.com/images/icons/emoji/unicode/2b06.png" alt="drawing" width="30"/> and <img src="https://github.githubassets.com/images/icons/emoji/unicode/2b07.png" alt="drawing" width="30"/>
+- autocomplete using Tab 
 - get info about command by adding **?** at the end of it (ex. *help ?* )
 
 ## Built With
