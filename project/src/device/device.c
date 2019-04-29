@@ -67,7 +67,7 @@ static bool device_process_equals(const DeviceCommunication *data_1, const Devic
     return data_1->id == data_2->id;
 }
 
-Device *new_device(pid_t pid, size_t id, bool state, void *registry) {
+Device *new_device(size_t id, bool state, void *registry) {
     Device *device;
     if (registry == NULL) {
         fprintf(stderr, "Device: Please define all required function\n");
@@ -79,7 +79,6 @@ Device *new_device(pid_t pid, size_t id, bool state, void *registry) {
         exit(EXIT_FAILURE);
     }
 
-    device->pid = pid;
     device->id = id;
     device->state = state;
     device->registry = registry;

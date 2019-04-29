@@ -56,42 +56,6 @@ static void (*device_child_message_handler)(DeviceCommunicationMessage) = NULL;
  */
 static bool device_child_check_args(int argc, char **args);
 
-Device *device_child_new_device(int argc, char **args, void *registry) {
-    ConverterResult result;
-    if (!device_child_check_args(argc, args)) return NULL;
-
-    result = converter_string_to_long(args[0]);
-    if (result.error) {
-        fprintf(stderr, "Conversion Error: %s\n", result.error_message);
-        exit(EXIT_FAILURE);
-    }
-
-    device_child = new_device(getpid(), result.data.Long, DEVICE_STATE, registry);
-
-    return device_child;
-}
-
-DeviceCommunication *
-device_child_new_device_communication(int argc, char **args, void (*message_handler)(DeviceCommunicationMessage)) {
-    ConverterResult result;
-    if (!device_child_check_args(argc, args)) return NULL;
-    if (message_handler == NULL || device_child_message_handler != NULL) return NULL;
-
-    result = converter_string_to_long(args[1]);
-    if (result.error) {
-        fprintf(stderr, "Conversion Error: %s\n", result.error_message);
-        exit(EXIT_FAILURE);
-    }
-
-    device_child_message_handler = message_handler;
-    signal(DEVICE_COMMUNICATION_READ_PIPE, device_child_read_pipe);
-
-    device_child_communication = new_device_communication(result.data.Long, getppid(), NULL,
-                                                          DEVICE_COMMUNICATION_CHILD_READ,
-                                                          DEVICE_COMMUNICATION_CHILD_WRITE);
-    return device_child_communication;
-}
-
 void device_child_run(void (*do_on_wake_up)(void)) {
     while (_device_child_run) {
         pause();
@@ -117,6 +81,55 @@ static void device_child_read_pipe(int signal_number) {
     }
 }
 
+static bool device_child_check_args(int argc, char **args) {
+    if (args == NULL) {
+        fprintf(stderr, "Device Child Args: args cannot be NULL\n");
+        exit(EXIT_FAILURE);
+    }
+    if (argc != DEVICE_CHILD_ARGS_LENGTH) {
+        fprintf(stderr, "Device Child Args: %d required, %d passed\n", DEVICE_CHILD_ARGS_LENGTH, argc);
+        exit(EXIT_FAILURE);
+    }
+
+    return true;
+}
+
+Device *device_child_new_device(int argc, char **args, void *registry) {
+    ConverterResult result;
+    if (!device_child_check_args(argc, args)) return NULL;
+
+    result = converter_string_to_long(args[0]);
+    if (result.error) {
+        fprintf(stderr, "Conversion Error: %s\n", result.error_message);
+        exit(EXIT_FAILURE);
+    }
+
+    device_child = new_device(result.data.Long, DEVICE_STATE, registry);
+
+    return device_child;
+}
+
+DeviceCommunication *
+device_child_new_device_communication(int argc, char **args, void (*message_handler)(DeviceCommunicationMessage)) {
+    ConverterResult result;
+    if (!device_child_check_args(argc, args)) return NULL;
+    if (message_handler == NULL || device_child_message_handler != NULL) return NULL;
+
+    result = converter_string_to_long(args[1]);
+    if (result.error) {
+        fprintf(stderr, "Conversion Error: %s\n", result.error_message);
+        exit(EXIT_FAILURE);
+    }
+
+    device_child_message_handler = message_handler;
+    signal(DEVICE_COMMUNICATION_READ_PIPE, device_child_read_pipe);
+
+    device_child_communication = new_device_communication(result.data.Long, getppid(), NULL,
+                                                          DEVICE_COMMUNICATION_CHILD_READ,
+                                                          DEVICE_COMMUNICATION_CHILD_WRITE);
+    return device_child_communication;
+}
+
 static void devive_child_middleware_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
     if (device_child == NULL || device_child_communication == NULL) return;
@@ -139,19 +152,6 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
     device_communication_write_message(device_child_communication, &out_message);
 }
 
-static bool device_child_check_args(int argc, char **args) {
-    if (args == NULL) {
-        fprintf(stderr, "Device Child Args: args cannot be NULL\n");
-        exit(EXIT_FAILURE);
-    }
-    if (argc != DEVICE_CHILD_ARGS_LENGTH) {
-        fprintf(stderr, "Device Child Args: %d required, %d passed\n", DEVICE_CHILD_ARGS_LENGTH, argc);
-        exit(EXIT_FAILURE);
-    }
-
-    return true;
-}
-
 ControlDevice *device_child_new_control_device(int argc, char **args, void *registry) {
     ConverterResult result;
     if (!device_child_check_args(argc, args)) return NULL;
@@ -162,7 +162,7 @@ ControlDevice *device_child_new_control_device(int argc, char **args, void *regi
         exit(EXIT_FAILURE);
     }
 
-    control_device_child = new_control_device(new_device(getpid(), result.data.Long, DEVICE_STATE, registry));
+    control_device_child = new_control_device(new_device(result.data.Long, DEVICE_STATE, registry));
 
     return control_device_child;
 }

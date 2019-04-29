@@ -36,8 +36,7 @@ void controller_start(void) {
 static void controller_init(void) {
     /* Create the controller, only once in the entire program with id 0 */
     controller = new_control_device(
-            new_device(getpid(),
-                       0,
+            new_device(0,
                        DEVICE_STATE,
                        new_controller_registry()
             ));

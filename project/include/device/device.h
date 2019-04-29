@@ -49,7 +49,6 @@ typedef struct DeviceSwitch {
  */
 typedef struct Device {
     size_t id;
-    pid_t pid;
     bool state;
     void *registry;
 
@@ -78,13 +77,12 @@ void device_tini(void);
 
 /**
  * Create a new generic Device
- * @param pid Device process id
  * @param id Device unique id
  * @param state Device state
  * @param registry Device registry
  * @return The new Device, NULL otherwise
  */
-Device *new_device(pid_t pid, size_t id, bool state, void *registry);
+Device *new_device(size_t id, bool state, void *registry);
 
 /**
  * Free a Device
