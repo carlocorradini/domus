@@ -50,6 +50,9 @@ void device_init(void) {
     list_add_last(supported_devices, new_device_descriptor("fridge",
                                                            "An appliance or compartment which is artificially kept cool and used to store food and drink. ",
                                                            "fridge"));
+    list_add_last(supported_devices, new_device_descriptor("hub",
+                                                           "A Hub is a device for connecting multiple devices together and making them act as a single segment",
+                                                           "hub"));
 }
 
 void device_tini(void) {
@@ -110,11 +113,11 @@ DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(con
     return device_switch;
 }
 
-void *get_device_switch_state(List * switch_list,char name[]){
+void *get_device_switch_state(List *switch_list, char name[]) {
     return ((DeviceSwitch *) list_get(switch_list, list_get_index(switch_list, name)))->state;
 }
 
-DeviceSwitch *get_device_switch(List * switch_list,char name[]){
+DeviceSwitch *get_device_switch(List *switch_list, char name[]) {
     return list_get(switch_list, list_get_index(switch_list, name));
 }
 
@@ -202,8 +205,6 @@ void device_print(const DeviceDescriptor *device_descriptor) {
     println("%s", device_descriptor->description);
 }
 
-
-/**********************************************************************************************************************/
 bool control_device_fork(const ControlDevice *control_device, size_t id, const DeviceDescriptor *device_descriptor) {
     pid_t child_pid;
     size_t parent_id;

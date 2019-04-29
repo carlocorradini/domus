@@ -14,7 +14,7 @@
 #define MESSAGE_DELIMITER "\n"
 
 /* Message types */
-#define MESSAGE_TYPE_DEBUG 0
+#define MESSAGE_TYPE_NO_MESSAGE 0
 #define MESSAGE_TYPE_ERROR 1
 #define MESSAGE_TYPE_TERMINATE 2
 #define MESSAGE_TYPE_INFO 3

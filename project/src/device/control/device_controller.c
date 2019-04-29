@@ -98,11 +98,6 @@ static void controller_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunication *device_communication;
 
     switch (in_message.type) {
-        case MESSAGE_TYPE_DEBUG: {
-            println_color(COLOR_CYAN, "\tDEBUG MESSAGE");
-            println("\tMessage from %ld: %s", in_message.id_sender, in_message.message);
-            break;
-        }
         case MESSAGE_TYPE_ERROR: {
             println_color(COLOR_RED, "\tERROR MESSAGE");
             println("\tMessage from %ld: %s", in_message.id_sender, in_message.message);

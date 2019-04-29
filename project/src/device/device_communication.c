@@ -52,10 +52,13 @@ DeviceCommunicationMessage device_communication_read_message(const DeviceCommuni
     switch (read(device_communication->com_read, &in_message, sizeof(DeviceCommunicationMessage))) {
         case -1: {
             /* Empty or Error */
-            if (errno != EAGAIN) {
+            if (errno == EAGAIN) {
+                in_message.type = MESSAGE_TYPE_NO_MESSAGE;
+            } else {
                 perror("Error pipe read");
                 exit(EXIT_FAILURE);
             }
+
             break;
         }
         case 0: {
