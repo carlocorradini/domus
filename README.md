@@ -1,4 +1,4 @@
-# :house_with_garden:  Domus
+# ![alt text](https://github.githubassets.com/images/icons/emoji/unicode/1f3e1.png) Domus
 
 Unicuique sua domus nota
 
@@ -40,7 +40,7 @@ $ ./domus
 ~~~~~
 
 ### Extra functionalities
-- history navigation using :arrow_up: and :arrow_down:
+- history navigation using ![alt text](https://github.githubassets.com/images/icons/emoji/unicode/2b06.png) and ![alt text](https://github.githubassets.com/images/icons/emoji/unicode/2b07.png)
 - autocomplete using Tab
 - get info about command by adding **?** at the end of it (ex. *help ?* )
 
