@@ -1,10 +1,48 @@
-# :house_with_garden:Domus
+# :house_with_garden:  Domus
 
 Unicuique sua domus nota
 
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
+
+Firstly, clone this repo on your host.
+~~~~~ bash
+$ git clone git@github.com:carlocorradini/domus.git
+~~~~~
+Then, compile everything by typing:
+~~~~~ bash
+$ cd project
+$ make build
+~~~~~
+This command will create a build directory under **project**
+
+To run Domus, go to **project/build/bin** and run **domus**:
+~~~~~ bash
+$ cd project/build/bin
+$ ./domus
+~~~~~
+
+## Supported features
+
+### Supported commands
+~~~~~ bash
+        add <device>                       Add a <device> to the system and show its features
+        clear                              Clear the CLI interface
+        del <id> [--all]                   Delete the device with <id>. If [--all] delete all devices. If it's a control device, deletion is done recursively
+        device                             Display all supported devices and their description
+        exit                               Close Domus
+        help                               Display help information about Domus
+        info <id> [--all]                  Show device info with <id>. Show all devices info with [--all]
+        link <id> to <id>                  Connect two devices each other. One must be a control device
+        list                               Display all available devices and their features
+        switch <id> <label> <pos>          Switch the device with <id> the feature <label> into <pos>
+~~~~~
+
+### Extra functionalities
+- history navigation using :arrow_up: and :arrow_down:
+- autocomplete using Tab
+- get info about command by adding **?** at the end of it (ex. *help ?* )
 
 ## Built With
 
