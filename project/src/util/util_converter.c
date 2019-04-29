@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <errno.h>
@@ -62,6 +61,36 @@ ConverterResult converter_bool_to_string(bool value) {
     (value)
     ? strncpy(result.data.String, "true", CONVERTER_DATA_STRING_LENGTH)
     : strncpy(result.data.String, "false", CONVERTER_DATA_STRING_LENGTH);
+
+    return result;
+}
+
+ConverterResult converter_string_to_double(const char *char_string) {
+    ConverterResult result;
+    const char *toRtn_str;
+    char *toRtn_str_end = NULL;
+
+    result.error = true;
+    toRtn_str = char_string;
+    toRtn_str_end = NULL;
+    errno = 0;
+    result.data.Double = strtod(toRtn_str, &toRtn_str_end);
+
+    if (toRtn_str == toRtn_str_end) {
+        strncpy(result.error_message, "No digits found", CONVERTER_RESULT_ERROR_LENGTH);
+    } else if (errno == ERANGE && result.data.Double == LONG_MIN) {
+        strncpy(result.error_message, "Underflow", CONVERTER_RESULT_ERROR_LENGTH);
+    } else if (errno == ERANGE && result.data.Double == LONG_MAX) {
+        strncpy(result.error_message, "Overflow", CONVERTER_RESULT_ERROR_LENGTH);
+    } else if (errno == EINVAL) {
+        strncpy(result.error_message, "Base contains unsupported value", CONVERTER_RESULT_ERROR_LENGTH);
+    } else if (errno != 0 && result.data.Double == 0) {
+        strncpy(result.error_message, "Unspecified error occurred", CONVERTER_RESULT_ERROR_LENGTH);
+    } else if (errno == 0 && toRtn_str && *toRtn_str_end != 0) {
+        strncpy(result.error_message, "Additional characters remain", CONVERTER_RESULT_ERROR_LENGTH);
+    } else {
+        result.error = false;
+    }
 
     return result;
 }

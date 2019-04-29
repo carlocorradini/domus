@@ -14,6 +14,7 @@ typedef struct ConverterResult {
         bool Bool;
         int Int;
         long Long;
+        double Double;
         char String[CONVERTER_DATA_STRING_LENGTH];
     } data;
 } ConverterResult;
@@ -45,5 +46,13 @@ ConverterResult converter_char_to_bool(char char_value);
  * @return The Converter Result
  */
 ConverterResult converter_bool_to_string(bool value);
+
+
+/**
+ * Convert a char to double
+ * @param char_value The char value to convert
+ * @return The Converter Result
+ */
+ConverterResult converter_string_to_double(const char *char_string);
 
 #endif
