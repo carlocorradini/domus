@@ -235,5 +235,9 @@ int controller_switch(size_t id, const char *switch_label, const char *switch_po
 }
 
 bool controller_link(size_t device_id, size_t control_device_id) {
+    if (!device_check_control_device(controller)) return false;
+    if (!control_device_valid_id(device_id, controller) || !control_device_valid_id(control_device_id, controller))
+        return false;
 
+    return true;
 }

@@ -31,6 +31,8 @@ static int _link(char **args) {
 
         if (device_id.error) {
             println("\tDevice Conversion Error: %s", device_id.error_message);
+        } else if (control_device_id.error) {
+            println("\tControl Device Conversion Error: %s", control_device_id.error_message);
         } else if (strcmp(args[2], "to") != 0) {
             println("\t%s is invalid, add 'to' label", args[2]);
         } else if (control_device_id.error) {
