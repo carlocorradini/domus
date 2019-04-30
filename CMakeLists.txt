@@ -4,46 +4,46 @@ project(domus C)
 set(CMAKE_C_STANDARD 90)
 
 include_directories(./project)
-include_directories(./project/src)
-include_directories(./project/include)
+include_directories(./project/src/src)
+include_directories(./project/src/include)
 
 set(
         SOURCE_FILES
-        ./project/src/main.c
-        ./project/include/author.h
-        ./project/src/author.c
-        ./project/include/cli/cli.h
-        ./project/src/cli/cli.c
-        ./project/include/domus.h
-        ./project/src/domus.c
-        project/include/util/util_printer.h
-        project/src/util/util_printer.c
-        ./project/include/cli/command/command.h
-        ./project/src/cli/command/command.c
-        ./project/include/cli/command/command_exit.h
-        ./project/src/cli/command/command_exit.c
-        ./project/include/cli/command/command_help.h
-        ./project/src/cli/command/command_help.c
-        ./project/include/cli/command/command_list.h
-        ./project/src/cli/command/command_list.c
-        ./project/include/device/device.h
-        ./project/src/device/device.c
-        ./project/src/collection/collection_trie.c
-        project/include/device/control/device_controller.h
-        project/src/device/control/device_controller.c
-        project/include/device/control/device_hub.h
-        project/src/device/control/device_hub.c
-        project/include/device/control/device_timer.h
-        project/src/device/control/device_timer.c
-        project/src/cli/command/command_clear.c
-        project/include/device/interaction/device_bulb.h
-        project/src/device/interaction/device_bulb.c
-        project/src/device/interaction/device_window.c
-        project/include/device/interaction/device_window.h
-        project/include/util/util_string_handler.h
-        project/src/util/util_string_handler.c
-        project/src/device/interaction/device_fridge.c
-        project/include/device/interaction/device_fridge.h
-        project/include/cli/command/command_add.h project/include/cli/command/command_del.h project/include/cli/command/command_link.h project/include/cli/command/command_switch.h project/include/cli/command/command_info.h project/src/cli/command/command_add.c project/src/cli/command/command_del.c project/src/cli/command/command_info.c project/src/cli/command/command_link.c project/src/cli/command/command_switch.c project/include/collection/collection_list.h project/src/collection/collection_list.c project/include/cli/command/command_device.h project/src/cli/command/command_device.c project/include/util/util_os.h project/src/util/util_os.c project/include/device/device_communication.h project/src/device/device_communication.c project/include/device/device_child.h project/src/device/device_child.c project/include/util/util_converter.h project/src/util/util_converter.c project/include/device/interaction/device_window.h project/src/device/interaction/device_window.c)
+        ./project/src/src/main.c
+        ./project/src/include/author.h
+        ./project/src/src/author.c
+        ./project/src/include/cli/cli.h
+        ./project/src/src/cli/cli.c
+        ./project/src/include/domus.h
+        ./project/src/src/domus.c
+        project/src/include/util/util_printer.h
+        project/src/src/util/util_printer.c
+        ./project/src/include/cli/command/command.h
+        ./project/src/src/cli/command/command.c
+        ./project/src/include/cli/command/command_exit.h
+        ./project/src/src/cli/command/command_exit.c
+        ./project/src/include/cli/command/command_help.h
+        ./project/src/src/cli/command/command_help.c
+        ./project/src/include/cli/command/command_list.h
+        ./project/src/src/cli/command/command_list.c
+        ./project/src/include/device/device.h
+        ./project/src/src/device/device.c
+        ./project/src/src/collection/collection_trie.c
+        project/src/include/device/control/device_controller.h
+        project/src/src/device/control/device_controller.c
+        project/src/include/device/control/device_hub.h
+        project/src/src/device/control/device_hub.c
+        project/src/include/device/control/device_timer.h
+        project/src/src/device/control/device_timer.c
+        project/src/src/cli/command/command_clear.c
+        project/src/include/device/interaction/device_bulb.h
+        project/src/src/device/interaction/device_bulb.c
+        project/src/src/device/interaction/device_window.c
+        project/src/include/device/interaction/device_window.h
+        project/src/include/util/util_string_handler.h
+        project/src/src/util/util_string_handler.c
+        project/src/src/device/interaction/device_fridge.c
+        project/src/include/device/interaction/device_fridge.h
+        project/src/include/cli/command/command_add.h project/src/include/cli/command/command_del.h project/src/include/cli/command/command_link.h project/src/include/cli/command/command_switch.h project/src/include/cli/command/command_info.h project/src/src/cli/command/command_add.c project/src/src/cli/command/command_del.c project/src/src/cli/command/command_info.c project/src/src/cli/command/command_link.c project/src/src/cli/command/command_switch.c project/src/include/collection/collection_list.h project/src/src/collection/collection_list.c project/src/include/cli/command/command_device.h project/src/src/cli/command/command_device.c project/src/include/util/util_os.h project/src/src/util/util_os.c project/src/include/device/device_communication.h project/src/src/device/device_communication.c project/src/include/device/device_child.h project/src/src/device/device_child.c project/src/include/util/util_converter.h project/src/src/util/util_converter.c project/src/include/device/interaction/device_window.h project/src/src/device/interaction/device_window.c)
 
 add_executable(domus ${SOURCE_FILES})
