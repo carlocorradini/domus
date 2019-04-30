@@ -12,9 +12,9 @@ DESCRIPTION := Home Automation at your CLI
 TARGET:= main bulb window fridge hub
 
 # DIRECTORIES
-SRC_DIR := ./src
+SRC_DIR := ./src/src
 DEV_SRC_DIR := $(SRC_DIR)/device
-HDR_DIR := ./include
+HDR_DIR := ./src/include
 BUILD_DIR := ./build
 OBJ_DIR := $(BUILD_DIR)/obj
 DEV_OBJ_DIR := $(OBJ_DIR)/device
