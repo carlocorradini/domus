@@ -80,12 +80,17 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
     device_communication_message_init(bulb, &out_message);
 
     switch (in_message.type) {
+        case MESSAGE_TYPE_CLONE_DEVICE: {
+            device_communication_message_modify(&out_message, MESSAGE_TYPE_CLONE_DEVICE, "%ld\n", bulb->id);
+
+            break;
+        }
         case MESSAGE_TYPE_INFO: {
             result = converter_bool_to_string(bulb->state);
             time_t open_time = ((BulbRegistry *) bulb->registry)->start;
             time_t end_time = time(NULL);
             ConverterResult result_2 = converter_bool_to_string(
-                    (bool ) (get_device_switch_state(bulb->switches, "turn")));
+                    (bool) (get_device_switch_state(bulb->switches, "turn")));
             double difference = (open_time == 0) ? 0 : difftime(end_time, open_time);
 
             device_communication_message_modify(&out_message, MESSAGE_TYPE_INFO,

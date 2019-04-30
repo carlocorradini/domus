@@ -224,9 +224,16 @@ int controller_switch(size_t id, const char *switch_label, const char *switch_po
             control_device_get_device_communication_by_id(id, controller),
             &out_message);
 
+    free(a[0]);
+    free(a[1]);
+
     if (strcmp(in_message.message, MESSAGE_RETURN_SUCCESS) == 0) return 0;
     if (strcmp(in_message.message, MESSAGE_RETURN_NAME_ERROR) == 0) return 1;
     if (strcmp(in_message.message, MESSAGE_RETURN_VALUE_ERROR) == 0) return 2;
 
     return -1;
+}
+
+bool controller_link(size_t device_id, size_t control_device_id) {
+
 }

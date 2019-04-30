@@ -19,6 +19,8 @@
 #define MESSAGE_TYPE_TERMINATE 2
 #define MESSAGE_TYPE_INFO 3
 #define MESSAGE_TYPE_SET_ON 4
+#define MESSAGE_TYPE_CLONE_DEVICE 5
+#define MESSAGE_TYPE_RESPAWN_DEVICE 6
 /* END Message types */
 
 /* Message Status */
