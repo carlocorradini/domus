@@ -59,7 +59,7 @@ static bool bulb_set_switch_state(const char *name, bool state) {
 
     if (bulb->state == state) return true;
 
-    bulb_switch = get_device_switch(bulb->switches, name);
+    bulb_switch = device_get_device_switch(bulb->switches, name);
     bulb_registry = (BulbRegistry *) bulb->registry;
 
     bulb_switch->state = (bool *) state;
@@ -81,7 +81,10 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
     switch (in_message.type) {
         case MESSAGE_TYPE_CLONE_DEVICE: {
-            device_communication_message_modify(&out_message, MESSAGE_TYPE_CLONE_DEVICE, "%ld\n", bulb->id);
+            const BulbRegistry *bulb_registry = (BulbRegistry *) bulb->registry;
+            const DeviceSwitch *bulb_switch = (DeviceSwitch *) bulb->switches;
+            device_communication_message_modify(&out_message, MESSAGE_TYPE_CLONE_DEVICE, "%ld\n%d\n%lf\n%d", bulb->id,
+                                                bulb->state, bulb_registry->start, bulb_switch->state);
 
             break;
         }
@@ -90,7 +93,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             time_t open_time = ((BulbRegistry *) bulb->registry)->start;
             time_t end_time = time(NULL);
             ConverterResult result_2 = converter_bool_to_string(
-                    (bool) (get_device_switch_state(bulb->switches, "turn")));
+                    (bool) (device_get_device_switch_state(bulb->switches, "turn")));
             double difference = (open_time == 0) ? 0 : difftime(end_time, open_time);
 
             device_communication_message_modify(&out_message, MESSAGE_TYPE_INFO,

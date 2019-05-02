@@ -52,7 +52,7 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
                                                     child_id.error_message);
                 break;
             }
-            control_device_fork(hub, child_id.data.Long, new_device_descriptor("bulb", "A bulb", "./bulb"));
+            control_device_fork(hub, child_id.data.Long, device_is_supported_by_name("bulb"));
             break;
         }
         default: {

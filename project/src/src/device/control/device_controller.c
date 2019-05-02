@@ -36,7 +36,7 @@ void controller_start(void) {
 static void controller_init(void) {
     /* Create the controller, only once in the entire program with id 0 */
     controller = new_control_device(
-            new_device(0,
+            new_device(DEVICE_CONTROLLER_ID, DEVICE_CONTROLLER_ID,
                        DEVICE_STATE,
                        new_controller_registry()
             ));
@@ -44,6 +44,7 @@ static void controller_init(void) {
     command_init();
     author_init();
     device_init();
+    device_change_path_file_name(DEVICE_CONTROLLER_DEVICE_PATH);
 }
 
 static void controller_tini(void) {
@@ -64,36 +65,72 @@ ControllerRegistry *new_controller_registry(void) {
     }
 
     controller_registry->next_id = 1;
-    controller_registry->connected_directly = controller_registry->connected_total = 0;
 
     return controller_registry;
 }
 
+bool controller_has_devices(void) {
+    return control_device_has_devices(controller);
+}
+
 size_t controller_fork_device(const DeviceDescriptor *device_descriptor) {
-    ControllerRegistry *registry;
     size_t child_id;
     if (!device_check_control_device(controller) || device_descriptor == NULL) return -1;
 
     child_id = ((ControllerRegistry *) controller->device->registry)->next_id++;
     if (!control_device_fork(controller, child_id, device_descriptor)) return -1;
 
-    registry = (ControllerRegistry *) controller->device->registry;
-    registry->connected_directly = registry->connected_total = controller->devices->size;
-
     return child_id;
 }
 
+bool controller_del_by_id(size_t id) {
+    DeviceCommunication *data;
+    DeviceCommunicationMessage out_message;
+    DeviceCommunicationMessage in_message;
+    const DeviceDescriptor *device_descriptor;
+    if (!device_check_control_device(controller)) return false;
+    if (!control_device_has_devices(controller)) return false;
 
-bool controller_has_devices(void) {
-    return control_device_has_devices(controller);
+    device_communication_message_init(controller->device, &out_message);
+    device_communication_message_modify(&out_message, id, MESSAGE_TYPE_TERMINATE, "");
+    if (id == DEVICE_CONTROLLER_DELETE_ALL_DEVICES) out_message.type = MESSAGE_TYPE_TERMINATE_FORCED;
+
+    list_for_each(data, controller->devices) {
+        /* Found a Device with corresponding id */
+        if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
+            MESSAGE_TYPE_TERMINATE) {
+            device_communication_close_communication(data);
+            device_descriptor = device_is_supported_by_id(in_message.id_device_descriptor);
+            if (device_descriptor == NULL)
+                fprintf(stderr,
+                        "Deletion Device Descriptor: Terminating a Device with unknown Device Descriptor id %ld\n",
+                        in_message.id_device_descriptor);
+
+            println_color(COLOR_GREEN,
+                          "\t%s with id %ld & pid %d has been deleted",
+                          (device_descriptor == NULL) ? "?" : device_descriptor->name,
+                          in_message.id_sender,
+                          data->pid);
+
+            list_remove(controller->devices, data);
+
+            if (id != DEVICE_CONTROLLER_DELETE_ALL_DEVICES) return true;
+        }
+    }
+
+    if (id == DEVICE_CONTROLLER_DELETE_ALL_DEVICES) return true;
+    else return false;
 }
 
-bool controller_valid_id(size_t id) {
-    return control_device_valid_id(id, controller);
+bool controller_del_all(void) {
+    if (!device_check_control_device(controller)) return false;
+    if (!control_device_has_devices(controller)) return false;
+
+    return controller_del_by_id(-1);
 }
 
 static void controller_message_handler(DeviceCommunicationMessage in_message) {
-    ConverterResult result;
+    /*ConverterResult result;
     DeviceCommunication *device_communication;
 
     switch (in_message.type) {
@@ -107,11 +144,7 @@ static void controller_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         case MESSAGE_TYPE_TERMINATE: {
-            device_communication = control_device_get_device_communication_by_id(in_message.id_sender, controller);
-
-            close(device_communication->com_read);
-            close(device_communication->com_write);
-            waitpid(device_communication->pid, 0, 0);
+            device_communication_close_communication(device_communication);
 
             result = converter_bool_to_string(converter_char_to_bool(in_message.message[0]).data.Bool);
 
@@ -124,6 +157,8 @@ static void controller_message_handler(DeviceCommunicationMessage in_message) {
 
             list_remove(controller->devices, device_communication);
 
+            println("\tCLOSED");
+
             break;
         }
         default: {
@@ -134,9 +169,10 @@ static void controller_message_handler(DeviceCommunicationMessage in_message) {
                     device_communication->pid,
                     in_message.type,
                     in_message.message);
+            println("\tUKNOWN MESSAGE");
             break;
         }
-    }
+    }*/
 }
 
 void controller_list(void) {
@@ -152,36 +188,8 @@ void controller_list(void) {
     }
 }
 
-bool controller_del_by_id(size_t id) {
-    DeviceCommunication *device_communication;
-    DeviceCommunicationMessage out_message;
-    if (!device_check_control_device(controller)) return false;
-    if (!control_device_valid_id(id, controller)) return false;
-
-    device_communication_message_init(controller->device, &out_message);
-    out_message.type = MESSAGE_TYPE_TERMINATE;
-
-    device_communication = control_device_get_device_communication_by_id(id, controller);
-
-    controller_message_handler(device_communication_write_message_with_ack(device_communication, &out_message));
-
-    return true;
-}
-
-bool controller_del_all(void) {
-    DeviceCommunication *data;
-    if (!device_check_control_device(controller)) return false;
-    if (!control_device_has_devices(controller)) return false;
-
-    list_for_each(data, controller->devices) {
-        controller_del_by_id(data->id);
-    }
-
-    return true;
-}
-
 void controller_info_by_id(size_t id) {
-    DeviceCommunication *device_communication;
+    /*DeviceCommunication *device_communication;
     DeviceCommunicationMessage out_message;
     if (!device_check_control_device(controller)) return;
     if (!control_device_valid_id(id, controller)) return;
@@ -190,21 +198,21 @@ void controller_info_by_id(size_t id) {
     out_message.type = MESSAGE_TYPE_INFO;
 
     device_communication = control_device_get_device_communication_by_id(id, controller);
-    controller_message_handler(device_communication_write_message_with_ack(device_communication, &out_message));
+    controller_message_handler(device_communication_write_message_with_ack(device_communication, &out_message));*/
 }
 
 void controller_info_all(void) {
-    DeviceCommunication *data;
+    /*DeviceCommunication *data;
     if (!device_check_control_device(controller)) return;
     if (!control_device_has_devices(controller)) return;
 
     list_for_each(data, controller->devices) {
         controller_info_by_id(data->id);
-    }
+    }*/
 }
 
 int controller_switch(size_t id, const char *switch_label, const char *switch_pos) {
-    DeviceCommunicationMessage out_message;
+    /*DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage in_message;
     if (!device_check_control_device(controller)) return -1;
     if (!control_device_valid_id(id, controller)) return -1;
@@ -231,13 +239,24 @@ int controller_switch(size_t id, const char *switch_label, const char *switch_po
     if (strcmp(in_message.message, MESSAGE_RETURN_NAME_ERROR) == 0) return 1;
     if (strcmp(in_message.message, MESSAGE_RETURN_VALUE_ERROR) == 0) return 2;
 
-    return -1;
+    return -1;*/
 }
 
 bool controller_link(size_t device_id, size_t control_device_id) {
+    /*DeviceCommunication *device_communication;
+    DeviceCommunicationMessage out_message;
+    DeviceCommunicationMessage in_message;
     if (!device_check_control_device(controller)) return false;
     if (!control_device_valid_id(device_id, controller) || !control_device_valid_id(control_device_id, controller))
         return false;
 
+    device_communication_message_init(controller->device, &out_message);
+    out_message.type = MESSAGE_TYPE_CLONE_DEVICE;
+
+    device_communication = control_device_get_device_communication_by_id(device_id, controller);
+    in_message = device_communication_write_message_with_ack(device_communication, &out_message);
+
+    println_color(COLOR_RED, "CLONE: %s", in_message.message);
+*/
     return true;
 }

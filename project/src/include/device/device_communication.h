@@ -17,59 +17,63 @@
 #define MESSAGE_TYPE_NO_MESSAGE 0
 #define MESSAGE_TYPE_ERROR 1
 #define MESSAGE_TYPE_TERMINATE 2
-#define MESSAGE_TYPE_INFO 3
-#define MESSAGE_TYPE_SET_ON 4
-#define MESSAGE_TYPE_CLONE_DEVICE 5
-#define MESSAGE_TYPE_RESPAWN_DEVICE 6
+#define MESSAGE_TYPE_TERMINATE_FORCED 3
+#define MESSAGE_TYPE_INFO 4
+#define MESSAGE_TYPE_SET_ON 5
+#define MESSAGE_TYPE_CLONE_DEVICE 6
+#define MESSAGE_TYPE_RESPAWN_DEVICE 7
+#define MESSAGE_TYPE_RECIPIENT_ID_MISLEADING 128
 /* END Message types */
 
 /* Message Status */
 #define MESSAGE_RETURN_SUCCESS "SUCCESS"
 #define MESSAGE_RETURN_NAME_ERROR "ERROR\nNAME"
 #define MESSAGE_RETURN_VALUE_ERROR "ERROR\nVALUE"
-#define MESSAGE_VALUE_LENGTH 20
 
 /* END Message Status */
 
 /** Struct Device Communication for storing information about a Communication between two processes
  */
 typedef struct DeviceCommunication {
-    size_t id;
     pid_t pid;
-    const struct DeviceDescriptor *device_descriptor;
     int com_read;
     int com_write;
 } DeviceCommunication;
-
-typedef unsigned short int message_t;
 
 /**
  * Struct Device Communication message describing a message between two processes
  */
 typedef struct DeviceCommunicationMessage {
+    size_t type;
     size_t id_sender;
-    message_t type;
+    size_t id_recipient;
+    size_t id_device_descriptor;
     char message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
 } DeviceCommunicationMessage;
 
 /**
  * Create and return a Device Communication Structure
- * @param id The id of the destination process
  * @param pid The pid of the destination process
- * @param device_descriptor The Device Descriptor of the destination process
  * @param com_read The read pipe to read from
  * @param com_write The write pipe to read to
  * @return The new Device Communication, NULL otherwise
  */
 DeviceCommunication *
-new_device_communication(size_t id, pid_t pid, const struct DeviceDescriptor *device_descriptor, int com_read, int com_write);
+new_device_communication(pid_t pid, int com_read, int com_write);
+
+/**
+ * Close the communication between the process
+ * @param device_communication The Device Communication
+ * @return true if communication has been closed, false otherwise
+ */
+bool device_communication_close_communication(DeviceCommunication *device_communication);
 
 /**
  * Read a Message from the pipe given in device_communication
  * @param device_communication The Device Communication structure
  * @return The Message received
  */
-DeviceCommunicationMessage device_communication_read_message(const DeviceCommunication *device_communication);
+DeviceCommunicationMessage device_communication_read_message(DeviceCommunication *device_communication);
 
 
 /**
@@ -78,7 +82,7 @@ DeviceCommunicationMessage device_communication_read_message(const DeviceCommuni
  * @param out_message The message to send
  * @return The message received(ACK)
  */
-DeviceCommunicationMessage device_communication_write_message_with_ack(const DeviceCommunication *device_communication,
+DeviceCommunicationMessage device_communication_write_message_with_ack(DeviceCommunication *device_communication,
                                                                        const DeviceCommunicationMessage *out_message);
 
 /**
@@ -94,18 +98,20 @@ void device_communication_write_message(const DeviceCommunication *device_commun
  * @param device The device to get the id from
  * @param message The message to initialize
  */
-void device_communication_message_init(const struct Device *device, DeviceCommunicationMessage *message);
+void device_communication_message_init(const Device *device, DeviceCommunicationMessage *message);
 
 /**
  * Modify a message:
+ *  * The recipient
  *  * The type
  *  * The message
  * @param message The message to modify
+ * @param id_recipient The id recipient
  * @param message_type The type to modify to
  * @param message_message The Message message to modify to
  * @param ... Format tags
  */
-void device_communication_message_modify(DeviceCommunicationMessage *message, message_t message_type,
+void device_communication_message_modify(DeviceCommunicationMessage *message, size_t id_recipient, size_t message_type,
                                          const char *message_message, ...);
 
 /**

@@ -5,32 +5,23 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include "collection/collection_list.h"
-#include "device/device_communication.h"
 
-#define DEVICE_PATH "./device/"
 #define DEVICE_STATE true
-#define DEVICE_NAME_LENGTH 36
+#define DEVICE_NAME_LENGTH 32
 #define DEVICE_DESCRIPTION_LENGTH 128
-#define DEVICE_PATH_LENGTH 64
+#define DEVICE_FILE_NAME_LENGTH 32
 #define DEVICE_SWITCH_NAME_LENGTH 256
-
-#define DEVICE_TYPE_BULB 0
-#define DEVICE_TYPE_WINDOW 1
-#define DEVICE_TYPE_FRIDGE 2
-#define DEVICE_TYPE_HUB 4
-#define DEVICE_TYPE_TIMER 5
-
 
 /**
  * Struct Device Descriptor,
  *  Information About a Device
  */
 typedef struct DeviceDescriptor {
+    size_t id;
+    bool control_device;
     char name[DEVICE_NAME_LENGTH];
     char description[DEVICE_DESCRIPTION_LENGTH];
-    char file_name[DEVICE_PATH_LENGTH];
-
-    int type;
+    char file_name[DEVICE_FILE_NAME_LENGTH];
 } DeviceDescriptor;
 
 /**
@@ -43,12 +34,12 @@ typedef struct DeviceSwitch {
     bool (*set_state)(const char *, void *);
 } DeviceSwitch;
 
-
 /**
  * Struct generic Device
  */
 typedef struct Device {
     size_t id;
+    DeviceDescriptor *device_descriptor;
     bool state;
     void *registry;
 
@@ -64,7 +55,6 @@ typedef struct ControlDevice {
     List *devices;
 } ControlDevice;
 
-
 /**
  * Initialize the List of supported Devices
  */
@@ -76,13 +66,20 @@ void device_init(void);
 void device_tini(void);
 
 /**
+ * Change the file name path for the Devices
+ * @param path The path to add
+ */
+void device_change_path_file_name(const char *path);
+
+/**
  * Create a new generic Device
- * @param id Device unique id
+ * @param device_id Device unique id
+ * @param device_descriptor_id Device Descriptor unique id
  * @param state Device state
  * @param registry Device registry
  * @return The new Device, NULL otherwise
  */
-Device *new_device(size_t id, bool state, void *registry);
+Device *new_device(size_t device_id, size_t device_descriptor_id, bool state, void *registry);
 
 /**
  * Free a Device
@@ -90,38 +87,6 @@ Device *new_device(size_t id, bool state, void *registry);
  * @return true if the Device has been freed, false otherwise
  */
 bool free_device(Device *device);
-
-/**
- * Create a new device switch
- * @param name switch name
- * @param state switch state
- * @param set_state method that set the state to the device
- * @return the created switch
- */
-DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(const char *, void *));
-
-/**
- * Get switch state from its name
- * @param switch_list list of switches
- * @param name name of the switches
- * @return pointer to switch
- */
-void *get_device_switch_state(List *switch_list, char name[]);
-
-/**
- * Get switch object from its name
- * @param switch_list list of switches
- * @param name name of the switches
- * @return pointer to switch
- */
-DeviceSwitch *get_device_switch(List *switch_list, char name[]);
-
-/**
- * Check if a Device is correctly initialized
- * @param device The Device to check
- * @return true if correctly initialized, false otherwise
- */
-bool device_check_device(const Device *device);
 
 /**
  * Create a new generic Control Device
@@ -138,46 +103,68 @@ ControlDevice *new_control_device(Device *device);
 bool free_control_device(ControlDevice *control_device);
 
 /**
- * Check if a Control Device is correctly initialized
- * @param control_device The Control Device to check
- * @return true if correctly initialized, false otherwise
- */
-bool device_check_control_device(const ControlDevice *control_device);
-
-/**
  * Create a new Device Descriptor
+ * @param id The Device Descriptor id
+ * @param control_device True if it is a Control Device
  * @param name Name of the Device
  * @param description Description of the Device
  * @param file_name The name of the Device binaries
  * @return The new DeviceDescriptor
  */
-DeviceDescriptor *new_device_descriptor(char name[], char description[], char file_name[]);
+DeviceDescriptor *new_device_descriptor(size_t id, bool control_device, char name[], char description[], char file_name[]);
 
 /**
- * Check if a device is supported,
- *  if found return the Device Descriptor, NULL otherwise
- * @param device The device to check
+ * Check if a device is supported by name
+ * @param device The Device Descriptor name to check
  * @return The Device Descriptor, NULL otherwise
  */
-DeviceDescriptor *device_is_supported(const char *device);
+DeviceDescriptor *device_is_supported_by_name(const char *device);
 
 /**
- * Print all supported devices using device_print function
+ * Check if a Device is supported by id
+ * @param id The Device Descriptor id to check
+ * @return The Device Descriptor, NULL otherwise
  */
-void device_print_all(void);
+DeviceDescriptor *device_is_supported_by_id(size_t id);
 
 /**
- * Print information about a Device
- * @param device_descriptor The device descriptor to retrieve information
+ * Create a new device switch
+ * @param name switch name
+ * @param state switch state
+ * @param set_state method that set the state to the device
+ * @return the created switch
  */
-void device_print(const DeviceDescriptor *device_descriptor);
+DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(const char *, void *));
 
 /**
- * Create a new process using fork() and save it to the controller devices list
- *  The child process execute an exec and change itself
- * @param device_descriptor The descriptor of the device to add
- * @return ID of the newly created process, -1 otherwise
+ * Get switch state from its name
+ * @param switch_list list of switches
+ * @param name name of the switches
+ * @return pointer to switch
  */
+void *device_get_device_switch_state(const List *switch_list, char name[]);
+
+/**
+ * Get switch object from its name
+ * @param switch_list list of switches
+ * @param name name of the switches
+ * @return pointer to switch
+ */
+DeviceSwitch *device_get_device_switch(const List *switch_list, char name[]);
+
+/**
+ * Check if a Device is correctly initialized
+ * @param device The Device to check
+ * @return true if correctly initialized, false otherwise
+ */
+bool device_check_device(const Device *device);
+
+/**
+ * Check if a Control Device is correctly initialized
+ * @param control_device The Control Device to check
+ * @return true if correctly initialized, false otherwise
+ */
+bool device_check_control_device(const ControlDevice *control_device);
 
 /**
  * Create a new process using fork() and save it to the controller devices list
@@ -197,20 +184,14 @@ bool control_device_fork(const ControlDevice *control_device, size_t id, const D
 bool control_device_has_devices(const ControlDevice *control_device);
 
 /**
- * Check if the id is a valid id
- * @param id The id to check
- * @param control_device The Control Device
- * @return true if is a valid id, false otherwise
+ * Print all supported devices using device_print function
  */
-bool control_device_valid_id(size_t id, const ControlDevice *control_device);
+void device_print_all(void);
 
 /**
- * Return a DeviceCommunication given an id
- * @param id The Device id
- * @param control_device The Control Device to get from
- * @return The Device Communication, NULL otherwise
+ * Print information about a Device
+ * @param device_descriptor The device descriptor to retrieve information
  */
-struct DeviceCommunication *
-control_device_get_device_communication_by_id(size_t id, const ControlDevice *control_device);
+void device_print(const DeviceDescriptor *device_descriptor);
 
 #endif

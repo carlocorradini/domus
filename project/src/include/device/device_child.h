@@ -6,7 +6,7 @@
 #include "device/device.h"
 #include "device/device_communication.h"
 
-#define DEVICE_CHILD_ARGS_LENGTH 4
+#define DEVICE_CHILD_ARGS_LENGTH 2
 
 /**
  * An endless loop with pause for low LEVEL CPU LOAD

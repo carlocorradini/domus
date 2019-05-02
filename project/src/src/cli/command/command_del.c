@@ -26,12 +26,10 @@ static int _del(char **args) {
 
         if (result.error) {
             println("\tConversion Error: %s", result.error_message);
-        } else if (result.data.Long == 0) {
+        } else if (result.data.Long == DEVICE_CONTROLLER_ID) {
             println("\tCannot delete the Controller");
-        } else if (!controller_valid_id(result.data.Long)) {
+        } else if (!controller_del_by_id(result.data.Long)) {
             println("\tCannot find a Device with id %ld", result.data.Long);
-        } else {
-            controller_del_by_id(result.data.Long);
         }
     }
 

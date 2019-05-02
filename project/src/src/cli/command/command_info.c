@@ -32,10 +32,8 @@ static int _info(char **args) {
 
         if (result.error) {
             println("\tConversion Error: %s", result.error_message);
-        } else if (result.data.Long == 0) {
+        } else if (result.data.Long == DEVICE_CONTROLLER_ID) {
             println("\tCannot show controller info");
-        } else if (!controller_valid_id(result.data.Long)) {
-            println("\tCannot find a Device with id %ld", result.data.Long);
         } else {
             command_info_print_header();
             controller_info_by_id(result.data.Long);

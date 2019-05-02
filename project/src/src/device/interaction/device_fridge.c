@@ -62,7 +62,7 @@ static bool fridge_set_switch_state(const char *name, void * state) {
     if(strcmp(name, "door") == 0){
         if (fridge->state == (bool) state) return true;
 
-        fridge_switch = get_device_switch(fridge->switches, name);
+        fridge_switch = device_get_device_switch(fridge->switches, name);
         fridge_registry = (FridgeRegistry *) fridge->registry;
 
         fridge_switch->state = (bool *) state;
@@ -72,7 +72,7 @@ static bool fridge_set_switch_state(const char *name, void * state) {
         return true;
     }
     if(strcmp(name, "thermo") == 0){
-        fridge_switch = get_device_switch(fridge->switches, name);;
+        fridge_switch = device_get_device_switch(fridge->switches, name);;
 
         fridge_registry = (FridgeRegistry *) fridge->registry;
         fridge_switch->state = (double *) state;
@@ -100,10 +100,10 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             time_t open_time = ((FridgeRegistry *) fridge->registry)->time;
             time_t end_time = time(NULL);
             ConverterResult result_2 = converter_bool_to_string(
-                    (bool) (get_device_switch_state(fridge->switches, "door")));
+                    (bool) (device_get_device_switch_state(fridge->switches, "door")));
             double difference = (open_time == 0) ? 0 : difftime(end_time, open_time);
 
-            double thermostat = *((double * ) (get_device_switch_state(fridge->switches, "thermo")));
+            double thermostat = *((double * ) (device_get_device_switch_state(fridge->switches, "thermo")));
             device_communication_message_modify(&out_message, MESSAGE_TYPE_INFO,
                                                 "ID:%5ld | STATE:%10s | REGISTRY:%8.2f seconds | SWITCH: %10s | THERMOSTAT: %8.2f °C",
                                                 fridge->id,

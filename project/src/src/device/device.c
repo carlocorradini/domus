@@ -5,8 +5,6 @@
 #include "device/device.h"
 #include "device/device_child.h"
 #include "util/util_printer.h"
-#include "util/util_os.h"
-
 
 /**
  * The List of Supported Devices
@@ -14,43 +12,68 @@
 static List *supported_devices = NULL;
 
 /**
- * Compare the two Strings
+ *
+ * @param data_1
+ * @param data_2
+ * @return
+ */
+static bool device_device_descriptor_equals(const DeviceDescriptor *data_1, const DeviceDescriptor *data_2);
+
+/**
+ * Compare two Device Communication
+ * @param data_1 first Device Communication
+ * @param data_2 second Device Communication
+ * @return true if equals, false otherwise
+ */
+static bool device_device_communication_equals(const DeviceCommunication *data_1, const DeviceCommunication *data_2);
+
+/**
+ * Compare two Switch by name
  * @param data_1 first string
  * @param data_2 second string
- * @return true if the two Strings are equals, false otherwise
+ * @return true if equals, false otherwise
  */
 static bool device_switch_equals(const char *data_1, const char *data_2);
 
 /**
- * Methods to compare DeviceCommunication and id
- * @param data_1 DeviceCommunication data (element of controller->devices)
- * @param data_2 id
- * @return true if  equals, false otherwise
- */
-static bool device_process_equals(const DeviceCommunication *data_1, const DeviceCommunication *data_2);
-
-/**
  * Replaces the current running process with a new device process described in the Device Descriptor
  * @param child_id The child id
- * @param parent_id The parent id
  * @param device_descriptor The descriptor of the device to be created
  */
-static void control_device_fork_child(size_t child_id, size_t parent_id, const DeviceDescriptor *device_descriptor);
+static void control_device_fork_child(size_t child_id, const DeviceDescriptor *device_descriptor);
+
+static bool device_device_descriptor_equals(const DeviceDescriptor *data_1, const DeviceDescriptor *data_2) {
+    if (data_1 == NULL || data_2 == NULL) return false;
+    return data_1->id == data_2->id;
+}
+
+static bool device_device_communication_equals(const DeviceCommunication *data_1, const DeviceCommunication *data_2) {
+    if (data_1 == NULL || data_2 == NULL) return false;
+    return data_1->pid == data_2->pid;
+}
+
+static bool device_switch_equals(const char *data_1, const char *data_2) {
+    if (data_1 == NULL || data_2 == NULL) return false;
+    return strcmp(data_1, data_2) == 0;
+}
 
 void device_init(void) {
     if (supported_devices != NULL) return;
-    supported_devices = new_list(NULL, NULL);
+    supported_devices = new_list(NULL, device_device_descriptor_equals);
 
-    list_add_last(supported_devices, new_device_descriptor("bulb",
+    list_add_last(supported_devices, new_device_descriptor(0, true, "controller",
+                                                           "The Master Controller",
+                                                           "NO_FILE_NAME"));
+    list_add_last(supported_devices, new_device_descriptor(1, false, "bulb",
                                                            "An electric light with a wire filament heated to such a high temperature that it glows with visible light",
                                                            "bulb"));
-    list_add_last(supported_devices, new_device_descriptor("window",
+    list_add_last(supported_devices, new_device_descriptor(2, false, "window",
                                                            "An opening in a wall, door, roof or vehicle that allows the passage of light, sound, and air",
                                                            "window"));
-    list_add_last(supported_devices, new_device_descriptor("fridge",
+    list_add_last(supported_devices, new_device_descriptor(3, false, "fridge",
                                                            "An appliance or compartment which is artificially kept cool and used to store food and drink. ",
                                                            "fridge"));
-    list_add_last(supported_devices, new_device_descriptor("hub",
+    list_add_last(supported_devices, new_device_descriptor(4, true, "hub",
                                                            "A Hub is a device for connecting multiple devices together and making them act as a single segment",
                                                            "hub"));
 }
@@ -59,27 +82,39 @@ void device_tini(void) {
     free_list(supported_devices);
 }
 
-static bool device_switch_equals(const char *data_1, const char *data_2) {
-    return strcmp(data_1, data_2) == 0;
+void device_change_path_file_name(const char *path) {
+    DeviceDescriptor *data;
+    char new_file_name[DEVICE_FILE_NAME_LENGTH];
+    if (supported_devices == NULL || path == NULL) return;
+
+    list_for_each(data, supported_devices) {
+        strncpy(new_file_name, path, DEVICE_FILE_NAME_LENGTH);
+        strncat(new_file_name, data->file_name, DEVICE_FILE_NAME_LENGTH);
+        strncpy(data->file_name, new_file_name, DEVICE_FILE_NAME_LENGTH);
+    }
+
 }
 
-static bool device_process_equals(const DeviceCommunication *data_1, const DeviceCommunication *data_2) {
-    return data_1->id == data_2->id;
-}
-
-Device *new_device(size_t id, bool state, void *registry) {
+Device *new_device(size_t device_id, size_t device_descriptor_id, bool state, void *registry) {
     Device *device;
     if (registry == NULL) {
         fprintf(stderr, "Device: Please define all required function\n");
         return NULL;
     }
+    /* Init Supported Devices if not */
+    device_init();
+
     device = (Device *) malloc(sizeof(Device));
     if (device == NULL) {
         perror("Device Memory Allocation");
         exit(EXIT_FAILURE);
     }
 
-    device->id = id;
+    device->id = device_id;
+    if ((device->device_descriptor = device_is_supported_by_id(device_descriptor_id)) == NULL) {
+        fprintf(stderr, "Device: Device Descriptor id not found\n");
+        return NULL;
+    }
     device->state = state;
     device->registry = registry;
     device->switches = new_list(NULL, device_switch_equals);
@@ -98,32 +133,6 @@ bool free_device(Device *device) {
     return true;
 }
 
-DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(const char *, void *)) {
-    DeviceSwitch *device_switch = (DeviceSwitch *) malloc(sizeof(DeviceSwitch));
-    if (device_switch == NULL) {
-        perror("DeviceSwitch Memory Allocation");
-        exit(EXIT_FAILURE);
-    }
-
-    strncpy(device_switch->name, name, DEVICE_SWITCH_NAME_LENGTH);
-    device_switch->state = state;
-    device_switch->set_state = set_state;
-
-    return device_switch;
-}
-
-void *get_device_switch_state(List *switch_list, char name[]) {
-    return ((DeviceSwitch *) list_get(switch_list, list_get_index(switch_list, name)))->state;
-}
-
-DeviceSwitch *get_device_switch(List *switch_list, char name[]) {
-    return list_get(switch_list, list_get_index(switch_list, name));
-}
-
-bool device_check_device(const Device *device) {
-    return device != NULL && device->registry != NULL;
-}
-
 ControlDevice *new_control_device(Device *device) {
     ControlDevice *control_device;
     if (device == NULL) {
@@ -138,7 +147,7 @@ ControlDevice *new_control_device(Device *device) {
     }
 
     control_device->device = device;
-    control_device->devices = new_list(NULL, device_process_equals);
+    control_device->devices = new_list(NULL, device_device_communication_equals);
 
     return control_device;
 }
@@ -147,40 +156,33 @@ bool free_control_device(ControlDevice *control_device) {
     if (control_device == NULL) return false;
     if (control_device->device == NULL || control_device->devices == NULL) return false;
 
+    free_device(control_device->device);
     free_list(control_device->devices);
-    if (!free_device(control_device->device)) return false;
     free(control_device);
 
     return true;
 }
 
-bool device_check_control_device(const ControlDevice *control_device) {
-    return control_device != NULL && device_check_device(control_device->device) && control_device->devices != NULL;
-}
-
-DeviceDescriptor *new_device_descriptor(char name[], char description[], char file_name[]) {
-    char real_path[DEVICE_PATH_LENGTH];
-    char file[DEVICE_PATH_LENGTH - DEVICE_NAME_LENGTH];
+DeviceDescriptor *
+new_device_descriptor(size_t id, bool control_device, char name[], char description[], char file_name[]) {
     DeviceDescriptor *device_descriptor = (DeviceDescriptor *) malloc(sizeof(DeviceDescriptor));
     if (device_descriptor == NULL) {
         perror("DeviceDescriptor Memory Allocation");
         exit(EXIT_FAILURE);
     }
 
+    device_descriptor->id = id;
+    device_descriptor->control_device = control_device;
     strncpy(device_descriptor->name, name, DEVICE_NAME_LENGTH);
     strncpy(device_descriptor->description, description, DEVICE_DESCRIPTION_LENGTH);
-    /* Copy the file name to file */
-    strncpy(file, file_name, DEVICE_PATH_LENGTH - DEVICE_NAME_LENGTH);
-    /* Get path & attach the file*/
-    strcpy(real_path, DEVICE_PATH);
-    strcat(real_path, file);
-    strncpy(device_descriptor->file_name, real_path, DEVICE_PATH_LENGTH);
+    strncpy(device_descriptor->file_name, file_name, DEVICE_FILE_NAME_LENGTH);
 
     return device_descriptor;
 }
 
-DeviceDescriptor *device_is_supported(const char *device) {
+DeviceDescriptor *device_is_supported_by_name(const char *device) {
     DeviceDescriptor *data;
+    if (supported_devices == NULL) return false;
     if (device == NULL) return NULL;
 
     list_for_each(data, supported_devices) {
@@ -190,23 +192,50 @@ DeviceDescriptor *device_is_supported(const char *device) {
     return NULL;
 }
 
-void device_print_all(void) {
+DeviceDescriptor *device_is_supported_by_id(size_t id) {
     DeviceDescriptor *data;
-    if (supported_devices == NULL) return;
+    if (supported_devices == NULL) return false;
 
     list_for_each(data, supported_devices) {
-        device_print(data);
+        if (data->id == id) return data;
     }
+
+    return NULL;
 }
 
-void device_print(const DeviceDescriptor *device_descriptor) {
-    print_color(COLOR_YELLOW, "\t%-*s", DEVICE_NAME_LENGTH, device_descriptor->name);
-    println("%s", device_descriptor->description);
+DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(const char *, void *)) {
+    DeviceSwitch *device_switch = (DeviceSwitch *) malloc(sizeof(DeviceSwitch));
+    if (device_switch == NULL) {
+        perror("DeviceSwitch Memory Allocation");
+        exit(EXIT_FAILURE);
+    }
+
+    strncpy(device_switch->name, name, DEVICE_SWITCH_NAME_LENGTH);
+    device_switch->state = state;
+    device_switch->set_state = set_state;
+
+    return device_switch;
 }
+
+void *device_get_device_switch_state(const List *switch_list, char name[]) {
+    return ((DeviceSwitch *) list_get(switch_list, list_get_index(switch_list, name)))->state;
+}
+
+DeviceSwitch *device_get_device_switch(const List *switch_list, char name[]) {
+    return list_get(switch_list, list_get_index(switch_list, name));
+}
+
+bool device_check_device(const Device *device) {
+    return device != NULL && device->registry != NULL;
+}
+
+bool device_check_control_device(const ControlDevice *control_device) {
+    return control_device != NULL && device_check_device(control_device->device) && control_device->devices != NULL;
+}
+
 
 bool control_device_fork(const ControlDevice *control_device, size_t id, const DeviceDescriptor *device_descriptor) {
     pid_t child_pid;
-    size_t parent_id;
     int write_parent_read_child[2];
     int write_child_read_parent[2];
     if (!device_check_control_device(control_device) || device_descriptor == NULL) return false;
@@ -218,8 +247,6 @@ bool control_device_fork(const ControlDevice *control_device, size_t id, const D
         exit(EXIT_FAILURE);
     }
 
-    /* Get parent id */
-    parent_id = control_device->device->id;
     /* Fork the current process */
     switch (child_pid = fork()) {
         case -1: {
@@ -235,7 +262,7 @@ bool control_device_fork(const ControlDevice *control_device, size_t id, const D
             /* Attach child stdin to read child pipe */
             dup2(write_parent_read_child[0], DEVICE_COMMUNICATION_CHILD_READ);
 
-            control_device_fork_child(id, parent_id, device_descriptor);
+            control_device_fork_child(id, device_descriptor);
             break;
         }
         default: {
@@ -243,8 +270,7 @@ bool control_device_fork(const ControlDevice *control_device, size_t id, const D
             close(write_child_read_parent[1]);
 
             list_add_last(control_device->devices,
-                          new_device_communication(id, child_pid, device_descriptor, write_child_read_parent[0],
-                                                   write_parent_read_child[1]));
+                          new_device_communication(child_pid, write_child_read_parent[0], write_parent_read_child[1]));
 
             break;
         }
@@ -253,24 +279,18 @@ bool control_device_fork(const ControlDevice *control_device, size_t id, const D
     return true;
 }
 
-static void control_device_fork_child(size_t child_id, size_t parent_id, const DeviceDescriptor *device_descriptor) {
+static void control_device_fork_child(size_t child_id, const DeviceDescriptor *device_descriptor) {
     char *device_args[DEVICE_CHILD_ARGS_LENGTH + 1];
     char device_id[sizeof(size_t) + 1];
-    char device_parent_id[sizeof(size_t) + 1];
-    char device_name[DEVICE_NAME_LENGTH];
-    char device_description[DEVICE_DESCRIPTION_LENGTH];
+    char device_descriptor_id[sizeof(size_t) + 1];
     if (device_descriptor == NULL) return;
 
     snprintf(device_id, sizeof(size_t) + 1, "%ld", child_id);
-    snprintf(device_parent_id, sizeof(size_t) + 1, "%ld", parent_id);
-    strncpy(device_name, device_descriptor->name, DEVICE_NAME_LENGTH);
-    strncpy(device_description, device_descriptor->description, DEVICE_DESCRIPTION_LENGTH);
+    snprintf(device_descriptor_id, sizeof(size_t) + 1, "%ld", device_descriptor->id);
 
     device_args[0] = device_id;
-    device_args[1] = device_parent_id;
-    device_args[2] = device_name;
-    device_args[3] = device_description;
-    device_args[4] = NULL;
+    device_args[1] = device_descriptor_id;
+    device_args[2] = NULL;
 
     if (execv(device_descriptor->file_name, device_args) == -1) {
         perror("Error exec Controller Fork Child");
@@ -283,22 +303,16 @@ bool control_device_has_devices(const ControlDevice *control_device) {
     return !list_is_empty(control_device->devices);
 }
 
-bool control_device_valid_id(size_t id, const ControlDevice *control_device) {
-    DeviceCommunication fake_communication;
-    if (!control_device_has_devices(control_device)) return false;
-    if (id <= 0) return false;
+void device_print_all(void) {
+    DeviceDescriptor *data;
+    if (supported_devices == NULL) return;
 
-    fake_communication.id = id;
-
-    return list_contains(control_device->devices, &fake_communication);
+    list_for_each(data, supported_devices) {
+        device_print(data);
+    }
 }
 
-DeviceCommunication *control_device_get_device_communication_by_id(size_t id, const ControlDevice *control_device) {
-    DeviceCommunication fake_communication;
-    if (!control_device_valid_id(id, control_device)) return NULL;
-
-    fake_communication.id = id;
-
-    return (DeviceCommunication *) list_get(control_device->devices,
-                                            list_get_index(control_device->devices, &fake_communication));
+void device_print(const DeviceDescriptor *device_descriptor) {
+    print_color(COLOR_YELLOW, "\t%-*s", DEVICE_NAME_LENGTH, device_descriptor->name);
+    println("%s", device_descriptor->description);
 }

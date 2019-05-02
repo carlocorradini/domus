@@ -23,23 +23,34 @@ static void
 _device_communication_modify_message(DeviceCommunicationMessage *message, const char *message_message, va_list args);
 
 DeviceCommunication *
-new_device_communication(size_t id, pid_t pid, const DeviceDescriptor *device_descriptor, int com_read, int com_write) {
+new_device_communication(pid_t pid, int com_read, int com_write) {
     DeviceCommunication *device_communication = (DeviceCommunication *) malloc(sizeof(DeviceCommunication));
     if (device_communication == NULL) {
         perror("Device Communication Memory Allocation");
         exit(EXIT_FAILURE);
     }
 
-    device_communication->id = id;
     device_communication->pid = pid;
-    device_communication->device_descriptor = device_descriptor;
     device_communication->com_read = com_read;
     device_communication->com_write = com_write;
 
     return device_communication;
 }
 
-DeviceCommunicationMessage device_communication_read_message(const DeviceCommunication *device_communication) {
+bool device_communication_close_communication(DeviceCommunication *device_communication) {
+    if (device_communication == NULL) return false;
+
+    if (close(device_communication->com_read) == -1
+        || close(device_communication->com_write) == -1 ||
+        waitpid(device_communication->pid, 0, 0) == -1) {
+        perror("Error closing pipe in Read Message");
+        exit(EXIT_FAILURE);
+    }
+
+    return true;
+}
+
+DeviceCommunicationMessage device_communication_read_message(DeviceCommunication *device_communication) {
     DeviceCommunicationMessage in_message;
     in_message.type = MESSAGE_TYPE_ERROR;
 
@@ -63,12 +74,7 @@ DeviceCommunicationMessage device_communication_read_message(const DeviceCommuni
         }
         case 0: {
             /* Process is terminated, close */
-            if (close(device_communication->com_read) == -1
-                || close(device_communication->com_write) == -1
-                || waitpid(device_communication->pid, 0, 0) == -1) {
-                perror("Error closing pipe in Read Message");
-                exit(EXIT_FAILURE);
-            }
+            device_communication_close_communication(device_communication);
 
             break;
         }
@@ -81,14 +87,12 @@ DeviceCommunicationMessage device_communication_read_message(const DeviceCommuni
     return in_message;
 }
 
-DeviceCommunicationMessage device_communication_write_message_with_ack(const DeviceCommunication *device_communication,
+DeviceCommunicationMessage device_communication_write_message_with_ack(DeviceCommunication *device_communication,
                                                                        const DeviceCommunicationMessage *out_message) {
     DeviceCommunicationMessage in_message;
-    in_message.type = MESSAGE_TYPE_ERROR;
-
     if (device_communication == NULL || out_message == NULL) {
-        snprintf(in_message.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH,
-                 "Device Communication OR Message has not been initialized");
+        device_communication_message_modify(&in_message, 0, MESSAGE_TYPE_ERROR,
+                                            "Device Communication OR Message has not been initialized");
         return in_message;
     }
 
@@ -116,8 +120,9 @@ static void device_communication_notify(pid_t pid) {
 void device_communication_message_init(const Device *device, DeviceCommunicationMessage *message) {
     if (device == NULL || message == NULL) return;
 
-    message->id_sender = device->id;
     message->type = MESSAGE_TYPE_ERROR;
+    message->id_sender = device->id;
+    message->id_device_descriptor = device->device_descriptor->id;
     snprintf(message->message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "Message has not been initialized");
 }
 
@@ -128,10 +133,11 @@ _device_communication_modify_message(DeviceCommunicationMessage *message, const 
     vsnprintf(message->message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, message_message, args);
 }
 
-void device_communication_message_modify(DeviceCommunicationMessage *message, message_t message_type,
+void device_communication_message_modify(DeviceCommunicationMessage *message, size_t id_recipient, size_t message_type,
                                          const char *message_message, ...) {
     if (message == NULL || message_message == NULL) return;
 
+    message->id_recipient = id_recipient;
     message->type = message_type;
     va_list args;
     va_start(args, message_message);

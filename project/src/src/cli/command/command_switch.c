@@ -20,10 +20,8 @@ static int _switch(char **args) {
         result = converter_string_to_long(args[1]);
         if (result.error) {
             println("\tConversion Error: %s", result.error_message);
-        } else if (result.data.Long == 0) {
+        } else if (result.data.Long == DEVICE_CONTROLLER_ID) {
             println("\tCannot switch the Controller");
-        } else if (!controller_valid_id(result.data.Long)) {
-            println("\tCannot find a Device with id %ld", result.data.Long);
         } else {
             switch (controller_switch((size_t) result.data.Long, args[2], args[3])) {
                 case 0: {

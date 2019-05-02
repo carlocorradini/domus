@@ -12,6 +12,7 @@
 static int __exit(char **args) {
     controller_del_all();
     println_color(COLOR_GREEN, "\tThanks for using Domus");
+
     return CLI_TERMINATE;
 }
 
