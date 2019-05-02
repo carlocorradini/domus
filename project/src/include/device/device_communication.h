@@ -17,9 +17,7 @@
 #define MESSAGE_TYPE_NO_MESSAGE 0
 #define MESSAGE_TYPE_ERROR 1
 #define MESSAGE_TYPE_TERMINATE 2
-#define MESSAGE_TYPE_TERMINATE_FORCED 3
 #define MESSAGE_TYPE_INFO 4
-#define MESSAGE_TYPE_INFO_FORCED 5
 #define MESSAGE_TYPE_SET_ON 6
 #define MESSAGE_TYPE_CLONE_DEVICE 7
 #define MESSAGE_TYPE_RESPAWN_DEVICE 8
@@ -49,6 +47,7 @@ typedef struct DeviceCommunicationMessage {
     size_t id_sender;
     size_t id_recipient;
     size_t id_device_descriptor;
+    bool flag_force;
     char message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
 } DeviceCommunicationMessage;
 
@@ -125,11 +124,11 @@ void device_communication_message_modify(DeviceCommunicationMessage *message, si
 void device_communication_message_modify_message(DeviceCommunicationMessage *message, const char *message_message, ...);
 
 /**
- * Split a message into an array of fields
+ * Split a message into an array of fields from a message string
  *  Remember to free!
  * @param message The message to split from
  * @return An array of fields, NULL otherwise
  */
-char **device_communication_split_message(const DeviceCommunicationMessage *message);
+char **device_communication_split_message_fields(const DeviceCommunicationMessage *message);
 
 #endif

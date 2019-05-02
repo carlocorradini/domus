@@ -3,7 +3,6 @@
 #include "device/control/device_hub.h"
 #include "device/device_child.h"
 #include "util/util_converter.h"
-#include "util/util_string_handler.h"
 
 /**
  *  The Hub Control Device
@@ -44,7 +43,7 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         case MESSAGE_TYPE_RESPAWN_DEVICE: {
-            char **tmp = string_to_string_array(in_message.message);
+            char **tmp = device_communication_split_message_fields(&in_message);
             ConverterResult child_id = converter_string_to_long(tmp[0]);
 
             if (child_id.error) {

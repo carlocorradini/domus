@@ -124,6 +124,7 @@ void device_communication_message_init(const Device *device, DeviceCommunication
     message->type = MESSAGE_TYPE_ERROR;
     message->id_sender = device->id;
     message->id_device_descriptor = device->device_descriptor->id;
+    message->flag_force = false;
     snprintf(message->message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "Message has not been initialized");
 }
 
@@ -156,7 +157,7 @@ device_communication_message_modify_message(DeviceCommunicationMessage *message,
     va_end(args);
 }
 
-char **device_communication_split_message(const DeviceCommunicationMessage *message) {
+char **device_communication_split_message_fields(const DeviceCommunicationMessage *message) {
     int position = 0;
     int buffer_size = DEVICE_COMMUNICATION_MESSAGE_FIELDS_MAX + 1;
     char *token;
@@ -169,7 +170,7 @@ char **device_communication_split_message(const DeviceCommunicationMessage *mess
         exit(EXIT_FAILURE);
     }
 
-    token = strtok(message->message, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
+    token = strtok((char *) message->message, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
     while (token != NULL) {
         /* Buffer dimension reached */
         if (position >= DEVICE_COMMUNICATION_MESSAGE_FIELDS_MAX) {

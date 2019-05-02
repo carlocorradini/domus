@@ -4,7 +4,6 @@
 #include "device/device_child.h"
 #include "device/interaction/device_bulb.h"
 #include "util/util_converter.h"
-#include "util/util_string_handler.h"
 
 /**
  * The bulb Device
@@ -62,8 +61,8 @@ static bool bulb_set_switch_state(const char *name, bool state) {
     bulb_switch = device_get_device_switch(bulb->switches, name);
     bulb_registry = (BulbRegistry *) bulb->registry;
 
-    bulb_switch->state = (bool *) state;
     bulb->state = state;
+    bulb_switch->state = (bool *) state;
     bulb_registry->start = (state) ? time(NULL) : (time_t) 0;
 
     return true;
@@ -80,30 +79,23 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
-            time_t open_time = ((BulbRegistry *) bulb->registry)->start;
-            double time_difference = (open_time == 0) ? 0.0 : difftime(time(NULL), open_time);
+            time_t on_time = ((BulbRegistry *) bulb->registry)->start;
+            double time_difference = (on_time == 0) ? 0.0 : difftime(time(NULL), on_time);
             bool switch_state = (bool) (device_get_device_switch_state(bulb->switches, "turn"));
 
-            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO, "%d\n%.0lf\n%d\n",
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
+                                                "%d\n%.0lf\n%d\n",
                                                 bulb->state, time_difference, switch_state);
 
             break;
         }
-            /*case MESSAGE_TYPE_CLONE_DEVICE: {
-                const BulbRegistry *bulb_registry = (BulbRegistry *) bulb->registry;
-                const DeviceSwitch *bulb_switch = (DeviceSwitch *) bulb->switches;
-                device_communication_message_modify(&out_message, MESSAGE_TYPE_CLONE_DEVICE, "%ld\n%d\n%lf\n%d", bulb->id,
-                                                    bulb->state, bulb_registry->start, bulb_switch->state);
-
-                break;
-            }*/
         case MESSAGE_TYPE_SET_ON: {
             out_message.type = MESSAGE_TYPE_SET_ON;
             char *switch_label;
             char *switch_pos;
             bool bool_switch_pos;
 
-            char **tokenized_result = string_to_string_array(in_message.message);
+            char **tokenized_result = device_communication_split_message_fields(&in_message);
 
             switch_label = tokenized_result[0];
             switch_pos = tokenized_result[1];
@@ -123,7 +115,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         default: {
-            device_communication_message_modify(&out_message, MESSAGE_TYPE_ERROR,
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
                                                 "{%d, %s}",
                                                 in_message.type,
                                                 in_message.message);

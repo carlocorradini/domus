@@ -40,8 +40,6 @@ set(
         project/src/src/device/interaction/device_bulb.c
         project/src/src/device/interaction/device_window.c
         project/src/include/device/interaction/device_window.h
-        project/src/include/util/util_string_handler.h
-        project/src/src/util/util_string_handler.c
         project/src/src/device/interaction/device_fridge.c
         project/src/include/device/interaction/device_fridge.h
         project/src/include/cli/command/command_add.h project/src/include/cli/command/command_del.h project/src/include/cli/command/command_link.h project/src/include/cli/command/command_switch.h project/src/include/cli/command/command_info.h project/src/src/cli/command/command_add.c project/src/src/cli/command/command_del.c project/src/src/cli/command/command_info.c project/src/src/cli/command/command_link.c project/src/src/cli/command/command_switch.c project/src/include/collection/collection_list.h project/src/src/collection/collection_list.c project/src/include/cli/command/command_device.h project/src/src/cli/command/command_device.c project/src/include/util/util_os.h project/src/src/util/util_os.c project/src/include/device/device_communication.h project/src/src/device/device_communication.c project/src/include/device/device_child.h project/src/src/device/device_child.c project/src/include/util/util_converter.h project/src/src/util/util_converter.c project/src/include/device/interaction/device_window.h project/src/src/device/interaction/device_window.c)

@@ -7,7 +7,6 @@
 #include "util/util_converter.h"
 #include "device/control/device_controller.h"
 
-
 /**
  * Show device info with id
  * @param args Arguments

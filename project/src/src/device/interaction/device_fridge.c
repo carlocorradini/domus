@@ -3,7 +3,6 @@
 #include "device/device_child.h"
 #include "device/interaction/device_fridge.h"
 #include "util/util_converter.h"
-#include "util/util_string_handler.h"
 
 /**
  * The Fridge Device
@@ -121,7 +120,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             char *switch_pos;
             bool bool_switch_pos;
 
-            char **tokenized_result = string_to_string_array(in_message.message);
+            char **tokenized_result = device_communication_split_message_fields(&in_message);
 
             switch_label = tokenized_result[0];
             switch_pos = tokenized_result[1];

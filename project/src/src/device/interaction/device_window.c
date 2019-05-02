@@ -81,20 +81,13 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
-            result = converter_bool_to_string(window->state);
             time_t open_time = ((WindowRegistry *) window->registry)->open;
-            time_t end_time = time(NULL);
-            ConverterResult result_2 = converter_bool_to_string(
-                    (bool) (device_get_device_switch_state(window->switches, "open")));
-            double difference = (open_time == 0) ? 0 : difftime(end_time, open_time);
+            double time_difference = (open_time == 0) ? 0.0 : difftime(time(NULL), open_time);
+            bool switch_state = (bool) (device_get_device_switch_state(window->switches, "open"));
 
-            device_communication_message_modify(&out_message, MESSAGE_TYPE_INFO,
-                                                "ID:%5ld | STATE:%10s | REGISTRY:%8.2f seconds | SWITCH: %10s",
-                                                window->id,
-                                                result.data.String,
-                                                difference,
-                                                result_2.data.String
-            );
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
+                                                "%d\n%.0lf\n%d\n",
+                                                window->state, time_difference, switch_state);
 
             break;
         }

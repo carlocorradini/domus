@@ -7,7 +7,6 @@
 #include "cli/command/command.h"
 #include "util/util_printer.h"
 #include "util/util_converter.h"
-#include "util/util_string_handler.h"
 #include "cli/cli.h"
 #include "author.h"
 
@@ -93,7 +92,7 @@ bool controller_del_by_id(size_t id) {
 
     device_communication_message_init(controller->device, &out_message);
     device_communication_message_modify(&out_message, id, MESSAGE_TYPE_TERMINATE, "");
-    if (id == DEVICE_CONTROLLER_DELETE_ALL_DEVICES) out_message.type = MESSAGE_TYPE_TERMINATE_FORCED;
+    if (id == DEVICE_CONTROLLER_DELETE_ALL_DEVICES) out_message.flag_force = true;
 
     list_for_each(data, controller->devices) {
         /* Found a Device with corresponding id */
@@ -139,9 +138,8 @@ bool controller_info_by_id(size_t id) {
 
     device_communication_message_init(controller->device, &out_message);
     device_communication_message_modify(&out_message, id, MESSAGE_TYPE_INFO, "");
-    if (id == DEVICE_CONTROLLER_INFO_ALL_DEVICES) out_message.type = MESSAGE_TYPE_INFO_FORCED;
+    if (id == DEVICE_CONTROLLER_INFO_ALL_DEVICES) out_message.flag_force = true;
 
-    println("\t%15s     %15s     %15s     %23s     %15s", "ID", "DEVICE", "STATE", "ACTIVE TIME", "SWITCH STATE");
     list_for_each(data, controller->devices) {
         /* Found a Device with corresponding id */
         if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
@@ -152,21 +150,32 @@ bool controller_info_by_id(size_t id) {
                         in_message.id_device_descriptor);
             }
 
-            char **fields = device_communication_split_message(&in_message);
+            char **fields = device_communication_split_message_fields(&in_message);
+            ConverterResult device_state = converter_bool_to_string(
+                    converter_char_to_bool(fields[0][0]).data.Bool);
+
+            print("\tID: %-*ld DEVICE_NAME: %-*s DEVICE_STATE: %-*s",
+                  sizeof(size_t) + 1, in_message.id_sender,
+                  DEVICE_NAME_LENGTH, (device_descriptor == NULL) ? "?" : device_descriptor->name,
+                  10, device_state.data.String);
 
             switch (in_message.id_device_descriptor) {
                 case DEVICE_TYPE_BULB: {
-                    ConverterResult bulb_state = converter_bool_to_string(
-                            converter_char_to_bool(fields[0][0]).data.Bool);
                     ConverterResult bulb_switch_state = converter_bool_to_string(
                             converter_char_to_bool(fields[2][0]).data.Bool);
 
-                    println("\t%15ld     %15s     %15s     %15s seconds     %15s",
-                            in_message.id_sender,
-                            (device_descriptor == NULL) ? "?" : device_descriptor->name,
-                            bulb_state.data.String,
-                            fields[1],
-                            bulb_switch_state.data.String);
+                    println("\tACTIVE_TIME(s): %-*s SWITCH_STATE: %-*s",
+                            sizeof(double) + 1, fields[1],
+                            DEVICE_SWITCH_NAME_LENGTH, bulb_switch_state.data.String);
+                    break;
+                }
+                case DEVICE_TYPE_WINDOW : {
+                    ConverterResult window_switch_state = converter_bool_to_string(
+                            converter_char_to_bool(fields[2][0]).data.Bool);
+
+                    println("\tOPEN_TIME(s): %-*s   SWITCH_STATE: %-*s",
+                            sizeof(double) + 1, fields[1],
+                            DEVICE_SWITCH_NAME_LENGTH, window_switch_state.data.String);
                     break;
                 }
             }
