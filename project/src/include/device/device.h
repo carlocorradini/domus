@@ -12,6 +12,13 @@
 #define DEVICE_FILE_NAME_LENGTH 32
 #define DEVICE_SWITCH_NAME_LENGTH 256
 
+#define DEVICE_TYPE_CONTROLLER 0
+#define DEVICE_TYPE_BULB 1
+#define DEVICE_TYPE_WINDOW 2
+#define DEVICE_TYPE_FRIDGE 3
+#define DEVICE_TYPE_HUB 4
+#define DEVICE_TYPE_TIMER 5
+
 /**
  * Struct Device Descriptor,
  *  Information About a Device

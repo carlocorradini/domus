@@ -75,37 +75,28 @@ static bool bulb_check_value(const char *input) {
 
 static void bulb_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
-    ConverterResult result;
 
     device_communication_message_init(bulb, &out_message);
 
     switch (in_message.type) {
-        case MESSAGE_TYPE_CLONE_DEVICE: {
-            const BulbRegistry *bulb_registry = (BulbRegistry *) bulb->registry;
-            const DeviceSwitch *bulb_switch = (DeviceSwitch *) bulb->switches;
-            device_communication_message_modify(&out_message, MESSAGE_TYPE_CLONE_DEVICE, "%ld\n%d\n%lf\n%d", bulb->id,
-                                                bulb->state, bulb_registry->start, bulb_switch->state);
-
-            break;
-        }
         case MESSAGE_TYPE_INFO: {
-            result = converter_bool_to_string(bulb->state);
             time_t open_time = ((BulbRegistry *) bulb->registry)->start;
-            time_t end_time = time(NULL);
-            ConverterResult result_2 = converter_bool_to_string(
-                    (bool) (device_get_device_switch_state(bulb->switches, "turn")));
-            double difference = (open_time == 0) ? 0 : difftime(end_time, open_time);
+            double time_difference = (open_time == 0) ? 0.0 : difftime(time(NULL), open_time);
+            bool switch_state = (bool) (device_get_device_switch_state(bulb->switches, "turn"));
 
-            device_communication_message_modify(&out_message, MESSAGE_TYPE_INFO,
-                                                "ID:%5ld | STATE:%10s | REGISTRY:%8.2f seconds | SWITCH: %10s",
-                                                bulb->id,
-                                                result.data.String,
-                                                difference,
-                                                result_2.data.String
-            );
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO, "%d\n%.0lf\n%d\n",
+                                                bulb->state, time_difference, switch_state);
 
             break;
         }
+            /*case MESSAGE_TYPE_CLONE_DEVICE: {
+                const BulbRegistry *bulb_registry = (BulbRegistry *) bulb->registry;
+                const DeviceSwitch *bulb_switch = (DeviceSwitch *) bulb->switches;
+                device_communication_message_modify(&out_message, MESSAGE_TYPE_CLONE_DEVICE, "%ld\n%d\n%lf\n%d", bulb->id,
+                                                    bulb->state, bulb_registry->start, bulb_switch->state);
+
+                break;
+            }*/
         case MESSAGE_TYPE_SET_ON: {
             out_message.type = MESSAGE_TYPE_SET_ON;
             char *switch_label;

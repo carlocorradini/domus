@@ -9,6 +9,7 @@
 #define DEVICE_CONTROLLER_ID 0
 #define DEVICE_CONTROLLER_DEVICE_PATH "device/"
 #define DEVICE_CONTROLLER_DELETE_ALL_DEVICES -1
+#define DEVICE_CONTROLLER_INFO_ALL_DEVICES -1
 
 /**
  * Struct Controller Registry
@@ -64,13 +65,15 @@ bool controller_del_all(void);
 /**
  * Given an id, returns info of the device
  * @param id The Device id
+ * @return true if found, false otherwise
  */
-void controller_info_by_id(size_t id);
+bool controller_info_by_id(size_t id);
 
 /**
  * Show info about all devices
+ * @return true if found, false otherwise
  */
-void controller_info_all(void);
+bool controller_info_all(void);
 
 /**
  * Given an ID, set the switch label to switch_pos

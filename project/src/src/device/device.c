@@ -61,21 +61,24 @@ void device_init(void) {
     if (supported_devices != NULL) return;
     supported_devices = new_list(NULL, device_device_descriptor_equals);
 
-    list_add_last(supported_devices, new_device_descriptor(0, true, "controller",
+    list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_CONTROLLER, true, "controller",
                                                            "The Master Controller",
                                                            "NO_FILE_NAME"));
-    list_add_last(supported_devices, new_device_descriptor(1, false, "bulb",
+    list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_BULB, false, "bulb",
                                                            "An electric light with a wire filament heated to such a high temperature that it glows with visible light",
                                                            "bulb"));
-    list_add_last(supported_devices, new_device_descriptor(2, false, "window",
+    list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_WINDOW, false, "window",
                                                            "An opening in a wall, door, roof or vehicle that allows the passage of light, sound, and air",
                                                            "window"));
-    list_add_last(supported_devices, new_device_descriptor(3, false, "fridge",
+    list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_FRIDGE, false, "fridge",
                                                            "An appliance or compartment which is artificially kept cool and used to store food and drink. ",
                                                            "fridge"));
-    list_add_last(supported_devices, new_device_descriptor(4, true, "hub",
+    list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_HUB, true, "hub",
                                                            "A Hub is a device for connecting multiple devices together and making them act as a single segment",
                                                            "hub"));
+    list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_TIMER, true, "timer",
+                                                           "An automatic mechanism for activating a device at a preset time.",
+                                                           "timer"));
 }
 
 void device_tini(void) {

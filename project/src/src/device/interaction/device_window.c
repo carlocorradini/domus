@@ -104,8 +104,8 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
             char *switch_pos;
             bool bool_switch_pos;
 
-            switch_label = strtok(in_message.message, MESSAGE_DELIMITER);
-            switch_pos = strtok(NULL, MESSAGE_DELIMITER);
+            switch_label = strtok(in_message.message, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
+            switch_pos = strtok(NULL, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
 
             if (!window_check_value(switch_pos)) {
                 device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ERROR);

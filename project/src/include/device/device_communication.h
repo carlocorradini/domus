@@ -10,8 +10,8 @@
 #define DEVICE_COMMUNICATION_CHILD_WRITE 1
 #define DEVICE_COMMUNICATION_READ_PIPE SIGUSR1
 #define DEVICE_COMMUNICATION_MESSAGE_LENGTH 256
-
-#define MESSAGE_DELIMITER "\n"
+#define DEVICE_COMMUNICATION_MESSAGE_FIELDS_MAX 8
+#define DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER "\n"
 
 /* Message types */
 #define MESSAGE_TYPE_NO_MESSAGE 0
@@ -19,9 +19,10 @@
 #define MESSAGE_TYPE_TERMINATE 2
 #define MESSAGE_TYPE_TERMINATE_FORCED 3
 #define MESSAGE_TYPE_INFO 4
-#define MESSAGE_TYPE_SET_ON 5
-#define MESSAGE_TYPE_CLONE_DEVICE 6
-#define MESSAGE_TYPE_RESPAWN_DEVICE 7
+#define MESSAGE_TYPE_INFO_FORCED 5
+#define MESSAGE_TYPE_SET_ON 6
+#define MESSAGE_TYPE_CLONE_DEVICE 7
+#define MESSAGE_TYPE_RESPAWN_DEVICE 8
 #define MESSAGE_TYPE_RECIPIENT_ID_MISLEADING 128
 /* END Message types */
 
@@ -122,5 +123,13 @@ void device_communication_message_modify(DeviceCommunicationMessage *message, si
  * @param ... Format tags
  */
 void device_communication_message_modify_message(DeviceCommunicationMessage *message, const char *message_message, ...);
+
+/**
+ * Split a message into an array of fields
+ *  Remember to free!
+ * @param message The message to split from
+ * @return An array of fields, NULL otherwise
+ */
+char **device_communication_split_message(const DeviceCommunicationMessage *message);
 
 #endif

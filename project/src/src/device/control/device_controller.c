@@ -101,10 +101,10 @@ bool controller_del_by_id(size_t id) {
             MESSAGE_TYPE_TERMINATE) {
             device_communication_close_communication(data);
             device_descriptor = device_is_supported_by_id(in_message.id_device_descriptor);
-            if (device_descriptor == NULL)
-                fprintf(stderr,
-                        "Deletion Device Descriptor: Terminating a Device with unknown Device Descriptor id %ld\n",
+            if (device_descriptor == NULL) {
+                fprintf(stderr, "Deletion Command: Device with unknown Device Descriptor id %ld\n",
                         in_message.id_device_descriptor);
+            }
 
             println_color(COLOR_GREEN,
                           "\t%s with id %ld & pid %d has been deleted",
@@ -126,7 +126,66 @@ bool controller_del_all(void) {
     if (!device_check_control_device(controller)) return false;
     if (!control_device_has_devices(controller)) return false;
 
-    return controller_del_by_id(-1);
+    return controller_del_by_id(DEVICE_CONTROLLER_DELETE_ALL_DEVICES);
+}
+
+bool controller_info_by_id(size_t id) {
+    DeviceCommunication *data;
+    DeviceCommunicationMessage out_message;
+    DeviceCommunicationMessage in_message;
+    const DeviceDescriptor *device_descriptor;
+    if (!device_check_control_device(controller)) return false;
+    if (!control_device_has_devices(controller)) return false;
+
+    device_communication_message_init(controller->device, &out_message);
+    device_communication_message_modify(&out_message, id, MESSAGE_TYPE_INFO, "");
+    if (id == DEVICE_CONTROLLER_INFO_ALL_DEVICES) out_message.type = MESSAGE_TYPE_INFO_FORCED;
+
+    println("\t%15s     %15s     %15s     %23s     %15s", "ID", "DEVICE", "STATE", "ACTIVE TIME", "SWITCH STATE");
+    list_for_each(data, controller->devices) {
+        /* Found a Device with corresponding id */
+        if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
+            MESSAGE_TYPE_INFO) {
+            device_descriptor = device_is_supported_by_id(in_message.id_device_descriptor);
+            if (device_descriptor == NULL) {
+                fprintf(stderr, "Info Command: Device with unknown Device Descriptor id %ld\n",
+                        in_message.id_device_descriptor);
+            }
+
+            char **fields = device_communication_split_message(&in_message);
+
+            switch (in_message.id_device_descriptor) {
+                case DEVICE_TYPE_BULB: {
+                    ConverterResult bulb_state = converter_bool_to_string(
+                            converter_char_to_bool(fields[0][0]).data.Bool);
+                    ConverterResult bulb_switch_state = converter_bool_to_string(
+                            converter_char_to_bool(fields[2][0]).data.Bool);
+
+                    println("\t%15ld     %15s     %15s     %15s seconds     %15s",
+                            in_message.id_sender,
+                            (device_descriptor == NULL) ? "?" : device_descriptor->name,
+                            bulb_state.data.String,
+                            fields[1],
+                            bulb_switch_state.data.String);
+                    break;
+                }
+            }
+
+            free(fields);
+
+            if (id != DEVICE_CONTROLLER_INFO_ALL_DEVICES) return true;
+        }
+    }
+
+    if (id == DEVICE_CONTROLLER_INFO_ALL_DEVICES) return true;
+    else return false;
+}
+
+bool controller_info_all(void) {
+    if (!device_check_control_device(controller)) return false;
+    if (!control_device_has_devices(controller)) return false;
+
+    return controller_info_by_id(DEVICE_CONTROLLER_INFO_ALL_DEVICES);
 }
 
 static void controller_message_handler(DeviceCommunicationMessage in_message) {
@@ -186,29 +245,6 @@ void controller_list(void) {
     list_for_each(data, controller->devices) {
         controller_message_handler(device_communication_write_message_with_ack(data, &out_message));
     }
-}
-
-void controller_info_by_id(size_t id) {
-    /*DeviceCommunication *device_communication;
-    DeviceCommunicationMessage out_message;
-    if (!device_check_control_device(controller)) return;
-    if (!control_device_valid_id(id, controller)) return;
-
-    device_communication_message_init(controller->device, &out_message);
-    out_message.type = MESSAGE_TYPE_INFO;
-
-    device_communication = control_device_get_device_communication_by_id(id, controller);
-    controller_message_handler(device_communication_write_message_with_ack(device_communication, &out_message));*/
-}
-
-void controller_info_all(void) {
-    /*DeviceCommunication *data;
-    if (!device_check_control_device(controller)) return;
-    if (!control_device_has_devices(controller)) return;
-
-    list_for_each(data, controller->devices) {
-        controller_info_by_id(data->id);
-    }*/
 }
 
 int controller_switch(size_t id, const char *switch_label, const char *switch_pos) {

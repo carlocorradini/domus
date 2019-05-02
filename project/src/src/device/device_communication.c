@@ -2,6 +2,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 #include <errno.h>
+#include <string.h>
 #include <sys/signal.h>
 #include <sys/wait.h>
 #include "device/device_communication.h"
@@ -153,4 +154,34 @@ device_communication_message_modify_message(DeviceCommunicationMessage *message,
     va_start(args, message_message);
     _device_communication_modify_message(message, message_message, args);
     va_end(args);
+}
+
+char **device_communication_split_message(const DeviceCommunicationMessage *message) {
+    int position = 0;
+    int buffer_size = DEVICE_COMMUNICATION_MESSAGE_FIELDS_MAX + 1;
+    char *token;
+    char **buffer;
+    if (message == NULL || strlen(message->message) == 0) return NULL;
+
+    buffer = (char **) malloc(sizeof(char *) * buffer_size);
+    if (buffer == NULL) {
+        perror("Device Communication Split Message Memory Allocation");
+        exit(EXIT_FAILURE);
+    }
+
+    token = strtok(message->message, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
+    while (token != NULL) {
+        /* Buffer dimension reached */
+        if (position >= DEVICE_COMMUNICATION_MESSAGE_FIELDS_MAX) {
+            fprintf(stderr, "Device Communication Split Message Maximum Number of Fields Reached\n");
+            break;
+        }
+
+        buffer[position] = token;
+        position++;
+        token = strtok(NULL, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
+    }
+
+    buffer[position] = NULL;
+    return buffer;
 }

@@ -145,12 +145,15 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
     device_communication_message_init(device_child, &out_message);
 
     /* Incoming message is not for this Device */
-    if (in_message.id_recipient != device_child->id && in_message.type != MESSAGE_TYPE_TERMINATE_FORCED) {
+    if (in_message.id_recipient != device_child->id
+        && in_message.type != MESSAGE_TYPE_TERMINATE_FORCED
+        && in_message.type != MESSAGE_TYPE_INFO_FORCED) {
         device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_RECIPIENT_ID_MISLEADING,
                                             "");
         device_communication_write_message(device_child_communication, &out_message);
         return;
     }
+    if(in_message.type == MESSAGE_TYPE_INFO_FORCED) in_message.type = MESSAGE_TYPE_INFO;
 
     switch (in_message.type) {
         case MESSAGE_TYPE_TERMINATE:

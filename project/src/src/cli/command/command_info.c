@@ -7,10 +7,6 @@
 #include "util/util_converter.h"
 #include "device/control/device_controller.h"
 
-/**
- * Print the header of the Device Information
- */
-static void command_info_print_header(void);
 
 /**
  * Show device info with id
@@ -25,7 +21,6 @@ static int _info(char **args) {
     } else if (!controller_has_devices()) {
         println("\tNo Devices");
     } else if (strncmp(args[1], COMMAND_INFO_ALL, strlen(COMMAND_INFO_ALL)) == 0) {
-        command_info_print_header();
         controller_info_all();
     } else {
         result = converter_string_to_long(args[1]);
@@ -34,21 +29,13 @@ static int _info(char **args) {
             println("\tConversion Error: %s", result.error_message);
         } else if (result.data.Long == DEVICE_CONTROLLER_ID) {
             println("\tCannot show controller info");
-        } else {
-            command_info_print_header();
-            controller_info_by_id(result.data.Long);
+        } else if (!controller_info_by_id(result.data.Long)) {
+            println("\tCannot find a Device with id %ld", result.data.Long);
         }
     }
 
 
     return CLI_CONTINUE;
-}
-
-static void command_info_print_header(void) {
-    println_color(COLOR_YELLOW, "\t%-*s     %-*s     %-*s",
-                  sizeof(size_t) + 1, "ID",
-                  DEVICE_NAME_LENGTH, "NAME",
-                  DEVICE_DESCRIPTION_LENGTH, "DESCRIPTION");
 }
 
 Command *command_info(void) {
