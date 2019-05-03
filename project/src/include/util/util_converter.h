@@ -3,6 +3,7 @@
 #define _UTIL_CONVERTER_H
 
 #include <stdbool.h>
+#include <time.h>
 
 #define CONVERTER_RESULT_ERROR_LENGTH 64
 #define CONVERTER_DATA_STRING_LENGTH 32
@@ -15,6 +16,7 @@ typedef struct ConverterResult {
         int Int;
         long Long;
         double Double;
+        struct tm Date;
         char String[CONVERTER_DATA_STRING_LENGTH];
     } data;
 } ConverterResult;
@@ -55,4 +57,5 @@ ConverterResult converter_bool_to_string(bool value);
  */
 ConverterResult converter_string_to_double(const char *char_string);
 
+ConverterResult converter_string_to_date(char *char_string);
 #endif

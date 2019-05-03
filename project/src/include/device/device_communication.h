@@ -19,8 +19,8 @@
 #define MESSAGE_TYPE_TERMINATE 2
 #define MESSAGE_TYPE_INFO 4
 #define MESSAGE_TYPE_SET_ON 6
-#define MESSAGE_TYPE_CLONE_DEVICE 7
-#define MESSAGE_TYPE_RESPAWN_DEVICE 8
+#define MESSAGE_TYPE_SPAWN_DEVICE 8
+#define MESSAGE_TYPE_SET_INIT_VALUES_DEVICE 9
 #define MESSAGE_TYPE_RECIPIENT_ID_MISLEADING 128
 /* END Message types */
 
@@ -29,6 +29,7 @@
 #define MESSAGE_RETURN_NAME_ERROR "ERROR\nNAME"
 #define MESSAGE_RETURN_VALUE_ERROR "ERROR\nVALUE"
 
+#define MESSAGE_VALUE_LENGTH 64
 /* END Message Status */
 
 /** Struct Device Communication for storing information about a Communication between two processes

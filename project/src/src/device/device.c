@@ -66,36 +66,23 @@ void device_init(void) {
                                                            "NO_FILE_NAME"));
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_BULB, false, "bulb",
                                                            "An electric light with a wire filament heated to such a high temperature that it glows with visible light",
-                                                           "bulb"));
+                                                           "./device/bulb"));
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_WINDOW, false, "window",
                                                            "An opening in a wall, door, roof or vehicle that allows the passage of light, sound, and air",
-                                                           "window"));
+                                                           "./device/window"));
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_FRIDGE, false, "fridge",
                                                            "An appliance or compartment which is artificially kept cool and used to store food and drink. ",
-                                                           "fridge"));
+                                                           "./device/fridge"));
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_HUB, true, "hub",
                                                            "A Hub is a device for connecting multiple devices together and making them act as a single segment",
-                                                           "hub"));
+                                                           "./device/hub"));
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_TIMER, true, "timer",
                                                            "An automatic mechanism for activating a device at a preset time.",
-                                                           "timer"));
+                                                           "./device/timer"));
 }
 
 void device_tini(void) {
     free_list(supported_devices);
-}
-
-void device_change_path_file_name(const char *path) {
-    DeviceDescriptor *data;
-    char new_file_name[DEVICE_FILE_NAME_LENGTH];
-    if (supported_devices == NULL || path == NULL) return;
-
-    list_for_each(data, supported_devices) {
-        strncpy(new_file_name, path, DEVICE_FILE_NAME_LENGTH);
-        strncat(new_file_name, data->file_name, DEVICE_FILE_NAME_LENGTH);
-        strncpy(data->file_name, new_file_name, DEVICE_FILE_NAME_LENGTH);
-    }
-
 }
 
 Device *new_device(size_t device_id, size_t device_descriptor_id, bool state, void *registry) {
@@ -235,7 +222,6 @@ bool device_check_device(const Device *device) {
 bool device_check_control_device(const ControlDevice *control_device) {
     return control_device != NULL && device_check_device(control_device->device) && control_device->devices != NULL;
 }
-
 
 bool control_device_fork(const ControlDevice *control_device, size_t id, const DeviceDescriptor *device_descriptor) {
     pid_t child_pid;

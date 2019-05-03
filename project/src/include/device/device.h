@@ -73,12 +73,6 @@ void device_init(void);
 void device_tini(void);
 
 /**
- * Change the file name path for the Devices
- * @param path The path to add
- */
-void device_change_path_file_name(const char *path);
-
-/**
  * Create a new generic Device
  * @param device_id Device unique id
  * @param device_descriptor_id Device Descriptor unique id

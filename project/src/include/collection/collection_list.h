@@ -2,10 +2,6 @@
 #ifndef _COLLECTION_LIST_H
 #define _COLLECTION_LIST_H
 
-#define list_for_each(data, list) \
-    Node *node; \
-    for(node = list->head, data = list_node_data(node); node != NULL; node = node->next, data = list_node_data(node))
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -25,6 +21,10 @@ typedef struct List {
 
     void (*destroy)(void *);
 } List;
+
+static Node *list_for_each_node;
+#define list_for_each(data, list) \
+    for(list_for_each_node = list->head, data = list_node_data(list_for_each_node); list_for_each_node != NULL; list_for_each_node = list_for_each_node->next, data = list_node_data(list_for_each_node))
 
 /**
  * Create a new List:
