@@ -89,8 +89,8 @@ static void cursor_right(int value) {
  * @param value # of white spaces to print
  */
 static void white_space(int value) {
-    int i = 0;
-    for (i; i < value; i++) {
+    int i;
+    for (i = 0; i < value; i++) {
         printf(" ");
     }
 }

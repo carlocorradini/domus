@@ -85,6 +85,7 @@ DeviceCommunicationMessage device_communication_read_message(DeviceCommunication
         }
     }
 
+    in_message.ctr_hop++;
     return in_message;
 }
 
@@ -104,9 +105,23 @@ DeviceCommunicationMessage device_communication_write_message_with_ack(DeviceCom
     return device_communication_read_message(device_communication);
 }
 
+DeviceCommunicationMessage device_communication_write_message_with_ack_silent(DeviceCommunication *device_communication,
+                                                                       const DeviceCommunicationMessage *out_message) {
+    DeviceCommunicationMessage in_message;
+    if (device_communication == NULL || out_message == NULL) {
+        device_communication_message_modify(&in_message, 0, MESSAGE_TYPE_ERROR,
+                                            "Device Communication OR Message has not been initialized");
+        return in_message;
+    }
+
+    device_communication_write_message(device_communication, out_message);
+
+    return device_communication_read_message(device_communication);
+}
+
 void device_communication_write_message(const DeviceCommunication *device_communication,
                                         const DeviceCommunicationMessage *out_message) {
-    if (device_communication == NULL) return;
+    if (device_communication == NULL || out_message == NULL) return;
 
     if (write(device_communication->com_write, out_message, sizeof(DeviceCommunicationMessage)) == -1) {
         perror("Error Writing Message");
@@ -122,6 +137,7 @@ void device_communication_message_init(const Device *device, DeviceCommunication
     if (device == NULL || message == NULL) return;
 
     message->type = MESSAGE_TYPE_ERROR;
+    message->ctr_hop = 0;
     message->id_sender = device->id;
     message->id_device_descriptor = device->device_descriptor->id;
     message->flag_force = false;

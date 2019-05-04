@@ -41,7 +41,7 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
  * Control Device only
  * Middleware message handler for messages that must be handled before forwarding
  */
-static void control_devive_child_middleware_message_handler();
+static void control_devive_child_middleware_message_handler(void);
 
 /**
  * A function pointer to the child Message Handler for easy of use
@@ -148,14 +148,11 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
     if (!in_message.flag_force && in_message.id_recipient != device_child->id) {
         device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_RECIPIENT_ID_MISLEADING,
                                             "");
-        device_communication_write_message(device_child_communication, &out_message);
-        return;
+        return device_communication_write_message(device_child_communication, &out_message);
     }
 
     switch (in_message.type) {
         case MESSAGE_TYPE_TERMINATE: {
-            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_TERMINATE,
-                                                "%ld\n", device_child->device_descriptor->id);
             /* Stop the Device */
             _device_child_run = false;
             break;
@@ -166,6 +163,8 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
         }
     }
 
+    out_message.type = in_message.type;
+    out_message.id_recipient = in_message.id_sender;
     device_communication_write_message(device_child_communication, &out_message);
 }
 
@@ -209,17 +208,21 @@ DeviceCommunication *device_child_new_control_device_communication(int argc, cha
     return device_child_new_device_communication(argc, args, message_handler);
 }
 
-static void control_devive_child_middleware_message_handler() {
+static void control_devive_child_middleware_message_handler(void) {
     DeviceCommunication *data;
     DeviceCommunicationMessage in_message;
     DeviceCommunicationMessage out_message;
+    DeviceCommunicationMessage child_in_message;
+    DeviceCommunicationMessage child_out_message;
     if (control_device_child == NULL || device_child_communication == NULL) return;
 
-    in_message = device_communication_read_message(device_child_communication);
     device_communication_message_init(control_device_child->device, &out_message);
 
+    /* Try to read a message from parent*/
+    in_message = device_communication_read_message(device_child_communication);
+
+    /* No Message from Parent, read from child */
     if (in_message.type == MESSAGE_TYPE_NO_MESSAGE) {
-        /* Read Child Messages */
         list_for_each(data, control_device_child->devices) {
             in_message = device_communication_read_message(data);
             if (in_message.type != MESSAGE_TYPE_NO_MESSAGE) {
@@ -229,26 +232,108 @@ static void control_devive_child_middleware_message_handler() {
         }
     }
 
-    switch (in_message.type) {
-        case MESSAGE_TYPE_NO_MESSAGE: {
-            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
-                                                "Read Signal Received but no Message found");
-            break;
-        }
-        case MESSAGE_TYPE_TERMINATE: {
-            out_message.type = MESSAGE_TYPE_TERMINATE;
-            list_for_each(data, control_device_child->devices) {
-                device_communication_write_message_with_ack(data, &out_message);
+    /* Received a Read Pipe Signal but nothing found */
+    if (in_message.type == MESSAGE_TYPE_NO_MESSAGE) {
+        device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
+                                            "Read Signal Received but no Message found");
+        return device_communication_write_message(device_child_communication, &out_message);
+    }
+
+    /* Adjust hop count for child out message */
+    child_out_message = in_message;
+    child_out_message.ctr_hop = 0;
+
+    /* Incoming message is not Forced and is not for this Device */
+    if (!in_message.flag_force && in_message.id_recipient != control_device_child->device->id) {
+        /* Forward message to all child */
+        list_for_each(data, control_device_child->devices) {
+            if ((child_in_message = device_communication_write_message_with_ack(data, &child_out_message)).type ==
+                in_message.type) {
+
+                if (child_in_message.flag_continue) {
+                    device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
+                    do {
+                        child_in_message = device_communication_write_message_with_ack_silent(data, &child_out_message);
+                        if (child_in_message.flag_continue) {
+                            device_communication_write_message_with_ack_silent(device_child_communication,
+                                                                               &child_in_message);
+                        }
+                    } while (child_in_message.flag_continue);
+                }
+
+                /* If it's a Terminate Message & is directly connected, close & remove */
+                if (in_message.type == MESSAGE_TYPE_TERMINATE && child_in_message.ctr_hop == 1) {
+                    device_communication_close_communication(data);
+                    list_remove(control_device_child->devices, data);
+                }
+
+                device_communication_write_message(device_child_communication, &child_in_message);
+                return;
             }
+        }
+
+        /* Message has not been accepted by any child, inform parent */
+        device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_RECIPIENT_ID_MISLEADING,
+                                            "");
+        device_communication_write_message(device_child_communication, &out_message);
+        return;
+    }
+
+    /* Incoming Message is Forced or it's for this Control Device */
+    child_out_message.id_sender = control_device_child->device->id;
+    child_out_message.id_device_descriptor = control_device_child->device->device_descriptor->id;
+    child_out_message.flag_force = true;
+
+    switch (in_message.type) {
+        case MESSAGE_TYPE_TERMINATE: {
+            list_for_each(data, control_device_child->devices) {
+                child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
+                child_in_message.id_recipient = in_message.id_sender;
+
+                if(child_in_message.flag_continue) {
+                    device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
+                    do {
+                        child_in_message = device_communication_write_message_with_ack_silent(data, &child_out_message);
+                        if (child_in_message.flag_continue) {
+                            device_communication_write_message_with_ack_silent(device_child_communication,
+                                                                               &child_in_message);
+                        }
+                    } while (child_in_message.flag_continue);
+                }
+
+                child_in_message.flag_continue = true;
+                device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
+
+                device_communication_close_communication(data);
+                list_remove(control_device_child->devices, data);
+            }
+
+            /*list_for_each(data, control_device_child->devices) {
+                child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
+                child_in_message.id_recipient = in_message.id_sender;
+                child_in_message.flag_continue = true;
+
+                device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
+
+                device_communication_close_communication(data);
+                list_remove(control_device_child->devices, data);
+            }*/
+
             /* Stop the Device */
             _device_child_run = false;
             break;
         }
+
         default: {
             device_child_message_handler(in_message);
             return;
         }
     }
+
+    out_message.type = in_message.type;
+    out_message.id_recipient = in_message.id_sender;
+    out_message.flag_continue = false;
+    out_message.flag_force = false;
 
     device_communication_write_message(device_child_communication, &out_message);
 }

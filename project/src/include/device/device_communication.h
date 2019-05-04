@@ -45,10 +45,16 @@ typedef struct DeviceCommunication {
  */
 typedef struct DeviceCommunicationMessage {
     size_t type;
+
+    size_t ctr_hop;
+
     size_t id_sender;
     size_t id_recipient;
     size_t id_device_descriptor;
+
     bool flag_force;
+    bool flag_continue;
+
     char message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
 } DeviceCommunicationMessage;
 
@@ -76,6 +82,14 @@ bool device_communication_close_communication(DeviceCommunication *device_commun
  */
 DeviceCommunicationMessage device_communication_read_message(DeviceCommunication *device_communication);
 
+/**
+ * Write a message, notify the recipient and waits for a response(ACK)
+ * @param device_communication The Device Communication structure
+ * @param out_message The message to send
+ * @return The message received(ACK)
+ */
+DeviceCommunicationMessage device_communication_write_message_with_ack(DeviceCommunication *device_communication,
+                                                                       const DeviceCommunicationMessage *out_message);
 
 /**
  * Write a message and waits for a response(ACK)
@@ -83,7 +97,7 @@ DeviceCommunicationMessage device_communication_read_message(DeviceCommunication
  * @param out_message The message to send
  * @return The message received(ACK)
  */
-DeviceCommunicationMessage device_communication_write_message_with_ack(DeviceCommunication *device_communication,
+DeviceCommunicationMessage device_communication_write_message_with_ack_silent(DeviceCommunication *device_communication,
                                                                        const DeviceCommunicationMessage *out_message);
 
 /**

@@ -43,7 +43,6 @@ static void controller_init(void) {
     command_init();
     author_init();
     device_init();
-    device_change_path_file_name(DEVICE_CONTROLLER_DEVICE_PATH);
 }
 
 static void controller_tini(void) {
@@ -82,11 +81,28 @@ size_t controller_fork_device(const DeviceDescriptor *device_descriptor) {
     return child_id;
 }
 
+static void
+_controller_del_by_id(const DeviceCommunicationMessage *in_message) {
+    const DeviceDescriptor *device_descriptor;
+    if (in_message == NULL) return;
+
+    device_descriptor = device_is_supported_by_id(in_message->id_device_descriptor);
+    if (device_descriptor == NULL) {
+        fprintf(stderr, "Deletion Command: Device with unknown Device Descriptor id %ld\n",
+                in_message->id_device_descriptor);
+    }
+
+    println_color(COLOR_GREEN,
+                  "\t%s with id %ld has been deleted | %ld hop distance",
+                  (device_descriptor == NULL) ? "?" : device_descriptor->name,
+                  in_message->id_sender,
+                  in_message->ctr_hop);
+}
+
 bool controller_del_by_id(size_t id) {
     DeviceCommunication *data;
     DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage in_message;
-    const DeviceDescriptor *device_descriptor;
     if (!device_check_control_device(controller)) return false;
     if (!control_device_has_devices(controller)) return false;
 
@@ -98,20 +114,21 @@ bool controller_del_by_id(size_t id) {
         /* Found a Device with corresponding id */
         if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
             MESSAGE_TYPE_TERMINATE) {
-            device_communication_close_communication(data);
-            device_descriptor = device_is_supported_by_id(in_message.id_device_descriptor);
-            if (device_descriptor == NULL) {
-                fprintf(stderr, "Deletion Command: Device with unknown Device Descriptor id %ld\n",
-                        in_message.id_device_descriptor);
+
+            _controller_del_by_id(&in_message);
+
+            if (in_message.flag_continue) {
+                do {
+                    in_message = device_communication_write_message_with_ack_silent(data, &out_message);
+                    _controller_del_by_id(&in_message);
+                } while(in_message.flag_continue);
             }
 
-            println_color(COLOR_GREEN,
-                          "\t%s with id %ld & pid %d has been deleted",
-                          (device_descriptor == NULL) ? "?" : device_descriptor->name,
-                          in_message.id_sender,
-                          data->pid);
-
-            list_remove(controller->devices, data);
+            /* Delete only if is directly connected */
+            if(in_message.ctr_hop == 1) {
+                device_communication_close_communication(data);
+                list_remove(controller->devices, data);
+            }
 
             if (id != DEVICE_CONTROLLER_DELETE_ALL_DEVICES) return true;
         }
