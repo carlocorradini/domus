@@ -245,10 +245,13 @@ void controller_list(void) {
 }
 
 int controller_switch(size_t id, const char *switch_label, const char *switch_pos) {
-    /*DeviceCommunicationMessage out_message;
+    DeviceCommunication *data;
+    DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage in_message;
-    if (!device_check_control_device(controller)) return -1;
-    if (!control_device_valid_id(id, controller)) return -1;
+    const DeviceDescriptor *device_descriptor;
+    if (!device_check_control_device(controller)) return false;
+    if (!control_device_has_devices(controller)) return false;
+
 
     device_communication_message_init(controller->device, &out_message);
 
@@ -258,12 +261,21 @@ int controller_switch(size_t id, const char *switch_label, const char *switch_po
     a[1] = malloc(MESSAGE_VALUE_LENGTH * sizeof(char));
     strcpy(a[1], switch_pos);
 
-    device_communication_message_modify(&out_message, MESSAGE_TYPE_SET_ON,
-                                        string_array_to_string(a));
+    device_communication_message_modify(&out_message, id, MESSAGE_TYPE_SET_ON,
+                                        "time\n2019-05-03-07-19-00?2019-05-03-07-19-10\n");
 
-    in_message = device_communication_write_message_with_ack(
-            control_device_get_device_communication_by_id(id, controller),
-            &out_message);
+
+    list_for_each(data, controller->devices) {
+
+        if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
+            MESSAGE_TYPE_SET_ON) {
+            device_descriptor = device_is_supported_by_id(in_message.id_device_descriptor);
+            if (device_descriptor == NULL) {
+                fprintf(stderr, "Set On Command: Device with unknown Device Descriptor id %ld\n",
+                        in_message.id_device_descriptor);
+            }
+        }
+    }
 
     free(a[0]);
     free(a[1]);
@@ -272,24 +284,71 @@ int controller_switch(size_t id, const char *switch_label, const char *switch_po
     if (strcmp(in_message.message, MESSAGE_RETURN_NAME_ERROR) == 0) return 1;
     if (strcmp(in_message.message, MESSAGE_RETURN_VALUE_ERROR) == 0) return 2;
 
-    return -1;*/
+    return -1;
+    /**/
 }
 
 bool controller_link(size_t device_id, size_t control_device_id) {
-    /*DeviceCommunication *device_communication;
+    DeviceCommunication *data;
+    DeviceDescriptor *device_descriptor;
     DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage in_message;
+    size_t child_device_descriptor;
+
     if (!device_check_control_device(controller)) return false;
-    if (!control_device_valid_id(device_id, controller) || !control_device_valid_id(control_device_id, controller))
-        return false;
 
+    /*
+     * First, check if the device exists
+     */
     device_communication_message_init(controller->device, &out_message);
-    out_message.type = MESSAGE_TYPE_CLONE_DEVICE;
+    device_communication_message_modify(&out_message, device_id, MESSAGE_TYPE_INFO, "");
 
-    device_communication = control_device_get_device_communication_by_id(device_id, controller);
-    in_message = device_communication_write_message_with_ack(device_communication, &out_message);
+    bool found = false;
+    list_for_each(data, controller->devices) {
+        if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
+            MESSAGE_TYPE_INFO) {
+            device_descriptor = device_is_supported_by_id(in_message.id_device_descriptor);
+            if (device_descriptor == NULL) {
+                fprintf(stderr, "Link Command: Device with unknown Device Descriptor id %ld\n",
+                        in_message.id_device_descriptor);
+                return false;
+            }
+            child_device_descriptor = in_message.id_device_descriptor;
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        fprintf(stderr, "Cannot find device with id: %ld\n", device_id);
+        return false;
+    }
 
-    println_color(COLOR_RED, "CLONE: %s", in_message.message);
-*/
+
+    int index = 0;
+    while(in_message.message[index] != '\0'){
+        index++;
+    }
+    char* message = malloc(sizeof(char) * DEVICE_COMMUNICATION_MESSAGE_LENGTH);
+    snprintf(message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%ld\n%ld\n", device_id, child_device_descriptor);
+    strncat(message, in_message.message, index+1);
+
+
+    device_communication_message_modify(&out_message, control_device_id, MESSAGE_TYPE_SPAWN_DEVICE, message);
+
+    list_for_each(data, controller->devices) {
+        if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
+            MESSAGE_TYPE_SPAWN_DEVICE) {
+
+            device_descriptor = device_is_supported_by_id(in_message.id_device_descriptor);
+            if (device_descriptor == NULL) {
+                fprintf(stderr, "Link Command: Device with unknown Device Descriptor id %ld\n",
+                        in_message.id_device_descriptor);
+                return false;
+            } else {
+                fprintf(stderr, "Successfully created child\n");
+            }
+        }
+    }
+
     return true;
 }
