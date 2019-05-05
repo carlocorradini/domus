@@ -24,7 +24,7 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
     ConverterResult result;
 
-    device_communication_message_init(hub, &out_message);
+    device_communication_message_init(hub->device, &out_message);
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
@@ -42,7 +42,7 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
 
             break;
         }
-        case MESSAGE_TYPE_RESPAWN_DEVICE: {
+        case MESSAGE_TYPE_SPAWN_DEVICE: {
             char **tmp = device_communication_split_message_fields(&in_message);
             ConverterResult child_id = converter_string_to_long(tmp[0]);
 
@@ -84,6 +84,11 @@ HubRegistry *new_hub_registry(void) {
 int main(int argc, char **args) {
     hub = device_child_new_control_device(argc, args, new_hub_registry());
     hub_communication = device_child_new_control_device_communication(argc, args, hub_message_handler);
+
+    control_device_fork(hub, 25, device_is_supported_by_id(1));
+    control_device_fork(hub, 26, device_is_supported_by_id(1));
+    control_device_fork(hub, 27, device_is_supported_by_id(1));
+    control_device_fork(hub, 28, device_is_supported_by_id(5));
 
     device_child_run(NULL);
 

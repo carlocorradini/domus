@@ -4,15 +4,16 @@
 #include "device/device.h"
 
 #define DEVICE_FRIDGE_DEFAULT_TEMP 4.0
+#define DEVICE_FRIDGE_DEFAULT_DELAY 16.0
+#define DEVICE_FRIDGE_DEFAULT_PERC 50.0
 
-typedef unsigned short int perc_t;
 /**
  * The Registry of the Fridge
  */
 typedef struct FridgeRegistry {
     time_t time;
     time_t delay;
-    perc_t perc;
+    float perc;
     double temp;
 } FridgeRegistry;
 

@@ -7,8 +7,7 @@
 #include "device/device.h"
 
 #define DEVICE_CONTROLLER_ID 0
-#define DEVICE_CONTROLLER_DELETE_ALL_DEVICES -1
-#define DEVICE_CONTROLLER_INFO_ALL_DEVICES -1
+#define DEVICE_CONTROLLER_TO_ALL_DEVICES -1
 
 /**
  * Struct Controller Registry

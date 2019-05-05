@@ -51,6 +51,11 @@ bool device_communication_close_communication(DeviceCommunication *device_commun
     return true;
 }
 
+bool device_communication_device_is_directly_connected(const DeviceCommunicationMessage *message) {
+    if(message == NULL) return false;
+    return message->ctr_hop == 1;
+}
+
 DeviceCommunicationMessage device_communication_read_message(DeviceCommunication *device_communication) {
     DeviceCommunicationMessage in_message;
     in_message.type = MESSAGE_TYPE_ERROR;

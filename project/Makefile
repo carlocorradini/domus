@@ -9,7 +9,7 @@ SLOGAN := Unicuique sua domus nota
 DESCRIPTION := Home Automation at your CLI
 
 # MAINS
-TARGET:= main bulb window fridge hub
+TARGET:= main bulb window fridge hub timer
 
 # DIRECTORIES
 SRC_DIR := ./src/src

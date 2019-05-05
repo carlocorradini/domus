@@ -76,6 +76,13 @@ new_device_communication(pid_t pid, int com_read, int com_write);
 bool device_communication_close_communication(DeviceCommunication *device_communication);
 
 /**
+ * Check if a Device from A message is directly connected
+ * @param message The message to check from
+ * @return true if directly connected, false otherwise
+ */
+bool device_communication_device_is_directly_connected(const DeviceCommunicationMessage *message);
+
+/**
  * Read a Message from the pipe given in device_communication
  * @param device_communication The Device Communication structure
  * @return The Message received

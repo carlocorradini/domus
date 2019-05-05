@@ -26,6 +26,19 @@ static void controller_init(void);
  */
 static void controller_tini(void);
 
+/**
+ *
+ * @param id The recipient id, -1 to send to all devices in the system
+ * @param message_type The message type to send
+ * @param _controller_command_handler Handle incoming message
+ * @return true if send and propagate, false otherwise
+ */
+static bool controller_propagate_command_message(size_t id, size_t message_type,
+                                                 void (*_controller_command_handler)(const DeviceCommunicationMessage *));
+
+static void _controller_del_by_id(const DeviceCommunicationMessage *in_message);
+static void _controller_info_by_id(const DeviceCommunicationMessage *in_message);
+
 void controller_start(void) {
     controller_init();
     cli_start();
@@ -81,8 +94,68 @@ size_t controller_fork_device(const DeviceDescriptor *device_descriptor) {
     return child_id;
 }
 
-static void
-_controller_del_by_id(const DeviceCommunicationMessage *in_message) {
+static bool controller_propagate_command_message(size_t id, size_t message_type,
+                                         void (*_controller_command_handler)(const DeviceCommunicationMessage *)) {
+    DeviceCommunication *data;
+    DeviceCommunicationMessage out_message;
+    DeviceCommunicationMessage in_message;
+    if (!device_check_control_device(controller)) return false;
+    if (!control_device_has_devices(controller)) return false;
+
+    device_communication_message_init(controller->device, &out_message);
+    device_communication_message_modify(&out_message, id, message_type, "");
+    if (id == -1) out_message.flag_force = true;
+
+    list_for_each(data, controller->devices) {
+        /* Found a Device with corresponding id */
+        if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type == message_type) {
+            _controller_command_handler(&in_message);
+
+            if (in_message.flag_continue) {
+                do {
+                    in_message = device_communication_write_message_with_ack_silent(data, &out_message);
+                    _controller_command_handler(&in_message);
+                } while (in_message.flag_continue);
+            }
+
+            /* Delete only if type is TERMINATE & is directly connected */
+            if (message_type == MESSAGE_TYPE_TERMINATE &&
+                device_communication_device_is_directly_connected(&in_message)) {
+                device_communication_close_communication(data);
+                list_remove(controller->devices, data);
+            }
+
+            if (id != -1) return true;
+        }
+    }
+
+    if (id == -1) return true;
+    else return false;
+}
+
+bool controller_del_by_id(size_t id) {
+    return controller_propagate_command_message(id, MESSAGE_TYPE_TERMINATE, _controller_del_by_id);
+}
+
+bool controller_del_all(void) {
+    if (!device_check_control_device(controller)) return false;
+    if (!control_device_has_devices(controller)) return false;
+
+    return controller_del_by_id(DEVICE_CONTROLLER_TO_ALL_DEVICES);
+}
+
+bool controller_info_by_id(size_t id) {
+    return controller_propagate_command_message(id, MESSAGE_TYPE_INFO, _controller_info_by_id);
+}
+
+bool controller_info_all(void) {
+    if (!device_check_control_device(controller)) return false;
+    if (!control_device_has_devices(controller)) return false;
+
+    return controller_info_by_id(DEVICE_CONTROLLER_TO_ALL_DEVICES);
+}
+
+static void _controller_del_by_id(const DeviceCommunicationMessage *in_message) {
     const DeviceDescriptor *device_descriptor;
     if (in_message == NULL) return;
 
@@ -99,178 +172,76 @@ _controller_del_by_id(const DeviceCommunicationMessage *in_message) {
                   in_message->ctr_hop);
 }
 
-bool controller_del_by_id(size_t id) {
-    DeviceCommunication *data;
-    DeviceCommunicationMessage out_message;
-    DeviceCommunicationMessage in_message;
-    if (!device_check_control_device(controller)) return false;
-    if (!control_device_has_devices(controller)) return false;
-
-    device_communication_message_init(controller->device, &out_message);
-    device_communication_message_modify(&out_message, id, MESSAGE_TYPE_TERMINATE, "");
-    if (id == DEVICE_CONTROLLER_DELETE_ALL_DEVICES) out_message.flag_force = true;
-
-    list_for_each(data, controller->devices) {
-        /* Found a Device with corresponding id */
-        if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
-            MESSAGE_TYPE_TERMINATE) {
-
-            _controller_del_by_id(&in_message);
-
-            if (in_message.flag_continue) {
-                do {
-                    in_message = device_communication_write_message_with_ack_silent(data, &out_message);
-                    _controller_del_by_id(&in_message);
-                } while(in_message.flag_continue);
-            }
-
-            /* Delete only if is directly connected */
-            if(in_message.ctr_hop == 1) {
-                device_communication_close_communication(data);
-                list_remove(controller->devices, data);
-            }
-
-            if (id != DEVICE_CONTROLLER_DELETE_ALL_DEVICES) return true;
-        }
-    }
-
-    if (id == DEVICE_CONTROLLER_DELETE_ALL_DEVICES) return true;
-    else return false;
-}
-
-bool controller_del_all(void) {
-    if (!device_check_control_device(controller)) return false;
-    if (!control_device_has_devices(controller)) return false;
-
-    return controller_del_by_id(DEVICE_CONTROLLER_DELETE_ALL_DEVICES);
-}
-
-bool controller_info_by_id(size_t id) {
-    DeviceCommunication *data;
-    DeviceCommunicationMessage out_message;
-    DeviceCommunicationMessage in_message;
+static void _controller_info_by_id(const DeviceCommunicationMessage *in_message) {
     const DeviceDescriptor *device_descriptor;
-    if (!device_check_control_device(controller)) return false;
-    if (!control_device_has_devices(controller)) return false;
+    if (in_message == NULL) return;
 
-    device_communication_message_init(controller->device, &out_message);
-    device_communication_message_modify(&out_message, id, MESSAGE_TYPE_INFO, "");
-    if (id == DEVICE_CONTROLLER_INFO_ALL_DEVICES) out_message.flag_force = true;
-
-    list_for_each(data, controller->devices) {
-        /* Found a Device with corresponding id */
-        if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
-            MESSAGE_TYPE_INFO) {
-            device_descriptor = device_is_supported_by_id(in_message.id_device_descriptor);
-            if (device_descriptor == NULL) {
-                fprintf(stderr, "Info Command: Device with unknown Device Descriptor id %ld\n",
-                        in_message.id_device_descriptor);
-            }
-
-            char **fields = device_communication_split_message_fields(&in_message);
-            ConverterResult device_state = converter_bool_to_string(
-                    converter_char_to_bool(fields[0][0]).data.Bool);
-
-            print("\tID: %-*ld DEVICE_NAME: %-*s DEVICE_STATE: %-*s",
-                  sizeof(size_t) + 1, in_message.id_sender,
-                  DEVICE_NAME_LENGTH, (device_descriptor == NULL) ? "?" : device_descriptor->name,
-                  10, device_state.data.String);
-
-            switch (in_message.id_device_descriptor) {
-                case DEVICE_TYPE_BULB: {
-                    ConverterResult bulb_switch_state = converter_bool_to_string(
-                            converter_char_to_bool(fields[2][0]).data.Bool);
-
-                    println("\tACTIVE_TIME(s): %-*s SWITCH_STATE: %-*s",
-                            sizeof(double) + 1, fields[1],
-                            DEVICE_SWITCH_NAME_LENGTH, bulb_switch_state.data.String);
-                    break;
-                }
-                case DEVICE_TYPE_WINDOW : {
-                    ConverterResult window_switch_state = converter_bool_to_string(
-                            converter_char_to_bool(fields[2][0]).data.Bool);
-
-                    println("\tOPEN_TIME(s): %-*s   SWITCH_STATE: %-*s",
-                            sizeof(double) + 1, fields[1],
-                            DEVICE_SWITCH_NAME_LENGTH, window_switch_state.data.String);
-                    break;
-                }
-            }
-
-            free(fields);
-
-            if (id != DEVICE_CONTROLLER_INFO_ALL_DEVICES) return true;
-        }
+    device_descriptor = device_is_supported_by_id(in_message->id_device_descriptor);
+    if (device_descriptor == NULL) {
+        fprintf(stderr, "Info Command: Device with unknown Device Descriptor id %ld\n",
+                in_message->id_device_descriptor);
     }
 
-    if (id == DEVICE_CONTROLLER_INFO_ALL_DEVICES) return true;
-    else return false;
-}
+    char **fields = device_communication_split_message_fields(in_message);
+    ConverterResult device_state = converter_bool_to_string(
+            converter_char_to_bool(fields[0][0]).data.Bool);
 
-bool controller_info_all(void) {
-    if (!device_check_control_device(controller)) return false;
-    if (!control_device_has_devices(controller)) return false;
+    print("\tID: %-*ld DEVICE_NAME: %-*s DEVICE_STATE: %-*s",
+          sizeof(size_t) + 1, in_message->id_sender,
+          DEVICE_NAME_LENGTH, (device_descriptor == NULL) ? "?" : device_descriptor->name,
+          10, device_state.data.String);
 
-    return controller_info_by_id(DEVICE_CONTROLLER_INFO_ALL_DEVICES);
-}
+    switch (in_message->id_device_descriptor) {
+        case DEVICE_TYPE_BULB: {
+            ConverterResult bulb_switch_state = converter_bool_to_string(
+                    converter_char_to_bool(fields[2][0]).data.Bool);
 
-static void controller_message_handler(DeviceCommunicationMessage in_message) {
-    /*ConverterResult result;
-    DeviceCommunication *device_communication;
-
-    switch (in_message.type) {
-        case MESSAGE_TYPE_ERROR: {
-            println_color(COLOR_RED, "\tERROR MESSAGE");
-            println("\tMessage from %ld: %s", in_message.id_sender, in_message.message);
+            println("\tACTIVE_TIME(s): %-*s SWITCH_STATE: %-*s",
+                    sizeof(double) + 1, fields[1],
+                    DEVICE_SWITCH_NAME_LENGTH, bulb_switch_state.data.String);
             break;
         }
-        case MESSAGE_TYPE_INFO: {
-            println("\t%s", in_message.message);
+        case DEVICE_TYPE_WINDOW : {
+            ConverterResult window_switch_state = converter_bool_to_string(
+                    converter_char_to_bool(fields[2][0]).data.Bool);
+
+            println("\tOPEN_TIME(s): %-*s   SWITCH_STATE: %-*s",
+                    sizeof(double) + 1, fields[1],
+                    DEVICE_SWITCH_NAME_LENGTH, window_switch_state.data.String);
             break;
         }
-        case MESSAGE_TYPE_TERMINATE: {
-            device_communication_close_communication(device_communication);
-
-            result = converter_bool_to_string(converter_char_to_bool(in_message.message[0]).data.Bool);
-
-            println_color(COLOR_GREEN,
-                          "\t%s with id %ld & pid %d has been deleted with status %s",
-                          device_communication->device_descriptor->name,
-                          device_communication->id,
-                          device_communication->pid,
-                          result.data.String);
-
-            list_remove(controller->devices, device_communication);
-
-            println("\tCLOSED");
-
+        case DEVICE_TYPE_FRIDGE: {
+            ConverterResult fridge_thermo_switch_state = converter_bool_to_string(
+                    converter_char_to_bool(fields[5][0]).data.Bool);
+            ConverterResult fridge_door_switch_state = converter_bool_to_string(
+                    converter_char_to_bool(fields[6][0]).data.Bool);
+            println("\tOPEN_TIME(s): %-*s   DELAY_TIME(s): %-*s     PERC(%): %-*s     TEMP(C°): %-*s     SWITCH_THERMO: %-*s     SWITCH_DOOR: %-*s",
+                    sizeof(double) + 1, fields[1],
+                    sizeof(double) + 1, fields[2],
+                    sizeof(double) + 1, fields[3],
+                    sizeof(double) + 1, fields[4],
+                    DEVICE_SWITCH_NAME_LENGTH, fridge_thermo_switch_state.data.String,
+                    DEVICE_SWITCH_NAME_LENGTH, fridge_door_switch_state.data.String);
+            break;
+        }
+        case DEVICE_TYPE_HUB: {
+            println("");
+            break;
+        }
+        case DEVICE_TYPE_TIMER: {
+            println("");
             break;
         }
         default: {
-            device_communication = control_device_get_device_communication_by_id(in_message.id_sender, controller);
-            println_color(COLOR_RED, "\tUNKNOWN MESSAGE");
-            println("\tFrom %ld with pid %d: {%d, %s}",
-                    device_communication->id,
-                    device_communication->pid,
-                    in_message.type,
-                    in_message.message);
-            println("\tUKNOWN MESSAGE");
+            println("");
             break;
         }
-    }*/
+    }
+
+    free(fields);
 }
 
 void controller_list(void) {
-    DeviceCommunication *data;
-    DeviceCommunicationMessage out_message;
-    if (!device_check_control_device(controller)) return;
-
-    device_communication_message_init(controller->device, &out_message);
-    out_message.type = MESSAGE_TYPE_INFO;
-
-    list_for_each(data, controller->devices) {
-        controller_message_handler(device_communication_write_message_with_ack(data, &out_message));
-    }
 }
 
 int controller_switch(size_t id, const char *switch_label, const char *switch_pos) {

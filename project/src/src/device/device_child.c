@@ -236,7 +236,8 @@ static void control_devive_child_middleware_message_handler(void) {
     if (in_message.type == MESSAGE_TYPE_NO_MESSAGE) {
         device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
                                             "Read Signal Received but no Message found");
-        return device_communication_write_message(device_child_communication, &out_message);
+        device_communication_write_message(device_child_communication, &out_message);
+        return;
     }
 
     /* Adjust hop count for child out message */
@@ -290,7 +291,7 @@ static void control_devive_child_middleware_message_handler(void) {
                 child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
                 child_in_message.id_recipient = in_message.id_sender;
 
-                if(child_in_message.flag_continue) {
+                if (child_in_message.flag_continue) {
                     device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
                     do {
                         child_in_message = device_communication_write_message_with_ack_silent(data, &child_out_message);
@@ -308,20 +309,37 @@ static void control_devive_child_middleware_message_handler(void) {
                 list_remove(control_device_child->devices, data);
             }
 
-            /*list_for_each(data, control_device_child->devices) {
-                child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
-                child_in_message.id_recipient = in_message.id_sender;
-                child_in_message.flag_continue = true;
-
-                device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
-
-                device_communication_close_communication(data);
-                list_remove(control_device_child->devices, data);
-            }*/
-
             /* Stop the Device */
             _device_child_run = false;
             break;
+        }
+
+        case MESSAGE_TYPE_INFO: {
+            if (in_message.flag_force) {
+                list_for_each(data, control_device_child->devices) {
+                    child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
+                    child_in_message.id_recipient = in_message.id_sender;
+
+                    if (child_in_message.flag_continue) {
+                        device_communication_write_message_with_ack_silent(device_child_communication,
+                                                                           &child_in_message);
+                        do {
+                            child_in_message = device_communication_write_message_with_ack_silent(data,
+                                                                                                  &child_out_message);
+                            if (child_in_message.flag_continue) {
+                                device_communication_write_message_with_ack_silent(device_child_communication,
+                                                                                   &child_in_message);
+                            }
+                        } while (child_in_message.flag_continue);
+                    }
+
+                    child_in_message.flag_continue = true;
+                    device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
+                }
+            }
+
+            device_child_message_handler(in_message);
+            return;
         }
 
         default: {
