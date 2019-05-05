@@ -146,6 +146,8 @@ void device_communication_message_init(const Device *device, DeviceCommunication
     message->id_sender = device->id;
     message->id_device_descriptor = device->device_descriptor->id;
     message->flag_force = false;
+    message->flag_continue = false;
+
     snprintf(message->message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "Message has not been initialized");
 }
 
