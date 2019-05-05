@@ -28,17 +28,9 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
-            result = converter_bool_to_string(hub->device->state);
-            time_t open_time = ((HubRegistry *) hub->device->registry)->start;
-            time_t end_time = time(NULL);
-            double difference = (open_time == 0) ? 0 : difftime(end_time, open_time);
-
-            device_communication_message_modify(&out_message, MESSAGE_TYPE_INFO,
-                                                "ID:%5ld | STATE:%10s | USAGE_TIME:%8.2f seconds",
-                                                hub->device->id,
-                                                result.data.String,
-                                                difference
-            );
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
+                                                "%d\n",
+                                                hub->device->state);
 
             break;
         }
