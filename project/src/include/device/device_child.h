@@ -9,6 +9,13 @@
 #define DEVICE_CHILD_ARGS_LENGTH 2
 
 /**
+ *
+ * @param message
+ * @return
+ */
+bool device_child_set_device_to_spawn(DeviceCommunicationMessage message);
+
+/**
  * An endless loop with pause for low LEVEL CPU LOAD
  * @param do_on_wake_up A function called when the process has woke up
  */

@@ -1,8 +1,20 @@
+
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <errno.h>
 #include "device/device_child.h"
 #include "util/util_converter.h"
+
+/**
+ *
+ */
+static DeviceCommunicationMessage _device_to_spawn;
+
+/**
+ *
+ */
+static void device_child_control_device_spawn();
 
 /**
  * The volatile variable for knowing if the process must continue or die
@@ -56,12 +68,78 @@ static void (*device_child_message_handler)(DeviceCommunicationMessage) = NULL;
  */
 static bool device_child_check_args(int argc, char **args);
 
+bool device_child_set_device_to_spawn(DeviceCommunicationMessage message) {
+    if (message.type != MESSAGE_TYPE_SPAWN_DEVICE) return false;
+    if (_device_to_spawn.type == MESSAGE_TYPE_SPAWN_DEVICE) return false;
+    if (control_device_child == NULL) return false;
+
+    _device_to_spawn = message;
+    return true;
+}
+
 void device_child_run(void (*do_on_wake_up)(void)) {
+    _device_to_spawn.type = MESSAGE_TYPE_ERROR;
     while (_device_child_run) {
         pause();
+        if (control_device_child != NULL) device_child_control_device_spawn();
         if (do_on_wake_up != NULL) do_on_wake_up();
     }
 }
+
+static void device_child_control_device_spawn() {
+    if (_device_to_spawn.type == MESSAGE_TYPE_SPAWN_DEVICE) {
+        DeviceCommunicationMessage out_message;
+        device_communication_message_init(control_device_child->device, &out_message);
+        char child_text_message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
+        char **fields;
+        ConverterResult child_id;
+        ConverterResult child_descriptor_id;
+
+        strncpy(child_text_message, _device_to_spawn.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH);
+        fields = device_communication_split_message_fields(&_device_to_spawn);
+        child_id = converter_string_to_long(fields[0]);
+        child_descriptor_id = converter_string_to_long(fields[1]);
+
+        if (child_id.error) {
+            device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_ERROR,
+                                                "Child ID Conversion Error: %s",
+                                                child_id.error_message);
+        } else if (child_descriptor_id.error) {
+            device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_ERROR,
+                                                "Child Descriptor ID Conversion Error: %s",
+                                                child_id.error_message);
+        } else if (!control_device_fork(control_device_child, child_id.data.Long,
+                                        device_is_supported_by_id(child_descriptor_id.data.Long))) {
+            device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_ERROR,
+                                                "Error Forking Device");
+        } else {
+
+            /*fprintf(stderr, "CI ARRIVO %ld\n", control_device_child->devices->size);
+            fprintf(stderr, "%s\n", child_text_message);
+
+
+            DeviceCommunicationMessage child_in_message;
+            DeviceCommunicationMessage child_out_message;
+            DeviceCommunication *data;
+
+            device_communication_message_init(control_device_child->device, &child_out_message);
+            device_communication_message_modify(&child_out_message, child_id.data.Long, MESSAGE_TYPE_SET_INIT_VALUES,
+                                                child_text_message);
+
+            list_for_each(data, control_device_child->devices) {
+                if ((child_in_message = device_communication_write_message_with_ack(data, &child_out_message)).type ==
+                    MESSAGE_TYPE_SET_INIT_VALUES) {
+                    fprintf(stderr, "Successfully set child values\n");
+                    break;
+                }
+            }*/
+        }
+
+        device_communication_write_message(device_child_communication, &out_message);
+        _device_to_spawn.type = MESSAGE_TYPE_ERROR;
+    }
+}
+
 
 static void device_child_read_pipe(int signal_number) {
     if (signal_number == DEVICE_COMMUNICATION_READ_PIPE) {
@@ -131,7 +209,10 @@ device_child_new_device_communication(int argc, char **args, void (*message_hand
     if (message_handler == NULL || device_child_message_handler != NULL) return NULL;
 
     device_child_message_handler = message_handler;
-    signal(DEVICE_COMMUNICATION_READ_PIPE, device_child_read_pipe);
+    if (signal(DEVICE_COMMUNICATION_READ_PIPE, device_child_read_pipe) == SIG_ERR) {
+        perror("Signal Device Child Error");
+        EXIT_FAILURE;
+    }
 
     device_child_communication = new_device_communication(getppid(), DEVICE_COMMUNICATION_CHILD_READ,
                                                           DEVICE_COMMUNICATION_CHILD_WRITE);

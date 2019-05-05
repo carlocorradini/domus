@@ -74,18 +74,9 @@ static bool bulb_check_value(const char *input) {
 
 static void bulb_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
-
     device_communication_message_init(bulb, &out_message);
 
-    fprintf(stderr, "%ld\n", in_message.type);
     switch (in_message.type) {
-        case MESSAGE_TYPE_SET_INIT_VALUES: {
-            fprintf(stderr, "\n%s\n", in_message.message);
-
-            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
-                                                "");
-            break;
-        }
         case MESSAGE_TYPE_INFO: {
             time_t on_time = ((BulbRegistry *) bulb->registry)->start;
             double time_difference = (on_time == 0) ? 0.0 : difftime(time(NULL), on_time);
@@ -95,6 +86,13 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
                                                 "%d\n%.0lf\n%d\n",
                                                 bulb->state, time_difference, switch_state);
 
+            break;
+        }
+        case MESSAGE_TYPE_SET_INIT_VALUES: {
+            fprintf(stderr, "%s\n", in_message.message);
+
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
+                                                "");
             break;
         }
         case MESSAGE_TYPE_SET_ON: {

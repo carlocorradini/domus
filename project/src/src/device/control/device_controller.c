@@ -34,9 +34,11 @@ static void controller_tini(void);
  * @return true if send and propagate, false otherwise
  */
 static bool controller_propagate_command_message(size_t id, size_t message_type,
-                                                 void (*_controller_command_handler)(const DeviceCommunicationMessage *));
+                                                 void (*_controller_command_handler)(
+                                                         const DeviceCommunicationMessage *));
 
 static void _controller_del_by_id(const DeviceCommunicationMessage *in_message);
+
 static void _controller_info_by_id(const DeviceCommunicationMessage *in_message);
 
 void controller_start(void) {
@@ -95,7 +97,8 @@ size_t controller_fork_device(const DeviceDescriptor *device_descriptor) {
 }
 
 static bool controller_propagate_command_message(size_t id, size_t message_type,
-                                         void (*_controller_command_handler)(const DeviceCommunicationMessage *)) {
+                                                 void (*_controller_command_handler)(
+                                                         const DeviceCommunicationMessage *)) {
     DeviceCommunication *data;
     DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage in_message;
@@ -293,17 +296,12 @@ bool controller_link(size_t device_id, size_t control_device_id) {
     DeviceDescriptor *device_descriptor;
     DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage in_message;
-    size_t child_device_descriptor;
-
     if (!device_check_control_device(controller)) return false;
 
-    /*
-     * First, check if the device exists
-     */
+    device_descriptor = NULL;
     device_communication_message_init(controller->device, &out_message);
     device_communication_message_modify(&out_message, device_id, MESSAGE_TYPE_INFO, "");
 
-    bool found = false;
     list_for_each(data, controller->devices) {
         if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
             MESSAGE_TYPE_INFO) {
@@ -313,27 +311,18 @@ bool controller_link(size_t device_id, size_t control_device_id) {
                         in_message.id_device_descriptor);
                 return false;
             }
-            child_device_descriptor = in_message.id_device_descriptor;
-            found = true;
+
             break;
         }
     }
-    if (!found) {
-        fprintf(stderr, "Cannot find device with id: %ld\n", device_id);
-        return false;
-    }
 
+    if (device_descriptor == NULL) return false;
 
-    int index = 0;
-    while(in_message.message[index] != '\0'){
-        index++;
-    }
-    char* message = malloc(sizeof(char) * DEVICE_COMMUNICATION_MESSAGE_LENGTH);
-    snprintf(message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%ld\n%ld\n", device_id, child_device_descriptor);
-    strncat(message, in_message.message, index+1);
-
-
-    device_communication_message_modify(&out_message, control_device_id, MESSAGE_TYPE_SPAWN_DEVICE, message);
+    device_communication_message_modify(&out_message, control_device_id, MESSAGE_TYPE_SPAWN_DEVICE,
+                                        "%ld\n%ld\n%s",
+                                        device_id,
+                                        device_descriptor->id,
+                                        in_message.message);
 
     list_for_each(data, controller->devices) {
         if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
@@ -344,11 +333,12 @@ bool controller_link(size_t device_id, size_t control_device_id) {
                 fprintf(stderr, "Link Command: Device with unknown Device Descriptor id %ld\n",
                         in_message.id_device_descriptor);
                 return false;
-            } else {
-                fprintf(stderr, "Successfully created child\n");
             }
+
+            println_color(COLOR_GREEN, "Successfully created");
+            return true;
         }
     }
 
-    return true;
+    return false;
 }
