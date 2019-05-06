@@ -7,19 +7,19 @@
 #include "util/util_converter.h"
 
 /**
- *
+ * The volatile variable for knowing if the process must continue or die
+ */
+static volatile sig_atomic_t _device_child_run = true;
+
+/**
+ * The Device to clone, only for a Control Device
  */
 static DeviceCommunicationMessage _device_to_spawn;
 
 /**
- *
+ * Spawn a child Device
  */
 static void device_child_control_device_spawn();
-
-/**
- * The volatile variable for knowing if the process must continue or die
- */
-static volatile sig_atomic_t _device_child_run = true;
 
 /**
  * A pointer to the child Device for easy of use
@@ -68,15 +68,6 @@ static void (*device_child_message_handler)(DeviceCommunicationMessage) = NULL;
  */
 static bool device_child_check_args(int argc, char **args);
 
-bool device_child_set_device_to_spawn(DeviceCommunicationMessage message) {
-    if (message.type != MESSAGE_TYPE_SPAWN_DEVICE) return false;
-    if (_device_to_spawn.type == MESSAGE_TYPE_SPAWN_DEVICE) return false;
-    if (control_device_child == NULL) return false;
-
-    _device_to_spawn = message;
-    return true;
-}
-
 void device_child_run(void (*do_on_wake_up)(void)) {
     _device_to_spawn.type = MESSAGE_TYPE_ERROR;
     while (_device_child_run) {
@@ -84,6 +75,15 @@ void device_child_run(void (*do_on_wake_up)(void)) {
         if (control_device_child != NULL) device_child_control_device_spawn();
         if (do_on_wake_up != NULL) do_on_wake_up();
     }
+}
+
+bool device_child_set_device_to_spawn(DeviceCommunicationMessage message) {
+    if (message.type != MESSAGE_TYPE_SPAWN_DEVICE) return false;
+    if (_device_to_spawn.type == MESSAGE_TYPE_SPAWN_DEVICE) return false;
+    if (control_device_child == NULL) return false;
+
+    _device_to_spawn = message;
+    return true;
 }
 
 static void device_child_control_device_spawn() {
@@ -108,15 +108,15 @@ static void device_child_control_device_spawn() {
             device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_ERROR,
                                                 "Child Descriptor ID Conversion Error: %s",
                                                 child_id.error_message);
-        } else if (!control_device_fork(control_device_child, 100,
+        } else if (!control_device_fork(control_device_child, child_id.data.Long,
                                         device_is_supported_by_id(child_descriptor_id.data.Long))) {
             device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_ERROR,
                                                 "Error Forking Device");
         } else {
             device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_SPAWN_DEVICE,
-                                                "Ok");
+                                                "");
             device_communication_write_message(device_child_communication, &out_message);
-            _device_to_spawn.type = MESSAGE_TYPE_ERROR;
+            device_communication_message_init(control_device_child->device, &_device_to_spawn);
         }
     }
 }
