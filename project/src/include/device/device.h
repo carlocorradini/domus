@@ -170,6 +170,7 @@ bool device_check_control_device(const ControlDevice *control_device);
 /**
  * Create a new process using fork() and save it to the controller devices list
  *  The child process execute an exec and change itself
+ *  The parent waits until child send a message with macro type 'I_AM_ALIVE'
  * @param control_device The control device
  * @param id the child id
  * @param device_descriptor The Device Descriptor of the child

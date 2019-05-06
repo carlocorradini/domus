@@ -21,6 +21,7 @@
 #define MESSAGE_TYPE_SET_ON 6
 #define MESSAGE_TYPE_SPAWN_DEVICE 8
 #define MESSAGE_TYPE_SET_INIT_VALUES 9
+#define MESSAGE_TYPE_I_AM_ALIVE 127
 #define MESSAGE_TYPE_RECIPIENT_ID_MISLEADING 128
 /* END Message types */
 
@@ -105,7 +106,7 @@ DeviceCommunicationMessage device_communication_write_message_with_ack(DeviceCom
  * @return The message received(ACK)
  */
 DeviceCommunicationMessage device_communication_write_message_with_ack_silent(DeviceCommunication *device_communication,
-                                                                       const DeviceCommunicationMessage *out_message);
+                                                                              const DeviceCommunicationMessage *out_message);
 
 /**
  * Write a message

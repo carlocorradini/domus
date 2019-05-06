@@ -10,6 +10,7 @@
 
 /**
  * An endless loop with pause for low LEVEL CPU LOAD
+ *  Notify the parent that this device is ready
  * @param do_on_wake_up A function called when the process has woke up
  */
 void device_child_run(void (*do_on_wake_up)(void));

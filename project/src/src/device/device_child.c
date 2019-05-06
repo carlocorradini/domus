@@ -69,7 +69,21 @@ static void (*device_child_message_handler)(DeviceCommunicationMessage) = NULL;
 static bool device_child_check_args(int argc, char **args);
 
 void device_child_run(void (*do_on_wake_up)(void)) {
-    _device_to_spawn.type = MESSAGE_TYPE_ERROR;
+    DeviceCommunicationMessage out_message;
+    if (control_device_child != NULL && device_child == NULL) {
+        device_communication_message_init(control_device_child->device, &_device_to_spawn);
+        device_communication_message_init(control_device_child->device, &out_message);
+    } else if (device_child != NULL && control_device_child == NULL) {
+        device_communication_message_init(device_child, &_device_to_spawn);
+        device_communication_message_init(device_child, &out_message);
+    } else {
+        fprintf(stderr, "Device Child Run: Init Something\n");
+        exit(EXIT_FAILURE);
+    }
+
+    device_communication_message_modify(&out_message, 0, MESSAGE_TYPE_I_AM_ALIVE, "");
+    device_communication_write_message(device_child_communication, &out_message);
+
     while (_device_child_run) {
         pause();
         if (control_device_child != NULL) device_child_control_device_spawn();

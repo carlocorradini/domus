@@ -335,8 +335,6 @@ bool controller_link(size_t device_id, size_t control_device_id) {
             }
         }
 
-        sleep(1);
-
         device_communication_message_modify(&child_out_message, device_id, MESSAGE_TYPE_SET_INIT_VALUES,
                                             in_message.message);
 

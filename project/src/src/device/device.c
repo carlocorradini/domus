@@ -261,6 +261,12 @@ bool control_device_fork(const ControlDevice *control_device, size_t id, const D
             list_add_last(control_device->devices,
                           new_device_communication(child_pid, write_child_read_parent[0], write_parent_read_child[1]));
 
+            if (device_communication_read_message(
+                    (DeviceCommunication *) list_get_last(control_device->devices)).type != MESSAGE_TYPE_I_AM_ALIVE) {
+                list_remove_last(control_device->devices);
+                return false;
+            }
+
             break;
         }
     }
