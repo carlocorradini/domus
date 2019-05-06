@@ -108,38 +108,18 @@ static void device_child_control_device_spawn() {
             device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_ERROR,
                                                 "Child Descriptor ID Conversion Error: %s",
                                                 child_id.error_message);
-        } else if (!control_device_fork(control_device_child, child_id.data.Long,
+        } else if (!control_device_fork(control_device_child, 100,
                                         device_is_supported_by_id(child_descriptor_id.data.Long))) {
             device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_ERROR,
                                                 "Error Forking Device");
         } else {
-
-            /*fprintf(stderr, "CI ARRIVO %ld\n", control_device_child->devices->size);
-            fprintf(stderr, "%s\n", child_text_message);
-
-
-            DeviceCommunicationMessage child_in_message;
-            DeviceCommunicationMessage child_out_message;
-            DeviceCommunication *data;
-
-            device_communication_message_init(control_device_child->device, &child_out_message);
-            device_communication_message_modify(&child_out_message, child_id.data.Long, MESSAGE_TYPE_SET_INIT_VALUES,
-                                                child_text_message);
-
-            list_for_each(data, control_device_child->devices) {
-                if ((child_in_message = device_communication_write_message_with_ack(data, &child_out_message)).type ==
-                    MESSAGE_TYPE_SET_INIT_VALUES) {
-                    fprintf(stderr, "Successfully set child values\n");
-                    break;
-                }
-            }*/
+            device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_SPAWN_DEVICE,
+                                                "Ok");
+            device_communication_write_message(device_child_communication, &out_message);
+            _device_to_spawn.type = MESSAGE_TYPE_ERROR;
         }
-
-        device_communication_write_message(device_child_communication, &out_message);
-        _device_to_spawn.type = MESSAGE_TYPE_ERROR;
     }
 }
-
 
 static void device_child_read_pipe(int signal_number) {
     if (signal_number == DEVICE_COMMUNICATION_READ_PIPE) {
@@ -227,7 +207,8 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
 
     /* Incoming message is not for this Device */
     if (!in_message.flag_force && in_message.id_recipient != device_child->id) {
-        device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_RECIPIENT_ID_MISLEADING,
+        device_communication_message_modify(&out_message, in_message.id_sender,
+                                            MESSAGE_TYPE_RECIPIENT_ID_MISLEADING,
                                             "");
         return device_communication_write_message(device_child_communication, &out_message);
     }
@@ -277,7 +258,8 @@ ControlDevice *device_child_new_control_device(int argc, char **args, void *regi
     }
 
     control_device_child = new_control_device(
-            new_device(control_device_id.data.Long, control_device_descriptor_id.data.Long, DEVICE_STATE, registry));
+            new_device(control_device_id.data.Long, control_device_descriptor_id.data.Long, DEVICE_STATE,
+                       registry));
 
     return control_device_child;
 }
@@ -333,9 +315,11 @@ static void control_devive_child_middleware_message_handler(void) {
                 in_message.type) {
 
                 if (child_in_message.flag_continue) {
-                    device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
+                    device_communication_write_message_with_ack_silent(device_child_communication,
+                                                                       &child_in_message);
                     do {
-                        child_in_message = device_communication_write_message_with_ack_silent(data, &child_out_message);
+                        child_in_message = device_communication_write_message_with_ack_silent(data,
+                                                                                              &child_out_message);
                         if (child_in_message.flag_continue) {
                             device_communication_write_message_with_ack_silent(device_child_communication,
                                                                                &child_in_message);
@@ -355,7 +339,8 @@ static void control_devive_child_middleware_message_handler(void) {
         }
 
         /* Message has not been accepted by any child, inform parent */
-        device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_RECIPIENT_ID_MISLEADING,
+        device_communication_message_modify(&out_message, in_message.id_sender,
+                                            MESSAGE_TYPE_RECIPIENT_ID_MISLEADING,
                                             "");
         device_communication_write_message(device_child_communication, &out_message);
         return;
@@ -373,9 +358,11 @@ static void control_devive_child_middleware_message_handler(void) {
                 child_in_message.id_recipient = in_message.id_sender;
 
                 if (child_in_message.flag_continue) {
-                    device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
+                    device_communication_write_message_with_ack_silent(device_child_communication,
+                                                                       &child_in_message);
                     do {
-                        child_in_message = device_communication_write_message_with_ack_silent(data, &child_out_message);
+                        child_in_message = device_communication_write_message_with_ack_silent(data,
+                                                                                              &child_out_message);
                         if (child_in_message.flag_continue) {
                             device_communication_write_message_with_ack_silent(device_child_communication,
                                                                                &child_in_message);
@@ -415,7 +402,8 @@ static void control_devive_child_middleware_message_handler(void) {
                     }
 
                     child_in_message.flag_continue = true;
-                    device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
+                    device_communication_write_message_with_ack_silent(device_child_communication,
+                                                                       &child_in_message);
                 }
             }
 
