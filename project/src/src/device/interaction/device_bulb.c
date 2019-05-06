@@ -92,7 +92,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             fprintf(stderr, "\nINIT VALUES %s\n", in_message.message);
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
-                                                "Ok");
+                                                "");
             break;
         }
         case MESSAGE_TYPE_SET_ON: {

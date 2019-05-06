@@ -320,27 +320,34 @@ bool controller_link(size_t device_id, size_t control_device_id) {
 
     if (device_descriptor == NULL) return false;
 
-    controller_del_by_id(device_id);
+    if(controller_del_by_id(device_id)) {
+        device_communication_message_modify(&out_message, control_device_id, MESSAGE_TYPE_SPAWN_DEVICE,
+                                            "%ld\n%ld\n%s",
+                                            device_id,
+                                            device_descriptor->id,
+                                            in_message.message);
 
-    device_communication_message_modify(&out_message, control_device_id, MESSAGE_TYPE_SPAWN_DEVICE,
-                                        "%ld\n%ld\n%s",
-                                        device_id,
-                                        device_descriptor->id,
-                                        in_message.message);
+        list_for_each(data, controller->devices) {
+            if (device_communication_write_message_with_ack(data, &out_message).type ==
+                MESSAGE_TYPE_SPAWN_DEVICE) {
+                println_color(COLOR_GREEN, "Successfully created");
+                break;
+            }
+        }
 
-    list_for_each(data, controller->devices) {
-        if (device_communication_write_message_with_ack(data, &out_message).type ==
-            MESSAGE_TYPE_SPAWN_DEVICE) {
+        sleep(1);
 
-            device_communication_message_modify(&child_out_message, device_id, MESSAGE_TYPE_SET_INIT_VALUES,
-                                                in_message.message);
-            DeviceCommunicationMessage message =  device_communication_write_message_with_ack(data, &child_out_message);
-            println_color(COLOR_GREEN, "[%ld, %s]", message.type, message.message);
+        device_communication_message_modify(&child_out_message, device_id, MESSAGE_TYPE_SET_INIT_VALUES,
+                                            in_message.message);
 
-            println_color(COLOR_GREEN, "Successfully created");
-            return true;
+        list_for_each(data, controller->devices) {
+            if ((in_message = device_communication_write_message_with_ack(data, &child_out_message)).type ==
+                MESSAGE_TYPE_SET_INIT_VALUES) {
+                println_color(COLOR_GREEN, "[%ld, %ld]", in_message.type, in_message.id_sender);
+            }
         }
     }
 
-    return false;
+
+    return true;
 }

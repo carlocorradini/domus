@@ -115,9 +115,10 @@ static void device_child_control_device_spawn() {
         } else {
             device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_SPAWN_DEVICE,
                                                 "");
-            device_communication_write_message(device_child_communication, &out_message);
-            device_communication_message_init(control_device_child->device, &_device_to_spawn);
         }
+
+        device_communication_message_init(control_device_child->device, &_device_to_spawn);
+        device_communication_write_message(device_child_communication, &out_message);
     }
 }
 
