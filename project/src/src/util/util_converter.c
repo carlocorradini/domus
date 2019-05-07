@@ -122,7 +122,7 @@ ConverterResult converter_string_to_date(char *char_string){
     tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
     result.data.Date.tm_mday = tmp; //get the day value
     tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
-    result.data.Date.tm_hour = tmp; //get the hour value
+    result.data.Date.tm_hour = tmp-1; //get the hour value
     tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
     result.data.Date.tm_min = tmp; //get the min value
     tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);

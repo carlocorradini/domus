@@ -12,7 +12,7 @@
  */
 typedef struct FridgeRegistry {
     time_t time;
-    time_t delay;
+    long delay;
     float perc;
     double temp;
 } FridgeRegistry;

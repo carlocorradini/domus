@@ -34,8 +34,38 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         case MESSAGE_TYPE_SPAWN_DEVICE: {
-            device_child_set_device_to_spawn(in_message);
-            return;
+            if(!list_is_empty(hub->devices)){
+                ConverterResult child_descriptor_id;
+                DeviceCommunicationMessage local_in_message_copy = in_message;
+
+
+                child_descriptor_id = converter_string_to_long(device_communication_split_message_fields(&local_in_message_copy)[1]);
+
+                DeviceCommunicationMessage check_child_message;
+                DeviceCommunicationMessage in_child_message;
+
+                device_communication_message_init(hub->device, &check_child_message);
+                device_communication_message_modify(&check_child_message, hub->device->id, MESSAGE_TYPE_RECIPIENT_ID_MISLEADING, "");
+
+                DeviceCommunication* device = (DeviceCommunication *) list_get_first(hub->devices);
+
+                in_child_message = device_communication_write_message_with_ack(device, &check_child_message);
+
+                if(!child_descriptor_id.error && in_child_message.id_device_descriptor == child_descriptor_id.data.Long){
+                    device_child_set_device_to_spawn(in_message);
+                    return;
+                }
+                else{
+                    fprintf(stderr, "\tPlease attach a device with the same type\n");
+                    device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
+                                                        "Please attach a device with the same type");
+                    device_communication_write_message(hub_communication, &out_message);
+                    return;
+                }
+            } else {
+                device_child_set_device_to_spawn(in_message);
+                return;
+            }
         }
         default: {
             device_communication_message_modify(&out_message, MESSAGE_TYPE_ERROR,

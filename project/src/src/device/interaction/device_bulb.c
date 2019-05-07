@@ -89,7 +89,28 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         case MESSAGE_TYPE_SET_INIT_VALUES: {
-            fprintf(stderr, "\nINIT VALUES %s\n", in_message.message);
+            ConverterResult state;
+            ConverterResult start;
+            ConverterResult switch_state;
+
+            char **tokens = device_communication_split_message_fields(&in_message);
+
+            state = converter_char_to_bool(tokens[0][0]);
+            start = converter_string_to_long(tokens[1]);
+            switch_state = converter_char_to_bool(tokens[2][0]);
+
+            bulb->state = state.data.Bool;
+            ((BulbRegistry *) bulb->registry)->start = time(NULL) - start.data.Long;
+
+            device_get_device_switch(bulb->switches, "turn")->state = (bool *) switch_state.data.Bool;
+
+            struct tm *info;
+            char buffer[80];
+            info = localtime( &((BulbRegistry *) bulb->registry)->start );
+            strftime(buffer,80,"%x - %T", info);
+            fprintf(stderr, "\tState: %s\n", (state.data.Bool == true) ? "true" : "error");
+            fprintf(stderr, "\tTime: %s\n", buffer);
+            fprintf(stderr, "\tSwitch state: %s\n", (switch_state.data.Bool == true) ? "true" : "error");
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
                                                 "");
@@ -135,7 +156,6 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 int main(int argc, char **args) {
     bulb = device_child_new_device(argc, args, new_bulb_registry());
     list_add_last(bulb->switches, new_device_switch("turn", DEVICE_STATE, bulb_set_switch_state));
-
     bulb_communication = device_child_new_device_communication(argc, args, bulb_message_handler);
 
     device_child_run(NULL);

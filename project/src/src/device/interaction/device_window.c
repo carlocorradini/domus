@@ -91,6 +91,34 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
 
             break;
         }
+        case MESSAGE_TYPE_SET_INIT_VALUES: {
+            ConverterResult state;
+            ConverterResult open_time;
+            ConverterResult switch_state;
+
+            char **tokens = device_communication_split_message_fields(&in_message);
+
+            state = converter_char_to_bool(tokens[0][0]);
+            open_time = converter_string_to_long(tokens[1]);
+            switch_state = converter_char_to_bool(tokens[2][0]);
+
+            window->state = state.data.Bool;
+            ((WindowRegistry *) window->registry)->open = time(NULL) - open_time.data.Long;
+
+            device_get_device_switch(window->switches, "open")->state = (bool *) switch_state.data.Bool;
+
+            struct tm *info;
+            char buffer[80];
+            info = localtime( &((WindowRegistry *) window->registry)->open );
+            strftime(buffer,80,"%x - %T", info);
+            fprintf(stderr, "\tState: %s\n", (state.data.Bool == true) ? "true" : "error");
+            fprintf(stderr, "\tTime: %s\n", buffer);
+            fprintf(stderr, "\tSwitch state: %s\n", (switch_state.data.Bool == true) ? "true" : "error");
+
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
+                                                "");
+            break;
+        }
         case MESSAGE_TYPE_SET_ON: {
             out_message.type = MESSAGE_TYPE_SET_ON;
             char *switch_label;

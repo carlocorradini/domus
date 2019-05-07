@@ -38,7 +38,7 @@ static int _link(char **args) {
         } else if (control_device_id.error) {
             println("\tControl Device Conversion Error: %s", device_id.error_message);
         } else if (!controller_link(device_id.data.Long, control_device_id.data.Long)) {
-            println("\tCannot find a Device with id %ld", device_id.data.Long);
+            //println("\tCannot find a Device with id %ld", device_id.data.Long);
         }
     }
 
