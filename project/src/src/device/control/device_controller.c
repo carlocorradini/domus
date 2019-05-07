@@ -214,16 +214,15 @@ static void _controller_info_by_id(const DeviceCommunicationMessage *in_message)
             break;
         }
         case DEVICE_TYPE_FRIDGE: {
-            ConverterResult fridge_thermo_switch_state = converter_bool_to_string(
-                    converter_char_to_bool(fields[5][0]).data.Bool);
             ConverterResult fridge_door_switch_state = converter_bool_to_string(
                     converter_char_to_bool(fields[6][0]).data.Bool);
+
             println("\tOPEN_TIME(s): %-*s   DELAY_TIME(s): %-*s     PERC(%): %-*s     TEMP(C°): %-*s     SWITCH_THERMO: %-*s     SWITCH_DOOR: %-*s",
                     sizeof(double) + 1, fields[1],
                     sizeof(double) + 1, fields[2],
                     sizeof(double) + 1, fields[3],
                     sizeof(double) + 1, fields[4],
-                    DEVICE_SWITCH_NAME_LENGTH, fridge_thermo_switch_state.data.String,
+                    sizeof(double) + 1, fields[5],
                     DEVICE_SWITCH_NAME_LENGTH, fridge_door_switch_state.data.String);
             break;
         }
@@ -258,15 +257,25 @@ int controller_switch(size_t id, const char *switch_label, const char *switch_po
 
     device_communication_message_init(controller->device, &out_message);
 
-    char *a[2];
-    a[0] = malloc(MESSAGE_VALUE_LENGTH * sizeof(char));
-    strcpy(a[0], switch_label);
-    a[1] = malloc(MESSAGE_VALUE_LENGTH * sizeof(char));
-    strcpy(a[1], switch_pos);
+    /*
+    char buffer[26];
+    char buffer1[26];
+    time_t start = time(NULL) + 15;
+    time_t end = time(NULL) + 30;
 
+    struct tm * as = localtime(&start);
+    strftime(buffer, 26, "%F-%T" , as);
+
+    as = localtime(&end);
+    strftime(buffer1, 26, "%F-%T" , as);
+    fprintf(stderr, "%s\n%s\n", buffer, buffer1);
+    */
+    device_communication_message_modify(&out_message, id, MESSAGE_TYPE_SET_ON, "%s\n%s\n", switch_label, switch_pos);
+
+    /*
     device_communication_message_modify(&out_message, id, MESSAGE_TYPE_SET_ON,
-                                        "time\n2019-05-03-07-19-00?2019-05-03-07-19-10\n");
-
+                                        "time\n%s?%s\n", buffer, buffer1);
+*/
 
     list_for_each(data, controller->devices) {
 
@@ -279,9 +288,6 @@ int controller_switch(size_t id, const char *switch_label, const char *switch_po
             }
         }
     }
-
-    free(a[0]);
-    free(a[1]);
 
     if (strcmp(in_message.message, MESSAGE_RETURN_SUCCESS) == 0) return 0;
     if (strcmp(in_message.message, MESSAGE_RETURN_NAME_ERROR) == 0) return 1;
@@ -327,12 +333,19 @@ bool controller_link(size_t device_id, size_t control_device_id) {
                                             device_descriptor->id,
                                             in_message.message);
 
+        bool exit  = false;
+
         list_for_each(data, controller->devices) {
             if (device_communication_write_message_with_ack(data, &out_message).type ==
                 MESSAGE_TYPE_SPAWN_DEVICE) {
-                println_color(COLOR_GREEN, "Successfully created");
+                println_color(COLOR_GREEN, "\tSuccessfully created");
+                exit = true;
                 break;
             }
+        }
+
+        if(!exit){
+            return false;
         }
 
         device_communication_message_modify(&child_out_message, device_id, MESSAGE_TYPE_SET_INIT_VALUES,
@@ -341,7 +354,6 @@ bool controller_link(size_t device_id, size_t control_device_id) {
         list_for_each(data, controller->devices) {
             if ((in_message = device_communication_write_message_with_ack(data, &child_out_message)).type ==
                 MESSAGE_TYPE_SET_INIT_VALUES) {
-                println_color(COLOR_GREEN, "[%ld, %ld]", in_message.type, in_message.id_sender);
             }
         }
     }

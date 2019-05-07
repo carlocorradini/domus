@@ -77,7 +77,6 @@ static bool fridge_set_switch_state(const char *name, void *state) {
     if (!list_contains(fridge->switches, name)) return false;
 
     if (strcmp(name, "door") == 0) {
-        if (fridge->state == (bool) state) return true;
 
         fridge_switch = device_get_device_switch(fridge->switches, name);
         fridge_registry = (FridgeRegistry *) fridge->registry;
@@ -85,6 +84,21 @@ static bool fridge_set_switch_state(const char *name, void *state) {
         fridge_switch->state = (bool *) state;
         fridge_registry->time = (state) ? time(NULL) : (time_t) 0;
 
+        if ((bool) fridge_switch->state == true) {
+            if (door_timer == NULL) {
+
+                sigevent.sigev_notify = SIGEV_SIGNAL;
+                sigevent.sigev_signo = DEVICE_COMMUNICATION_TIMER;
+                sigevent.sigev_value.sival_ptr = &door_timer;
+
+                if (timer_create(CLOCK_REALTIME, &sigevent, &door_timer) != 0) {
+                    fprintf(stderr, "\nError while initializing the door timer\n");
+                    return false;
+                }
+                t.it_value.tv_sec = fridge_registry->delay;
+                timer_settime(door_timer, 0, &t, NULL);
+            }
+        }
         return true;
     }
     if (strcmp(name, "thermo") == 0) {
@@ -110,6 +124,7 @@ static bool fridge_set_switch_state(const char *name, void *state) {
         fridge_switch->state = (long *) state;
         fridge_registry->delay = *((long *) state);
 
+
         return true;
     }
     return false;
@@ -133,6 +148,9 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             float perc = fridge_registry->perc;
             double temp = fridge_registry->temp;
             bool switch_door = (bool) (device_get_device_switch_state(fridge->switches, "door"));
+            if(switch_door == false){
+                time_difference = 0;
+            }
             double switch_thermo = *((double *) (device_get_device_switch_state(fridge->switches, "thermo")));
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
@@ -273,10 +291,18 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                                        &out_message);
 }
 
+
+static void close_door() {
+    fridge_set_switch_state("door", (void *) false);
+    perror("Here close\n");
+    door_timer = NULL;
+}
+
+
 int main(int argc, char **args) {
     fridge = device_child_new_device(argc, args, new_fridge_registry());
     list_add_last(fridge->switches, new_device_switch("state", DEVICE_STATE, fridge_set_switch_state));
-    list_add_last(fridge->switches, new_device_switch("door", DEVICE_STATE, fridge_set_switch_state));
+    list_add_last(fridge->switches, new_device_switch("door", DEVICE_FRIDGE_DEFAULT_DOOR, fridge_set_switch_state));
 
     double *default_tmp = malloc(sizeof(double));
     *default_tmp = DEVICE_FRIDGE_DEFAULT_TEMP;
@@ -287,6 +313,7 @@ int main(int argc, char **args) {
 
     fridge_communication = device_child_new_device_communication(argc, args, fridge_message_handler);
 
+    signal(DEVICE_COMMUNICATION_TIMER, close_door);
     device_child_run(NULL);
 
     return EXIT_SUCCESS;

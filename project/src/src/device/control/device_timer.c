@@ -100,7 +100,7 @@ static bool timer_set_switch_state(const char *name, char *dates) {
 
 
         sigevent.sigev_notify = SIGEV_SIGNAL;
-        sigevent.sigev_signo = SIGUSR2;
+        sigevent.sigev_signo = DEVICE_COMMUNICATION_TIMER;
         sigevent.sigev_value.sival_ptr = &internal_timer;
 
         if (timer_create(CLOCK_REALTIME, &sigevent, &internal_timer) != 0) {
@@ -177,7 +177,7 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
     device_communication_write_message(timer_communication, &out_message);
 }
 
-void set_device() {
+static void set_device() {
     /**
      * First of all, get informations about the device id and descriptor in
      * order to know what switches to set
