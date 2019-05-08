@@ -106,15 +106,7 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
             ((WindowRegistry *) window->registry)->open = time(NULL) - open_time.data.Long;
 
             device_get_device_switch(window->switches, "open")->state = (bool *) switch_state.data.Bool;
-
-            struct tm *info;
-            char buffer[80];
-            info = localtime( &((WindowRegistry *) window->registry)->open );
-            strftime(buffer,80,"%x - %T", info);
-            fprintf(stderr, "\tState: %s\n", (state.data.Bool == true) ? "true" : "error");
-            fprintf(stderr, "\tTime: %s\n", buffer);
-            fprintf(stderr, "\tSwitch state: %s\n", (switch_state.data.Bool == true) ? "true" : "error");
-
+            
             device_communication_free_message_fields(fields);
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
                                                 "");

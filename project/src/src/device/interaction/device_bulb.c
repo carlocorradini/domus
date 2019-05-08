@@ -104,14 +104,6 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
             device_get_device_switch(bulb->switches, "turn")->state = (bool *) switch_state.data.Bool;
 
-            struct tm *info;
-            char buffer[80];
-            info = localtime(&((BulbRegistry *) bulb->registry)->start);
-            strftime(buffer, 80, "%x - %T", info);
-            fprintf(stderr, "\tState: %s\n", (state.data.Bool == true) ? "true" : "error");
-            fprintf(stderr, "\tTime: %s\n", buffer);
-            fprintf(stderr, "\tSwitch state: %s\n", (switch_state.data.Bool == true) ? "true" : "error");
-
             device_communication_free_message_fields(fields);
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
                                                 "");

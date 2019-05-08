@@ -192,18 +192,6 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             device_get_device_switch(fridge->switches, "thermo")->state = thermo_tmp;
             device_get_device_switch(fridge->switches, "door")->state = (bool *) switch_door.data.Bool;
 
-            struct tm *info;
-            char buffer[80];
-            info = localtime(&((FridgeRegistry *) fridge->registry)->time);
-            strftime(buffer, 80, "%x - %T", info);
-            fprintf(stderr, "\tState: %s\n", (state.data.Bool == true) ? "true" : "error");
-            fprintf(stderr, "\tOpen_time: %s\n", buffer);
-            fprintf(stderr, "\tDelay_time: %ld\n", delay_time.data.Long);
-            fprintf(stderr, "\tPerc: %f\n", perc.data.Double);
-            fprintf(stderr, "\tTemp: %f\n", temp.data.Double);
-            fprintf(stderr, "\tThermo state: %s\n", (switch_thermo.data.Bool == true) ? "true" : "error");
-            fprintf(stderr, "\tDoor state: %s\n", (switch_door.data.Bool == true) ? "true" : "error");
-
             device_communication_free_message_fields(fields);
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
                                                 "");
