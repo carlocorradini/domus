@@ -297,18 +297,29 @@ int controller_switch(size_t id, const char *switch_label, const char *switch_po
     /**/
 }
 
+typedef struct dad_device {
+    size_t id;
+    size_t hop_distance;
+} dad_device;
+
+static bool dad_device_equals(const dad_device *data_1, const dad_device *data_2) {
+    if (data_1 == NULL || data_2 == NULL) return false;
+    return data_1->hop_distance == data_2->hop_distance;
+}
+
 bool controller_link(size_t device_id, size_t control_device_id) {
+    List *device_list;
     DeviceCommunication *data;
     DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage in_message;
     DeviceCommunicationMessage child_out_message;
     if (!device_check_control_device(controller)) return false;
 
+    device_list = new_list(NULL, NULL);
     device_communication_message_init(controller->device, &out_message);
     device_communication_message_init(controller->device, &child_out_message);
     device_communication_message_modify(&out_message, device_id, MESSAGE_TYPE_INFO, "%d", MESSAGE_TYPE_CLONE);
 
-    List *device_list = new_list(NULL, NULL);
     list_for_each(data, controller->devices) {
         if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
             MESSAGE_TYPE_INFO) {
@@ -339,15 +350,42 @@ bool controller_link(size_t device_id, size_t control_device_id) {
                                         first_device->id_device_descriptor,
                                         first_device->message);
 
-
+    List *dad_id_list = new_list(NULL, dad_device_equals);
     list_for_each(data, controller->devices) {
         if (device_communication_write_message_with_ack(data, &out_message).type ==
             MESSAGE_TYPE_SPAWN_DEVICE) {
-            size_t dad_id = first_device->id_sender;
+            dad_device *daddy = (dad_device *) malloc(sizeof(dad_device));
+            daddy->id = first_device->id_sender;
+            daddy->hop_distance = first_device->ctr_hop;
+            list_add_last(dad_id_list, daddy);
+
             list_remove_first(device_list);
 
             while (!list_is_empty(device_list)) {
+                size_t dad_id;
                 first_device = (DeviceCommunicationMessage *) list_get_first(device_list);
+
+                daddy = (dad_device *) malloc(sizeof(dad_device));
+                daddy->id = first_device->id_sender;
+                daddy->hop_distance = first_device->ctr_hop;
+
+                if (((dad_device *) list_get_last(dad_id_list))->hop_distance > daddy->hop_distance) {
+                    while (((dad_device *) list_get_last(dad_id_list))->hop_distance >= daddy->hop_distance) {
+                        list_remove_last(dad_id_list);
+                    }
+                }
+
+                if (!list_contains(dad_id_list, &daddy)) {
+                    list_add_last(dad_id_list, daddy);
+                }
+
+                dad_device find_daddy;
+                find_daddy.id = daddy->id;
+                find_daddy.hop_distance = daddy->hop_distance - 1;
+
+
+                dad_id = ((dad_device *) list_get(dad_id_list, list_get_index(dad_id_list, &find_daddy)))->id;
+
                 device_communication_message_modify(&out_message, dad_id, MESSAGE_TYPE_SPAWN_DEVICE,
                                                     "%ld\n%ld\n%s",
                                                     first_device->id_sender,
