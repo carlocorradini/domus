@@ -5,7 +5,6 @@
 #include "util/util_converter.h"
 #include "device/device_communication.h"
 
-
 /**
  *  The Timer Control Device
  */
@@ -132,6 +131,11 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
                                                 "%d\n", timer->device->state);
 
 
+            break;
+        }
+        case MESSAGE_TYPE_SET_INIT_VALUES: {
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
+                                                "");
             break;
         }
         case MESSAGE_TYPE_SET_ON: {

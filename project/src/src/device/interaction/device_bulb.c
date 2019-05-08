@@ -106,8 +106,8 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
             struct tm *info;
             char buffer[80];
-            info = localtime( &((BulbRegistry *) bulb->registry)->start );
-            strftime(buffer,80,"%x - %T", info);
+            info = localtime(&((BulbRegistry *) bulb->registry)->start);
+            strftime(buffer, 80, "%x - %T", info);
             fprintf(stderr, "\tState: %s\n", (state.data.Bool == true) ? "true" : "error");
             fprintf(stderr, "\tTime: %s\n", buffer);
             fprintf(stderr, "\tSwitch state: %s\n", (switch_state.data.Bool == true) ? "true" : "error");

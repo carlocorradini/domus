@@ -52,7 +52,7 @@ bool device_communication_close_communication(DeviceCommunication *device_commun
 }
 
 bool device_communication_device_is_directly_connected(const DeviceCommunicationMessage *message) {
-    if(message == NULL) return false;
+    if (message == NULL) return false;
     return message->ctr_hop == 1;
 }
 
@@ -111,7 +111,7 @@ DeviceCommunicationMessage device_communication_write_message_with_ack(DeviceCom
 }
 
 DeviceCommunicationMessage device_communication_write_message_with_ack_silent(DeviceCommunication *device_communication,
-                                                                       const DeviceCommunicationMessage *out_message) {
+                                                                              const DeviceCommunicationMessage *out_message) {
     DeviceCommunicationMessage in_message;
     if (device_communication == NULL || out_message == NULL) {
         device_communication_message_modify(&in_message, 0, MESSAGE_TYPE_ERROR,
@@ -180,7 +180,30 @@ device_communication_message_modify_message(DeviceCommunicationMessage *message,
     va_end(args);
 }
 
+DeviceCommunicationMessage *device_communication_message_copy(const DeviceCommunicationMessage *message) {
+    DeviceCommunicationMessage *message_copy;
+    if (message == NULL) return NULL;
+
+    message_copy = (DeviceCommunicationMessage *) malloc(sizeof(DeviceCommunicationMessage));
+    if (message_copy == NULL) {
+        perror("Device Communication Message Copy Memory Allocation");
+        exit(EXIT_FAILURE);
+    }
+
+    message_copy->type = message->type;
+    message_copy->ctr_hop = message->ctr_hop;
+    message_copy->id_sender = message->id_sender;
+    message_copy->id_recipient = message->id_recipient;
+    message_copy->id_device_descriptor = message->id_device_descriptor;
+    message_copy->flag_force = message->flag_force;
+    message_copy->flag_continue = message->flag_continue;
+    strncpy(message_copy->message, message->message, DEVICE_COMMUNICATION_MESSAGE_LENGTH);
+
+    return message_copy;
+}
+
 char **device_communication_split_message_fields(const DeviceCommunicationMessage *message) {
+    char message_copy[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
     int position = 0;
     int buffer_size = DEVICE_COMMUNICATION_MESSAGE_FIELDS_MAX + 1;
     char *token;
@@ -193,7 +216,9 @@ char **device_communication_split_message_fields(const DeviceCommunicationMessag
         exit(EXIT_FAILURE);
     }
 
-    token = strtok((char *) message->message, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
+    strncpy(message_copy, message->message, DEVICE_COMMUNICATION_MESSAGE_LENGTH);
+
+    token = strtok((char *) message_copy, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
     while (token != NULL) {
         /* Buffer dimension reached */
         if (position >= DEVICE_COMMUNICATION_MESSAGE_FIELDS_MAX) {

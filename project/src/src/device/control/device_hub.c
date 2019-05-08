@@ -30,42 +30,45 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
                                                 "%d\n",
                                                 hub->device->state);
-
+            break;
+        }
+        case MESSAGE_TYPE_SET_INIT_VALUES: {
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
+                                                "");
             break;
         }
         case MESSAGE_TYPE_SPAWN_DEVICE: {
-            if(!list_is_empty(hub->devices)){
+            if (!list_is_empty(hub->devices)) {
+                char **fields;
                 ConverterResult child_descriptor_id;
-                DeviceCommunicationMessage local_in_message_copy = in_message;
+                DeviceCommunicationMessage child_out_message;
+                DeviceCommunicationMessage child_in_message;
 
+                fields = device_communication_split_message_fields(&in_message);
+                child_descriptor_id = converter_string_to_long(fields[1]);
+                device_communication_message_init(hub->device, &child_out_message);
+                device_communication_message_modify(&child_out_message, hub->device->id, MESSAGE_TYPE_INFO, "");
 
-                child_descriptor_id = converter_string_to_long(device_communication_split_message_fields(&local_in_message_copy)[1]);
+                child_in_message = device_communication_write_message_with_ack(
+                        (DeviceCommunication *) list_get_first(hub->devices), &child_out_message);
 
-                DeviceCommunicationMessage check_child_message;
-                DeviceCommunicationMessage in_child_message;
-
-                device_communication_message_init(hub->device, &check_child_message);
-                device_communication_message_modify(&check_child_message, hub->device->id, MESSAGE_TYPE_RECIPIENT_ID_MISLEADING, "");
-
-                DeviceCommunication* device = (DeviceCommunication *) list_get_first(hub->devices);
-
-                in_child_message = device_communication_write_message_with_ack(device, &check_child_message);
-
-                if(!child_descriptor_id.error && in_child_message.id_device_descriptor == child_descriptor_id.data.Long){
+                free(fields);
+                if (!child_descriptor_id.error &&
+                    child_in_message.id_device_descriptor == child_descriptor_id.data.Long) {
+                    fprintf(stderr, "SONO UGUALI!\n");
                     device_child_set_device_to_spawn(in_message);
                     return;
-                }
-                else{
+                } else {
                     fprintf(stderr, "\tPlease attach a device with the same type\n");
                     device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
                                                         "Please attach a device with the same type");
-                    device_communication_write_message(hub_communication, &out_message);
-                    return;
                 }
             } else {
                 device_child_set_device_to_spawn(in_message);
                 return;
             }
+
+            break;
         }
         default: {
             device_communication_message_modify(&out_message, MESSAGE_TYPE_ERROR,

@@ -276,16 +276,19 @@ bool control_device_fork(const ControlDevice *control_device, size_t id, const D
 
 static void control_device_fork_child(size_t child_id, const DeviceDescriptor *device_descriptor) {
     char *device_args[DEVICE_CHILD_ARGS_LENGTH + 1];
+    char device_name[DEVICE_NAME_LENGTH];
     char device_id[sizeof(size_t) + 1];
     char device_descriptor_id[sizeof(size_t) + 1];
     if (device_descriptor == NULL) return;
 
+    snprintf(device_name, DEVICE_NAME_LENGTH, "%s", device_descriptor->name);
     snprintf(device_id, sizeof(size_t) + 1, "%ld", child_id);
     snprintf(device_descriptor_id, sizeof(size_t) + 1, "%ld", device_descriptor->id);
 
-    device_args[0] = device_id;
-    device_args[1] = device_descriptor_id;
-    device_args[2] = NULL;
+    device_args[0] = device_name;
+    device_args[1] = device_id;
+    device_args[2] = device_descriptor_id;
+    device_args[3] = NULL;
 
     if (execv(device_descriptor->file_name, device_args) == -1) {
         perror("Error exec Controller Fork Child");

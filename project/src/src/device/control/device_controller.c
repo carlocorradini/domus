@@ -299,65 +299,69 @@ int controller_switch(size_t id, const char *switch_label, const char *switch_po
 
 bool controller_link(size_t device_id, size_t control_device_id) {
     DeviceCommunication *data;
-    DeviceDescriptor *device_descriptor;
     DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage in_message;
     DeviceCommunicationMessage child_out_message;
     if (!device_check_control_device(controller)) return false;
 
-    device_descriptor = NULL;
     device_communication_message_init(controller->device, &out_message);
-    device_communication_message_modify(&out_message, device_id, MESSAGE_TYPE_INFO, "");
     device_communication_message_init(controller->device, &child_out_message);
+    device_communication_message_modify(&out_message, device_id, MESSAGE_TYPE_INFO, "%d", MESSAGE_TYPE_CLONE);
 
+    List *device_list = new_list(NULL, NULL);
     list_for_each(data, controller->devices) {
         if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==
             MESSAGE_TYPE_INFO) {
-            device_descriptor = device_is_supported_by_id(in_message.id_device_descriptor);
-            if (device_descriptor == NULL) {
-                fprintf(stderr, "Link Command: Device with unknown Device Descriptor id %ld\n",
-                        in_message.id_device_descriptor);
-                return false;
+            list_add_first(device_list, device_communication_message_copy(&in_message));
+
+            if (in_message.flag_continue) {
+                do {
+                    in_message = device_communication_write_message_with_ack_silent(data, &out_message);
+                    list_add_first(device_list, device_communication_message_copy(&in_message));
+                } while (in_message.flag_continue);
             }
 
             break;
         }
     }
 
-    if (device_descriptor == NULL) return false;
+    if (list_is_empty(device_list)) return false;
 
-    if(controller_del_by_id(device_id)) {
-        device_communication_message_modify(&out_message, control_device_id, MESSAGE_TYPE_SPAWN_DEVICE,
-                                            "%ld\n%ld\n%s",
-                                            device_id,
-                                            device_descriptor->id,
-                                            in_message.message);
-
-        bool exit  = false;
-
-        list_for_each(data, controller->devices) {
-            if (device_communication_write_message_with_ack(data, &out_message).type ==
-                MESSAGE_TYPE_SPAWN_DEVICE) {
-                println_color(COLOR_GREEN, "\tSuccessfully created");
-                exit = true;
-                break;
-            }
-        }
-
-        if(!exit){
-            return false;
-        }
-
-        device_communication_message_modify(&child_out_message, device_id, MESSAGE_TYPE_SET_INIT_VALUES,
-                                            in_message.message);
-
-        list_for_each(data, controller->devices) {
-            if ((in_message = device_communication_write_message_with_ack(data, &child_out_message)).type ==
-                MESSAGE_TYPE_SET_INIT_VALUES) {
-            }
-        }
+    size_t i;
+    for (i = 0; i < device_list->size; i++) {
+        controller_del_by_id(((DeviceCommunicationMessage *) list_get(device_list, i))->id_sender);
     }
 
+    DeviceCommunicationMessage *first_device = (DeviceCommunicationMessage *) list_get_first(device_list);
+    device_communication_message_modify(&out_message, control_device_id, MESSAGE_TYPE_SPAWN_DEVICE,
+                                        "%ld\n%ld\n%s",
+                                        first_device->id_sender,
+                                        first_device->id_device_descriptor,
+                                        first_device->message);
+
+
+    list_for_each(data, controller->devices) {
+        if (device_communication_write_message_with_ack(data, &out_message).type ==
+            MESSAGE_TYPE_SPAWN_DEVICE) {
+            size_t dad_id = first_device->id_sender;
+            list_remove_first(device_list);
+
+            while (!list_is_empty(device_list)) {
+                first_device = (DeviceCommunicationMessage *) list_get_first(device_list);
+                device_communication_message_modify(&out_message, dad_id, MESSAGE_TYPE_SPAWN_DEVICE,
+                                                    "%ld\n%ld\n%s",
+                                                    first_device->id_sender,
+                                                    first_device->id_device_descriptor,
+                                                    first_device->message);
+
+                device_communication_write_message_with_ack(data, &out_message);
+
+                list_remove_first(device_list);
+            }
+
+            break;
+        }
+    }
 
     return true;
 }

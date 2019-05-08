@@ -101,15 +101,16 @@ bool device_child_set_device_to_spawn(DeviceCommunicationMessage message) {
 }
 
 static void device_child_control_device_spawn() {
-    if (_device_to_spawn.type == MESSAGE_TYPE_SPAWN_DEVICE) {
-        DeviceCommunicationMessage out_message;
-        device_communication_message_init(control_device_child->device, &out_message);
-        char child_text_message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
-        char **fields;
-        ConverterResult child_id;
-        ConverterResult child_descriptor_id;
+    DeviceCommunication *data;
+    DeviceCommunicationMessage out_message;
+    DeviceCommunicationMessage child_out_message;
+    ConverterResult child_id;
+    ConverterResult child_descriptor_id;
+    char **fields;
 
-        strncpy(child_text_message, _device_to_spawn.message, DEVICE_COMMUNICATION_MESSAGE_LENGTH);
+    if (_device_to_spawn.type == MESSAGE_TYPE_SPAWN_DEVICE) {
+        device_communication_message_init(control_device_child->device, &out_message);
+        device_communication_message_init(control_device_child->device, &child_out_message);
         fields = device_communication_split_message_fields(&_device_to_spawn);
         child_id = converter_string_to_long(fields[0]);
         child_descriptor_id = converter_string_to_long(fields[1]);
@@ -127,10 +128,24 @@ static void device_child_control_device_spawn() {
             device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_ERROR,
                                                 "Error Forking Device");
         } else {
-            device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_SPAWN_DEVICE,
-                                                "");
+            device_communication_message_modify(&child_out_message, child_id.data.Long, MESSAGE_TYPE_SET_INIT_VALUES,
+                                                _device_to_spawn.message);
+            data = (DeviceCommunication *) list_get_last(control_device_child->devices);
+
+            if (device_communication_write_message_with_ack(data, &child_out_message).type ==
+                MESSAGE_TYPE_SET_INIT_VALUES) {
+                device_communication_message_modify(&out_message, _device_to_spawn.id_sender,
+                                                    MESSAGE_TYPE_SPAWN_DEVICE,
+                                                    "");
+            } else {
+                device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_ERROR,
+                                                    "Error Set Init Values of Device");
+            }
+
+
         }
 
+        free(fields);
         device_communication_message_init(control_device_child->device, &_device_to_spawn);
         device_communication_write_message(device_child_communication, &out_message);
     }
@@ -176,8 +191,8 @@ Device *device_child_new_device(int argc, char **args, void *registry) {
     /* Init Supported Devices if not */
     device_init();
 
-    device_id = converter_string_to_long(args[0]);
-    device_descriptor_id = converter_string_to_long(args[1]);
+    device_id = converter_string_to_long(args[1]);
+    device_descriptor_id = converter_string_to_long(args[2]);
 
     if (device_id.error) {
         fprintf(stderr, "Device ID Conversion Error: %s\n", device_id.error_message);
@@ -254,8 +269,8 @@ ControlDevice *device_child_new_control_device(int argc, char **args, void *regi
     /* Init Supported Devices if not */
     device_init();
 
-    control_device_id = converter_string_to_long(args[0]);
-    control_device_descriptor_id = converter_string_to_long(args[1]);
+    control_device_id = converter_string_to_long(args[1]);
+    control_device_descriptor_id = converter_string_to_long(args[2]);
 
     if (control_device_id.error) {
         fprintf(stderr, "Control Device ID Conversion Error: %s\n", control_device_id.error_message);
@@ -398,6 +413,23 @@ static void control_devive_child_middleware_message_handler(void) {
         }
 
         case MESSAGE_TYPE_INFO: {
+            ConverterResult clone_device;
+            if (strlen(in_message.message) != 0) {
+                clone_device = converter_string_to_long(in_message.message);
+
+                if (clone_device.error) {
+                    device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
+                                                        "Clone Device Conversion Error");
+                    break;
+                } else if (clone_device.data.Long != MESSAGE_TYPE_CLONE) {
+                    device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
+                                                        "Clone Device Message Type Unknown");
+                    break;
+                }
+
+                in_message.flag_force = true;
+            }
+
             if (in_message.flag_force) {
                 list_for_each(data, control_device_child->devices) {
                     child_in_message = device_communication_write_message_with_ack(data, &child_out_message);

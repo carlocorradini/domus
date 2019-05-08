@@ -18,6 +18,7 @@
 #define MESSAGE_TYPE_NO_MESSAGE 0
 #define MESSAGE_TYPE_ERROR 1
 #define MESSAGE_TYPE_TERMINATE 2
+#define MESSAGE_TYPE_CLONE 3
 #define MESSAGE_TYPE_INFO 4
 #define MESSAGE_TYPE_SET_ON 6
 #define MESSAGE_TYPE_SPAWN_DEVICE 8
@@ -146,6 +147,14 @@ void device_communication_message_modify(DeviceCommunicationMessage *message, si
  * @param ... Format tags
  */
 void device_communication_message_modify_message(DeviceCommunicationMessage *message, const char *message_message, ...);
+
+/**
+ * Create an exact copy of a message
+ *  Remember to free!
+ * @param message The message to copy
+ * @return The copy of the message, NULL otherwise
+ */
+DeviceCommunicationMessage *device_communication_message_copy(const DeviceCommunicationMessage *message);
 
 /**
  * Split a message into an array of fields from a message string

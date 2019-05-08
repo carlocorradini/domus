@@ -19,7 +19,7 @@ static int _info(char **args) {
         println("\tPlease add a device id");
     } else if (!controller_has_devices()) {
         println("\tNo Devices");
-    } else if (strncmp(args[1], COMMAND_INFO_ALL, strlen(COMMAND_INFO_ALL)) == 0) {
+    } else if (strcmp(args[1], COMMAND_INFO_ALL) == 0) {
         controller_info_all();
     } else {
         result = converter_string_to_long(args[1]);
