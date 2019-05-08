@@ -52,7 +52,7 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
                 child_in_message = device_communication_write_message_with_ack(
                         (DeviceCommunication *) list_get_first(hub->devices), &child_out_message);
 
-                free(fields);
+                device_communication_free_message_fields(fields);
                 if (!child_descriptor_id.error &&
                     child_in_message.id_device_descriptor == child_descriptor_id.data.Long) {
                     device_child_set_device_to_spawn(in_message);

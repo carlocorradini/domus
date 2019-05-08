@@ -93,11 +93,11 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             ConverterResult start;
             ConverterResult switch_state;
 
-            char **tokens = device_communication_split_message_fields(&in_message);
+            char **fields = device_communication_split_message_fields(&in_message);
 
-            state = converter_char_to_bool(tokens[0][0]);
-            start = converter_string_to_long(tokens[1]);
-            switch_state = converter_char_to_bool(tokens[2][0]);
+            state = converter_char_to_bool(fields[0][0]);
+            start = converter_string_to_long(fields[1]);
+            switch_state = converter_char_to_bool(fields[2][0]);
 
             bulb->state = state.data.Bool;
             ((BulbRegistry *) bulb->registry)->start = time(NULL) - start.data.Long;
@@ -112,6 +112,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             fprintf(stderr, "\tTime: %s\n", buffer);
             fprintf(stderr, "\tSwitch state: %s\n", (switch_state.data.Bool == true) ? "true" : "error");
 
+            device_communication_free_message_fields(fields);
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
                                                 "");
             break;
@@ -122,10 +123,10 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             char *switch_pos;
             bool bool_switch_pos;
 
-            char **tokenized_result = device_communication_split_message_fields(&in_message);
+            char **fields = device_communication_split_message_fields(&in_message);
 
-            switch_label = tokenized_result[0];
-            switch_pos = tokenized_result[1];
+            switch_label = fields[0];
+            switch_pos = fields[1];
 
             if (!bulb_check_value(switch_pos)) {
                 device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ERROR);
@@ -138,7 +139,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
             : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
 
-            free(tokenized_result);
+            device_communication_free_message_fields(fields);
             break;
         }
         default: {

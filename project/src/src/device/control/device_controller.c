@@ -240,7 +240,7 @@ static void _controller_info_by_id(const DeviceCommunicationMessage *in_message)
         }
     }
 
-    free(fields);
+    device_communication_free_message_fields(fields);
 }
 
 void controller_list(void) {

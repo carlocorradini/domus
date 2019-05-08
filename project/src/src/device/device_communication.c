@@ -212,7 +212,7 @@ char **device_communication_split_message_fields(const DeviceCommunicationMessag
 
     buffer = (char **) malloc(sizeof(char *) * buffer_size);
     if (buffer == NULL) {
-        perror("Device Communication Split Message Memory Allocation");
+        perror("Device Communication Message Fields Buffer Memory Allocation");
         exit(EXIT_FAILURE);
     }
 
@@ -222,15 +222,35 @@ char **device_communication_split_message_fields(const DeviceCommunicationMessag
     while (token != NULL) {
         /* Buffer dimension reached */
         if (position >= DEVICE_COMMUNICATION_MESSAGE_FIELDS_MAX) {
-            fprintf(stderr, "Device Communication Split Message Maximum Number of Fields Reached\n");
+            fprintf(stderr, "Device Communication Message Fields Maximum Number of Fields Reached\n");
             break;
         }
 
-        buffer[position] = token;
+        buffer[position] = (char *) malloc(sizeof(char) * DEVICE_COMMUNICATION_MESSAGE_LENGTH);
+        if (buffer[position] == NULL) {
+            perror("Device Communication Message Fields String Memory Allocation");
+            exit(EXIT_FAILURE);
+        }
+        strncpy(buffer[position], token, DEVICE_COMMUNICATION_MESSAGE_LENGTH);
         position++;
         token = strtok(NULL, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
     }
 
     buffer[position] = NULL;
     return buffer;
+}
+
+bool device_communication_free_message_fields(char **fields) {
+    size_t i;
+    if (fields == NULL) return false;
+
+    i = 0;
+    while (fields[i] != NULL) {
+        free(fields[i]);
+        ++i;
+    }
+
+    free(fields);
+
+    return true;
 }

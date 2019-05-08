@@ -158,10 +158,17 @@ DeviceCommunicationMessage *device_communication_message_copy(const DeviceCommun
 
 /**
  * Split a message into an array of fields from a message string
- *  Remember to free!
+ *  Remember to free using device_communication_free_message_fields!
  * @param message The message to split from
  * @return An array of fields, NULL otherwise
  */
 char **device_communication_split_message_fields(const DeviceCommunicationMessage *message);
+
+/**
+ * Free the Splitted Message Fields
+ * @param fields The message Fields array
+ * @return true if freed, false otherwise
+ */
+bool device_communication_free_message_fields(char **fields);
 
 #endif

@@ -170,15 +170,15 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             ConverterResult switch_thermo;
             ConverterResult switch_door;
 
-            char **tokens = device_communication_split_message_fields(&in_message);
+            char **fields = device_communication_split_message_fields(&in_message);
 
-            state = converter_char_to_bool(tokens[0][0]);
-            open_time = converter_string_to_long(tokens[1]);
-            delay_time = converter_string_to_long(tokens[2]);
-            perc = converter_string_to_double(tokens[3]);
-            temp = converter_string_to_double(tokens[4]);
-            switch_thermo = converter_char_to_bool(tokens[5][0]);
-            switch_door = converter_char_to_bool(tokens[6][0]);
+            state = converter_char_to_bool(fields[0][0]);
+            open_time = converter_string_to_long(fields[1]);
+            delay_time = converter_string_to_long(fields[2]);
+            perc = converter_string_to_double(fields[3]);
+            temp = converter_string_to_double(fields[4]);
+            switch_thermo = converter_char_to_bool(fields[5][0]);
+            switch_door = converter_char_to_bool(fields[6][0]);
 
 
             fridge->state = state.data.Bool;
@@ -204,6 +204,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             fprintf(stderr, "\tThermo state: %s\n", (switch_thermo.data.Bool == true) ? "true" : "error");
             fprintf(stderr, "\tDoor state: %s\n", (switch_door.data.Bool == true) ? "true" : "error");
 
+            device_communication_free_message_fields(fields);
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
                                                 "");
             break;
@@ -214,10 +215,10 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             char *switch_pos;
             bool bool_switch_pos;
 
-            char **tokenized_result = device_communication_split_message_fields(&in_message);
+            char **fields = device_communication_split_message_fields(&in_message);
 
-            switch_label = tokenized_result[0];
-            switch_pos = tokenized_result[1];
+            switch_label = fields[0];
+            switch_pos = fields[1];
 
             if (strcmp(switch_label, "door") == 0) {
                 if (!fridge_check_value(switch_pos)) {
@@ -231,7 +232,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                 ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
                 : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
 
-                free(tokenized_result);
+                device_communication_free_message_fields(fields);
                 break;
             }
 
@@ -246,7 +247,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                     ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
                     : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
 
-                    free(tokenized_result);
+                    device_communication_free_message_fields(fields);
                     break;
                 }
             }
@@ -258,7 +259,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                 ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
                 : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
 
-                free(tokenized_result);
+                device_communication_free_message_fields(fields);
                 break;
             }
             if (strcmp(switch_label, "delay") == 0) {
@@ -272,7 +273,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                     ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
                     : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
 
-                    free(tokenized_result);
+                    device_communication_free_message_fields(fields);
                     break;
                 }
             }

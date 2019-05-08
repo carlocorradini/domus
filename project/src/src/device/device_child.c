@@ -145,7 +145,7 @@ static void device_child_control_device_spawn() {
 
         }
 
-        free(fields);
+        device_communication_free_message_fields(fields);
         device_communication_message_init(control_device_child->device, &_device_to_spawn);
         device_communication_write_message(device_child_communication, &out_message);
     }

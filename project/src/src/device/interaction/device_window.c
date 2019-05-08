@@ -96,11 +96,11 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
             ConverterResult open_time;
             ConverterResult switch_state;
 
-            char **tokens = device_communication_split_message_fields(&in_message);
+            char **fields = device_communication_split_message_fields(&in_message);
 
-            state = converter_char_to_bool(tokens[0][0]);
-            open_time = converter_string_to_long(tokens[1]);
-            switch_state = converter_char_to_bool(tokens[2][0]);
+            state = converter_char_to_bool(fields[0][0]);
+            open_time = converter_string_to_long(fields[1]);
+            switch_state = converter_char_to_bool(fields[2][0]);
 
             window->state = state.data.Bool;
             ((WindowRegistry *) window->registry)->open = time(NULL) - open_time.data.Long;
@@ -115,6 +115,7 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
             fprintf(stderr, "\tTime: %s\n", buffer);
             fprintf(stderr, "\tSwitch state: %s\n", (switch_state.data.Bool == true) ? "true" : "error");
 
+            device_communication_free_message_fields(fields);
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
                                                 "");
             break;
