@@ -37,8 +37,25 @@ static int _link(char **args) {
             println("\t%s is invalid, add 'to' label", args[2]);
         } else if (control_device_id.error) {
             println("\tControl Device Conversion Error: %s", device_id.error_message);
-        } else if (!controller_link(device_id.data.Long, control_device_id.data.Long)) {
-            //println("\tCannot find a Device with id %ld", device_id.data.Long);
+        } else {
+            switch (controller_link(device_id.data.Long, control_device_id.data.Long)) {
+                case 0: {
+                    println_color(COLOR_GREEN, "\tLinked %ld to %ld", device_id.data.Long, control_device_id.data.Long);
+                    break;
+                }
+                case 1: {
+                    println_color(COLOR_RED, "\tCannot find a Device with id %ld", device_id.data.Long);
+                    break;
+                }
+                case 2: {
+                    println_color(COLOR_RED, "\tCannot find a Control Device with id %ld", control_device_id.data.Long);
+                    break;
+                }
+                default: {
+                    println_color(COLOR_RED, "\tUndefined Link Error");
+                    break;
+                }
+            }
         }
     }
 

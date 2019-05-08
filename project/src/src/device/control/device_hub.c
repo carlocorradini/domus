@@ -55,13 +55,11 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
                 free(fields);
                 if (!child_descriptor_id.error &&
                     child_in_message.id_device_descriptor == child_descriptor_id.data.Long) {
-                    fprintf(stderr, "SONO UGUALI!\n");
                     device_child_set_device_to_spawn(in_message);
                     return;
                 } else {
-                    fprintf(stderr, "\tPlease attach a device with the same type\n");
                     device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
-                                                        "Please attach a device with the same type");
+                                                        "Hub: Cannot attach a device with different type");
                 }
             } else {
                 device_child_set_device_to_spawn(in_message);

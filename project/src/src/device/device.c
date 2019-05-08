@@ -12,10 +12,10 @@
 static List *supported_devices = NULL;
 
 /**
- *
- * @param data_1
- * @param data_2
- * @return
+ * Compare two DeviceDescriptor
+ * @param data_1 first Device Descriptor
+ * @param data_2 second Device Descriptor
+ * @return true if equals, false otherwise
  */
 static bool device_device_descriptor_equals(const DeviceDescriptor *data_1, const DeviceDescriptor *data_2);
 

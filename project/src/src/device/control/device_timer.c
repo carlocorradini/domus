@@ -156,17 +156,14 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
 
         case MESSAGE_TYPE_SPAWN_DEVICE: {
             if (!list_is_empty(timer->devices)) {
-
-                fprintf(stderr, "\tCannot attach more than one device per timer\n");
                 device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
-                                                    "Cannot attach more than one device per timer");
-                device_communication_write_message(timer_communication, &out_message);
-                return;
-
+                                                    "Timer: Cannot attach more than one device per timer");
             } else {
                 device_child_set_device_to_spawn(in_message);
                 return;
             }
+
+            break;
         }
 
         default: {
@@ -194,12 +191,13 @@ static void set_device() {
 
     device_communication_message_modify(&send_message, timer->device->id, MESSAGE_TYPE_INFO, "");
 
-    send_message = device_communication_write_message_with_ack((DeviceCommunication *) list_get_first(timer->devices), &send_message);
+    send_message = device_communication_write_message_with_ack((DeviceCommunication *) list_get_first(timer->devices),
+                                                               &send_message);
 
     device_id = send_message.id_sender;
     device_descriptor = send_message.id_device_descriptor;
 
-    switch (device_descriptor){
+    switch (device_descriptor) {
         case DEVICE_TYPE_BULB : {
             strcpy(switch_name, "turn");
             break;
