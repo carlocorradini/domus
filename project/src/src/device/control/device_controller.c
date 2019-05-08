@@ -348,7 +348,7 @@ int controller_link(size_t device_id, size_t control_device_id) {
     device_list = new_list(NULL, NULL);
     device_dad_list = new_list(NULL, device_dad_equals);
     device_communication_message_init(controller->device, &out_message);
-    device_communication_message_modify(&out_message, device_id, MESSAGE_TYPE_INFO, "%d", MESSAGE_TYPE_CLONE);
+    device_communication_message_modify(&out_message, device_id, MESSAGE_TYPE_INFO, "");
 
     list_for_each(data, controller->devices) {
         if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type ==

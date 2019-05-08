@@ -86,7 +86,9 @@ int controller_switch(size_t id, const char *switch_label, const char *switch_po
  * Link a Device with a Control Device
  * @param device_id The device id
  * @param control_device_id  The Control device id
- * @return
+ * @return 0 if success
+ *          1 if No Device Found
+ *          2 if No Control Device Found
  */
 int controller_link(size_t device_id, size_t control_device_id);
 

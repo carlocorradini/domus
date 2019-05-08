@@ -413,45 +413,26 @@ static void control_devive_child_middleware_message_handler(void) {
         }
 
         case MESSAGE_TYPE_INFO: {
-            ConverterResult clone_device;
-            if (strlen(in_message.message) != 0) {
-                clone_device = converter_string_to_long(in_message.message);
+            list_for_each(data, control_device_child->devices) {
+                child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
+                child_in_message.id_recipient = in_message.id_sender;
 
-                if (clone_device.error) {
-                    device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
-                                                        "Clone Device Conversion Error");
-                    break;
-                } else if (clone_device.data.Long != MESSAGE_TYPE_CLONE) {
-                    device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
-                                                        "Clone Device Message Type Unknown");
-                    break;
-                }
-
-                in_message.flag_force = true;
-            }
-
-            if (in_message.flag_force) {
-                list_for_each(data, control_device_child->devices) {
-                    child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
-                    child_in_message.id_recipient = in_message.id_sender;
-
-                    if (child_in_message.flag_continue) {
-                        device_communication_write_message_with_ack_silent(device_child_communication,
-                                                                           &child_in_message);
-                        do {
-                            child_in_message = device_communication_write_message_with_ack_silent(data,
-                                                                                                  &child_out_message);
-                            if (child_in_message.flag_continue) {
-                                device_communication_write_message_with_ack_silent(device_child_communication,
-                                                                                   &child_in_message);
-                            }
-                        } while (child_in_message.flag_continue);
-                    }
-
-                    child_in_message.flag_continue = true;
+                if (child_in_message.flag_continue) {
                     device_communication_write_message_with_ack_silent(device_child_communication,
                                                                        &child_in_message);
+                    do {
+                        child_in_message = device_communication_write_message_with_ack_silent(data,
+                                                                                              &child_out_message);
+                        if (child_in_message.flag_continue) {
+                            device_communication_write_message_with_ack_silent(device_child_communication,
+                                                                               &child_in_message);
+                        }
+                    } while (child_in_message.flag_continue);
                 }
+
+                child_in_message.flag_continue = true;
+                device_communication_write_message_with_ack_silent(device_child_communication,
+                                                                   &child_in_message);
             }
 
             device_child_message_handler(in_message);
