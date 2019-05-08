@@ -79,7 +79,7 @@ build: clean $(TARGET)
 $(TARGET): $(ALL_OBJ)
 	$(MKDIR) $(DEV_BIN)
 	#      get the .o file having $(TARGET) in the name                                    add all common files
-	$(CC)  $(filter-out $(foreach a,$(ALL_OBJ),$(if $(findstring $@,$a),,$a)), $(ALL_OBJ)) $(OBJ) -o $(DEV_BIN)/$@
+	$(CC) $(filter-out $(foreach a,$(ALL_OBJ),$(if $(findstring $@,$a),,$a)), $(ALL_OBJ)) $(OBJ) -o $(DEV_BIN)/$@ -lrt
 	# if the executable is the main one, move it and rename it
 	@if [ $@ = main ]; then \
 		mv $(DEV_BIN)/$@ $(BIN_DIR)/$(PRJ_NAME); \
