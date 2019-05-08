@@ -1,9 +1,10 @@
+
+#include "domus.h"
 #include <stdio.h>
 #include "cli/cli.h"
 #include "cli/command/command_switch.h"
 #include "util/util_converter.h"
 #include "util/util_printer.h"
-#include "device/control/device_controller.h"
 
 /**
  * Switch the device with id the feature label into the position pos
@@ -20,10 +21,10 @@ static int _switch(char **args) {
         result = converter_string_to_long(args[1]);
         if (result.error) {
             println("\tConversion Error: %s", result.error_message);
-        } else if (result.data.Long == DEVICE_CONTROLLER_ID) {
+        } else if (result.data.Long == CONTROLLER_ID) {
             println("\tCannot switch the Controller");
         } else {
-            switch (controller_switch((size_t) result.data.Long, args[2], args[3])) {
+            switch (domus_switch((size_t) result.data.Long, args[2], args[3])) {
                 case 0: {
                     print_color(COLOR_GREEN, "\tSwitched ");
                     print("'%s'", args[2]);

@@ -9,7 +9,7 @@ SLOGAN := Unicuique sua domus nota
 DESCRIPTION := Home Automation at your CLI
 
 # MAINS
-TARGET:= main bulb window fridge hub timer
+TARGET:= main controller bulb window fridge hub timer
 
 # DIRECTORIES
 SRC_DIR := ./src/src
@@ -27,7 +27,6 @@ OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 DEV := $(shell find $(DEV_SRC_DIR) -type f -name '*.c')
 # Take all .c file in src/device/, exclude controller.c | device.c | communication.c | child.c
 DEV_OBJ := $(patsubst $(DEV_SRC_DIR)/%.c, $(DEV_OBJ_DIR)/%.o, $(DEV))
-DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring controller,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring device.o,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring communication,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring child,$a),,$a))

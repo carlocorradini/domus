@@ -1,11 +1,11 @@
 
 #include <stdio.h>
 #include <string.h>
+#include "domus.h"
 #include "cli/cli.h"
 #include "cli/command/command_link.h"
 #include "util/util_converter.h"
 #include "util/util_printer.h"
-#include "device/control/device_controller.h"
 
 /**
  * Connect two devices each other
@@ -23,7 +23,7 @@ static int _link(char **args) {
         println("\tPlease add 'to' label");
     } else if (args[3] == NULL) {
         println("\tPlease add a control device id");
-    } else if (!controller_has_devices()) {
+    } else if (!domus_has_devices()) {
         println("\tNo Devices");
     } else {
         device_id = converter_string_to_long(args[1]);
@@ -38,7 +38,7 @@ static int _link(char **args) {
         } else if (control_device_id.error) {
             println("\tControl Device Conversion Error: %s", device_id.error_message);
         } else {
-            switch (controller_link(device_id.data.Long, control_device_id.data.Long)) {
+            switch (domus_link(device_id.data.Long, control_device_id.data.Long)) {
                 case 0: {
                     println_color(COLOR_GREEN, "\tLinked %ld to %ld", device_id.data.Long, control_device_id.data.Long);
                     break;

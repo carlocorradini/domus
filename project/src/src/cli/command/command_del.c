@@ -1,10 +1,10 @@
 
 #include <string.h>
+#include "domus.h"
 #include "cli/cli.h"
 #include "cli/command/command_del.h"
 #include "util/util_printer.h"
 #include "util/util_converter.h"
-#include "device/control/device_controller.h"
 
 /**
  * Delete the device with id from the system
@@ -17,18 +17,18 @@ static int _del(char **args) {
 
     if (args[1] == NULL) {
         println("\tPlease add a device id");
-    } else if (!controller_has_devices()) {
+    } else if (!domus_has_devices()) {
         println("\tNo Devices");
     } else if (strcmp(args[1], COMMAND_DEL_ALL) == 0) {
-        controller_del_all();
+        domus_del_all();
     } else {
         result = converter_string_to_long(args[1]);
 
         if (result.error) {
             println("\tConversion Error: %s", result.error_message);
-        } else if (result.data.Long == DEVICE_CONTROLLER_ID) {
+        } else if (result.data.Long == CONTROLLER_ID) {
             println("\tCannot delete the Controller");
-        } else if (!controller_del_by_id(result.data.Long)) {
+        } else if (!domus_del_by_id(result.data.Long)) {
             println("\tCannot find a Device with id %ld", result.data.Long);
         }
     }

@@ -61,9 +61,12 @@ void device_init(void) {
     if (supported_devices != NULL) return;
     supported_devices = new_list(NULL, device_device_descriptor_equals);
 
+    list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_DOMUS, true, "domus",
+                                                           "The Domus System",
+                                                           "NO_FILE_NAME"));
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_CONTROLLER, true, "controller",
                                                            "The Master Controller",
-                                                           "NO_FILE_NAME"));
+                                                           "./device/controller"));
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_BULB, false, "bulb",
                                                            "An electric light with a wire filament heated to such a high temperature that it glows with visible light",
                                                            "./device/bulb"));

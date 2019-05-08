@@ -1,9 +1,9 @@
 
 #include <time.h>
+#include <string.h>
 #include "device/control/device_hub.h"
 #include "device/device_child.h"
 #include "util/util_converter.h"
-#include <string.h>
 
 /**
  *  The Hub Control Device
