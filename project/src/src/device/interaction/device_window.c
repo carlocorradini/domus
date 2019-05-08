@@ -98,9 +98,9 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
 
             char **fields = device_communication_split_message_fields(&in_message);
 
-            state = converter_char_to_bool(fields[0][0]);
-            open_time = converter_string_to_long(fields[1]);
-            switch_state = converter_char_to_bool(fields[2][0]);
+            state = converter_char_to_bool(fields[2][0]);
+            open_time = converter_string_to_long(fields[3]);
+            switch_state = converter_char_to_bool(fields[4][0]);
 
             window->state = state.data.Bool;
             ((WindowRegistry *) window->registry)->open = time(NULL) - open_time.data.Long;

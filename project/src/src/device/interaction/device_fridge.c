@@ -172,13 +172,13 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
 
             char **fields = device_communication_split_message_fields(&in_message);
 
-            state = converter_char_to_bool(fields[0][0]);
-            open_time = converter_string_to_long(fields[1]);
-            delay_time = converter_string_to_long(fields[2]);
-            perc = converter_string_to_double(fields[3]);
-            temp = converter_string_to_double(fields[4]);
-            switch_thermo = converter_char_to_bool(fields[5][0]);
-            switch_door = converter_char_to_bool(fields[6][0]);
+            state = converter_char_to_bool(fields[2][0]);
+            open_time = converter_string_to_long(fields[3]);
+            delay_time = converter_string_to_long(fields[4]);
+            perc = converter_string_to_double(fields[5]);
+            temp = converter_string_to_double(fields[6]);
+            switch_thermo = converter_char_to_bool(fields[7][0]);
+            switch_door = converter_char_to_bool(fields[8][0]);
 
 
             fridge->state = state.data.Bool;
