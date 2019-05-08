@@ -8,7 +8,7 @@
  * The Registry of the Bulb
  */
 typedef struct BulbRegistry {
-    time_t start;
+    double _time;
 } BulbRegistry;
 
 /**

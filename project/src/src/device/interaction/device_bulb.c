@@ -16,6 +16,10 @@ static Device *bulb = NULL;
 static DeviceCommunication *bulb_communication = NULL;
 
 /**
+ * When the bulb lighted up last time
+ */
+static time_t start = 0;
+/**
  * Set the bulb switch state
  * @param name The switch name
  * @param state The state to set
@@ -46,7 +50,8 @@ BulbRegistry *new_bulb_registry(void) {
         exit(EXIT_FAILURE);
     }
 
-    bulb_registry->start = time(NULL);
+    bulb_registry->_time = 0;
+    start = time(NULL);
 
     return bulb_registry;
 }
@@ -63,7 +68,16 @@ static bool bulb_set_switch_state(const char *name, bool state) {
 
     bulb->state = state;
     bulb_switch->state = (bool *) state;
-    bulb_registry->start = (state) ? time(NULL) : (time_t) 0;
+
+    if(state){
+        if(start == 0){
+            start = time(NULL);
+        }
+    }
+    else{
+        bulb_registry->_time = difftime(time(NULL), start);
+        start = 0;
+    }
 
     return true;
 }
@@ -78,9 +92,10 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
-            time_t on_time = ((BulbRegistry *) bulb->registry)->start;
-            double time_difference = (on_time == 0) ? 0.0 : difftime(time(NULL), on_time);
+            double on_time = ((BulbRegistry *) bulb->registry)->_time;
+
             bool switch_state = (bool) (device_get_device_switch_state(bulb->switches, "turn"));
+            double time_difference = (switch_state) ? difftime(time(NULL), start) : on_time;
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
                                                 "%d\n%.0lf\n%d\n",
@@ -90,19 +105,24 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
         }
         case MESSAGE_TYPE_SET_INIT_VALUES: {
             ConverterResult state;
-            ConverterResult start;
+            ConverterResult start_time;
             ConverterResult switch_state;
 
             char **fields = device_communication_split_message_fields(&in_message);
 
-            state = converter_char_to_bool(fields[0][0]);
-            start = converter_string_to_long(fields[1]);
-            switch_state = converter_char_to_bool(fields[2][0]);
+            state = converter_char_to_bool(fields[2][0]);
+            start_time = converter_string_to_long(fields[3]);
+            switch_state = converter_char_to_bool(fields[4][0]);
 
             bulb->state = state.data.Bool;
-            ((BulbRegistry *) bulb->registry)->start = time(NULL) - start.data.Long;
 
             device_get_device_switch(bulb->switches, "turn")->state = (bool *) switch_state.data.Bool;
+
+            if((bool) device_get_device_switch(bulb->switches, "turn")->state){
+                start = time(NULL) - start_time.data.Long;
+            } else{
+                ((BulbRegistry *) bulb->registry)->_time = start_time.data.Long;
+            }
 
             device_communication_free_message_fields(fields);
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
