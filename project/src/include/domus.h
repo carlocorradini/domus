@@ -95,6 +95,7 @@ int domus_switch(size_t id, const char *switch_label, const char *switch_pos);
  * @return 0 if success
  *          1 if No Device Found
  *          2 if No Control Device Found
+ *          3 Control Device Error
  */
 int domus_link(size_t device_id, size_t control_device_id);
 

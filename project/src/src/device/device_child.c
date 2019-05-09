@@ -229,6 +229,8 @@ device_child_new_device_communication(int argc, char **args, void (*message_hand
     return device_child_communication;
 }
 
+static bool device_child_lock = false;
+
 static void devive_child_middleware_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
     if (device_child == NULL || device_child_communication == NULL) return;
@@ -237,16 +239,29 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
 
     /* Incoming message is not for this Device */
     if (!in_message.flag_force && in_message.id_recipient != device_child->id) {
-        device_communication_message_modify(&out_message, in_message.id_sender,
-                                            MESSAGE_TYPE_RECIPIENT_ID_MISLEADING,
-                                            "");
-        return device_communication_write_message(device_child_communication, &out_message);
+        in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+    } else if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_DELETE) {
+        if (device_child_lock) {
+            device_child_lock = false;
+            in_message.type = MESSAGE_TYPE_TERMINATE;
+        } else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     }
 
     switch (in_message.type) {
         case MESSAGE_TYPE_TERMINATE: {
             /* Stop the Device */
             _device_child_run = false;
+            break;
+        }
+        case MESSAGE_TYPE_LOCK: {
+            device_child_lock = true;
+            break;
+        }
+        case MESSAGE_TYPE_UNLOCK: {
+            device_child_lock = false;
+            break;
+        }
+        case MESSAGE_TYPE_RECIPIENT_ID_MISLEADING: {
             break;
         }
         default: {
@@ -368,12 +383,12 @@ static void control_devive_child_middleware_message_handler(void) {
             }
         }
 
-        /* Message has not been accepted by any child, inform parent */
-        device_communication_message_modify(&out_message, in_message.id_sender,
-                                            MESSAGE_TYPE_RECIPIENT_ID_MISLEADING,
-                                            "");
-        device_communication_write_message(device_child_communication, &out_message);
-        return;
+        in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+    } else if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_DELETE) {
+        if (device_child_lock) {
+            device_child_lock = false;
+            child_out_message.type = in_message.type = MESSAGE_TYPE_TERMINATE;
+        } else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     }
 
     /* Incoming Message is Forced or it's for this Control Device */
@@ -419,6 +434,17 @@ static void control_devive_child_middleware_message_handler(void) {
                 return;
             }
 
+            break;
+        }
+        case MESSAGE_TYPE_LOCK: {
+            device_child_lock = true;
+            break;
+        }
+        case MESSAGE_TYPE_UNLOCK: {
+            device_child_lock = false;
+            break;
+        }
+        case MESSAGE_TYPE_RECIPIENT_ID_MISLEADING: {
             break;
         }
         default: {

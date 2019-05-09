@@ -119,7 +119,7 @@ domus_propagate_message(size_t id, size_t out_message_type, const char *out_mess
             }
 
             /* Delete only if type is TERMINATE & is directly connected */
-            if (in_message_type == MESSAGE_TYPE_TERMINATE &&
+            if (in_message.type == MESSAGE_TYPE_TERMINATE &&
                 device_communication_device_is_directly_connected(&in_message)) {
                 device_communication_close_communication(data);
                 list_remove(domus->devices, data);
@@ -145,8 +145,8 @@ bool domus_del_by_id(size_t id) {
     list_for_each(data, message_list) {
         device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
         if (device_descriptor == NULL) {
-            fprintf(stderr, "Deletion Command: Device with unknown Device Descriptor id %ld\n",
-                    data->id_device_descriptor);
+            println_color(COLOR_RED, "Deletion Command: Device with unknown Device Descriptor id %ld",
+                          data->id_device_descriptor);
         }
 
         println_color(COLOR_GREEN,
@@ -183,8 +183,8 @@ bool domus_info_by_id(size_t id) {
     list_for_each(data, message_list) {
         device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
         if (device_descriptor == NULL) {
-            fprintf(stderr, "Info Command: Device with unknown Device Descriptor id %ld\n",
-                    data->id_device_descriptor);
+            println_color(COLOR_RED, "Info Command: Device with unknown Device Descriptor id %ld",
+                          data->id_device_descriptor);
         }
 
         char **fields = device_communication_split_message_fields(data);
@@ -278,7 +278,7 @@ int domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
     data = (DeviceCommunicationMessage *) list_get_first(message_list);
     device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
     if (device_descriptor == NULL) {
-        println_color(COLOR_RED, "Set On Command: Device with unknown Device Descriptor id %ld\n",
+        println_color(COLOR_RED, "Set On Command: Device with unknown Device Descriptor id %ld",
                       data->id_device_descriptor);
     }
 
@@ -337,19 +337,20 @@ int domus_link(size_t device_id, size_t control_device_id) {
     DeviceCommunicationMessage in_message;
     DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage *device_to_spawn;
+    DeviceDescriptor *device_descriptor;
     int toRtn;
     if (!device_check_control_device(domus)) return false;
 
     device_list = domus_propagate_message(device_id, MESSAGE_TYPE_INFO, "", MESSAGE_TYPE_INFO);
     device_dad_list = new_list(NULL, device_dad_equals);
     device_communication_message_init(domus->device, &out_message);
-    toRtn = 0;
+    toRtn = -1;
 
     /* No Device Found */
     if (list_is_empty(device_list)) toRtn = 1;
     else {
-        /* Delete current Devices */
-        free_list(domus_propagate_message(device_id, MESSAGE_TYPE_TERMINATE, "", MESSAGE_TYPE_TERMINATE));
+        /* Lock The Device */
+        free_list(domus_propagate_message(device_id, MESSAGE_TYPE_LOCK, "", MESSAGE_TYPE_LOCK));
 
         /* Spawn Devices */
         device_to_spawn = (DeviceCommunicationMessage *) list_get_first(device_list);
@@ -362,8 +363,17 @@ int domus_link(size_t device_id, size_t control_device_id) {
         list_for_each(data, domus->devices) {
             switch ((in_message = device_communication_write_message_with_ack(data, &out_message)).type) {
                 case MESSAGE_TYPE_ERROR: {
-                    println_color(COLOR_RED, "ERROR_MESSAGE: %s", in_message.message);
-                    toRtn = 2;
+                    /* Something goes wrong, Rollback */
+                    free_list(domus_propagate_message(device_id, MESSAGE_TYPE_UNLOCK, "", MESSAGE_TYPE_UNLOCK));
+                    device_descriptor = device_is_supported_by_id(in_message.id_device_descriptor);
+                    if (device_descriptor == NULL) {
+                        println_color(COLOR_RED, "Link Command: Device with unknown Device Descriptor id %ld",
+                                      in_message.id_device_descriptor);
+                    }
+
+                    println_color(COLOR_RED, "\t%s Error: %s",
+                                  (device_descriptor == NULL) ? "?" : device_descriptor->name, in_message.message);
+                    toRtn = 3;
                     break;
                 }
                 case MESSAGE_TYPE_SPAWN_DEVICE: {
@@ -404,12 +414,24 @@ int domus_link(size_t device_id, size_t control_device_id) {
                         list_remove_first(device_list);
                     }
 
+                    /* Unlock and delete previous Locked Devices */
+                    free_list(domus_propagate_message(device_id, MESSAGE_TYPE_UNLOCK_AND_DELETE, "",
+                                                      MESSAGE_TYPE_TERMINATE));
+                    toRtn = 0;
                     break;
                 }
                 default: {
                     break;
                 }
             }
+
+            if (toRtn != -1) break;
+        }
+
+        /* No Control Device Found, Rollback */
+        if (toRtn == -1) {
+            toRtn = 2;
+            free_list(domus_propagate_message(device_id, MESSAGE_TYPE_UNLOCK, "", MESSAGE_TYPE_UNLOCK));
         }
     }
 

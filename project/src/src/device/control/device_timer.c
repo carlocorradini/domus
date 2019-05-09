@@ -157,7 +157,7 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
         case MESSAGE_TYPE_SPAWN_DEVICE: {
             if (!list_is_empty(timer->devices)) {
                 device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
-                                                    "Timer: Cannot attach more than one device per timer");
+                                                    "Cannot attach more than one device per timer");
             } else {
                 device_child_set_device_to_spawn(in_message);
                 return;

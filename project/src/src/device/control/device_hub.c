@@ -59,7 +59,7 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
                     return;
                 } else {
                     device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
-                                                        "Hub: Cannot attach a device with different type");
+                                                        "Cannot attach a device with different type");
                 }
             } else {
                 device_child_set_device_to_spawn(in_message);

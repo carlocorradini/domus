@@ -51,6 +51,9 @@ static int _link(char **args) {
                     println_color(COLOR_RED, "\tCannot find a Control Device with id %ld", control_device_id.data.Long);
                     break;
                 }
+                case 3: {
+                    break;
+                }
                 default: {
                     println_color(COLOR_RED, "\tUndefined Link Error");
                     break;
