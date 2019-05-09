@@ -361,6 +361,8 @@ static void control_devive_child_middleware_message_handler(void) {
     /* Incoming message is not Forced and is not for this Device */
     if (!in_message.flag_force && in_message.id_recipient != control_device_child->device->id) {
         /* Forward message to all child */
+        if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_DELETE) in_message.type = MESSAGE_TYPE_TERMINATE;
+
         list_for_each(data, control_device_child->devices) {
             if ((child_in_message = device_communication_write_message_with_ack(data, &child_out_message)).type ==
                 in_message.type) {
@@ -378,9 +380,9 @@ static void control_devive_child_middleware_message_handler(void) {
                     } while (child_in_message.flag_continue);
                 }
 
-                /* If it's a Terminate Message or an Unlock & Terminate Message and is directly connected, close & remove */
-                if (in_message.type == MESSAGE_TYPE_TERMINATE &&
-                    device_communication_device_is_directly_connected(&in_message)) {
+                /* If it's a Terminate Message and is directly connected, close & remove */
+                if (child_in_message.type == MESSAGE_TYPE_TERMINATE &&
+                    device_communication_device_is_directly_connected(&child_in_message)) {
                     device_communication_close_communication(data);
                     list_remove(control_device_child->devices, data);
                 }
