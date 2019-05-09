@@ -57,6 +57,9 @@ static void domus_init(void) {
 }
 
 static void domus_tini(void) {
+    free_list(domus_propagate_message(DEVICE_MESSAGE_TO_ALL_DEVICES, MESSAGE_TYPE_TERMINATE, "",
+                                      MESSAGE_TYPE_TERMINATE));
+    free_list(domus_propagate_message(CONTROLLER_ID, MESSAGE_TYPE_TERMINATE_CONTROLLER, "", MESSAGE_TYPE_TERMINATE));
     free_control_device(domus);
     command_tini();
     author_tini();
@@ -113,8 +116,9 @@ domus_propagate_message(size_t id, size_t out_message_type, const char *out_mess
 
             if (in_message.flag_continue) {
                 do {
-                    in_message = device_communication_write_message_with_ack_silent(data, &out_message);
-                    list_add_first(message_list, device_communication_message_copy(&in_message));
+                    if ((in_message = device_communication_write_message_with_ack_silent(data, &out_message)).type ==
+                        in_message_type)
+                        list_add_first(message_list, device_communication_message_copy(&in_message));
                 } while (in_message.flag_continue);
             }
 

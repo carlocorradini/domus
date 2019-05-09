@@ -16,8 +16,11 @@ static int _add(char **args) {
 
     if (args[1] == NULL) {
         println("\tPlease choose a device");
-    } else if ((device_descriptor = device_is_supported_by_name(args[1])) == NULL) {
+    } else if ((device_descriptor = device_is_supported_by_name(args[1])) == NULL ||
+               device_descriptor->id == DEVICE_TYPE_DOMUS) {
         println("\tDevice %s is not supported", args[1]);
+    } else if (device_descriptor->id == CONTROLLER_ID) {
+        println("\tCannot add another Controller, only one per system is allowed");
     } else if ((id = domus_fork_device(device_descriptor)) == -1) {
         println_color(COLOR_RED, "\tSomething goes wrong");
     } else {

@@ -101,7 +101,7 @@ bool device_child_set_device_to_spawn(DeviceCommunicationMessage message) {
 }
 
 static void device_child_control_device_spawn() {
-    DeviceCommunication *data;
+    DeviceCommunication *device_communication;
     DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage child_out_message;
     ConverterResult child_id;
@@ -130,9 +130,9 @@ static void device_child_control_device_spawn() {
         } else {
             device_communication_message_modify(&child_out_message, child_id.data.Long, MESSAGE_TYPE_SET_INIT_VALUES,
                                                 _device_to_spawn.message);
-            data = (DeviceCommunication *) list_get_last(control_device_child->devices);
+            device_communication = (DeviceCommunication *) list_get_last(control_device_child->devices);
 
-            if (device_communication_write_message_with_ack(data, &child_out_message).type ==
+            if (device_communication_write_message_with_ack(device_communication, &child_out_message).type ==
                 MESSAGE_TYPE_SET_INIT_VALUES) {
                 device_communication_message_modify(&out_message, _device_to_spawn.id_sender,
                                                     MESSAGE_TYPE_SPAWN_DEVICE,
@@ -322,6 +322,7 @@ static void control_devive_child_middleware_message_handler(void) {
     DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage child_in_message;
     DeviceCommunicationMessage child_out_message;
+    bool terminate_controller = false;
     if (control_device_child == NULL || device_child_communication == NULL) return;
 
     device_communication_message_init(control_device_child->device, &out_message);
@@ -389,6 +390,10 @@ static void control_devive_child_middleware_message_handler(void) {
             device_child_lock = false;
             child_out_message.type = in_message.type = MESSAGE_TYPE_TERMINATE;
         } else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+    } else if (control_device_child->device->device_descriptor->id == DEVICE_TYPE_CONTROLLER &&
+               in_message.type == MESSAGE_TYPE_TERMINATE_CONTROLLER) {
+        terminate_controller = true;
+        in_message.type = MESSAGE_TYPE_TERMINATE;
     }
 
     /* Incoming Message is Forced or it's for this Control Device */
@@ -425,7 +430,10 @@ static void control_devive_child_middleware_message_handler(void) {
                 }
             }
 
-            if (in_message.type == MESSAGE_TYPE_TERMINATE) {
+            if (control_device_child->device->device_descriptor->id == DEVICE_TYPE_CONTROLLER &&
+                in_message.type == MESSAGE_TYPE_TERMINATE && !terminate_controller) {
+                in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+            } else if (in_message.type == MESSAGE_TYPE_TERMINATE) {
                 /* Stop the Device */
                 _device_child_run = false;
                 break;
