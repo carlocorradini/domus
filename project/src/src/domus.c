@@ -149,7 +149,7 @@ bool domus_del_by_id(size_t id) {
     list_for_each(data, message_list) {
         device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
         if (device_descriptor == NULL) {
-            println_color(COLOR_RED, "Deletion Command: Device with unknown Device Descriptor id %ld",
+            println_color(COLOR_RED, "\tDeletion Command: Device with unknown Device Descriptor id %ld",
                           data->id_device_descriptor);
         }
 
@@ -187,7 +187,7 @@ bool domus_info_by_id(size_t id) {
     list_for_each(data, message_list) {
         device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
         if (device_descriptor == NULL) {
-            println_color(COLOR_RED, "Info Command: Device with unknown Device Descriptor id %ld",
+            println_color(COLOR_RED, "\tInfo Command: Device with unknown Device Descriptor id %ld",
                           data->id_device_descriptor);
         }
 
@@ -233,7 +233,7 @@ bool domus_info_by_id(size_t id) {
                 break;
             }
             case DEVICE_TYPE_CONTROLLER: {
-                println("DIRECTLY_CONNECTED_CHILD: %-*s",
+                println("\tDIRECTLY_CONNECTED_CHILD: %-*s",
                         sizeof(double) + 1, fields[1]);
                 break;
             }
@@ -287,7 +287,7 @@ int domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
     data = (DeviceCommunicationMessage *) list_get_first(message_list);
     device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
     if (device_descriptor == NULL) {
-        println_color(COLOR_RED, "Set On Command: Device with unknown Device Descriptor id %ld",
+        println_color(COLOR_RED, "\tSet On Command: Device with unknown Device Descriptor id %ld",
                       data->id_device_descriptor);
     }
 
@@ -376,7 +376,7 @@ int domus_link(size_t device_id, size_t control_device_id) {
                     free_list(domus_propagate_message(device_id, MESSAGE_TYPE_UNLOCK, "", MESSAGE_TYPE_UNLOCK));
                     device_descriptor = device_is_supported_by_id(in_message.id_device_descriptor);
                     if (device_descriptor == NULL) {
-                        println_color(COLOR_RED, "Link Command: Device with unknown Device Descriptor id %ld",
+                        println_color(COLOR_RED, "\tLink Command: Device with unknown Device Descriptor id %ld",
                                       in_message.id_device_descriptor);
                     }
 
