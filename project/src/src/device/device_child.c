@@ -261,6 +261,11 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
             device_child_lock = false;
             break;
         }
+        case MESSAGE_TYPE_SPAWN_DEVICE: {
+            in_message.type = MESSAGE_TYPE_ERROR;
+            device_communication_message_modify_message(&out_message, "This is not a Control Device");
+            break;
+        }
         case MESSAGE_TYPE_RECIPIENT_ID_MISLEADING: {
             break;
         }
@@ -373,8 +378,9 @@ static void control_devive_child_middleware_message_handler(void) {
                     } while (child_in_message.flag_continue);
                 }
 
-                /* If it's a Terminate Message & is directly connected, close & remove */
-                if (in_message.type == MESSAGE_TYPE_TERMINATE && child_in_message.ctr_hop == 1) {
+                /* If it's a Terminate Message or an Unlock & Terminate Message and is directly connected, close & remove */
+                if (in_message.type == MESSAGE_TYPE_TERMINATE &&
+                    device_communication_device_is_directly_connected(&in_message)) {
                     device_communication_close_communication(data);
                     list_remove(control_device_child->devices, data);
                 }
