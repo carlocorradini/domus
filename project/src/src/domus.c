@@ -334,81 +334,87 @@ int domus_link(size_t device_id, size_t control_device_id) {
     List *device_list;
     List *device_dad_list;
     DeviceCommunication *data;
+    DeviceCommunicationMessage in_message;
     DeviceCommunicationMessage out_message;
     DeviceCommunicationMessage *device_to_spawn;
+    int toRtn;
     if (!device_check_control_device(domus)) return false;
 
     device_list = domus_propagate_message(device_id, MESSAGE_TYPE_INFO, "", MESSAGE_TYPE_INFO);
     device_dad_list = new_list(NULL, device_dad_equals);
     device_communication_message_init(domus->device, &out_message);
+    toRtn = 0;
 
     /* No Device Found */
-    if (list_is_empty(device_list)) {
-        free_list(device_list);
-        free_list(device_dad_list);
-        return 1;
-    }
+    if (list_is_empty(device_list)) toRtn = 1;
+    else {
+        /* Delete current Devices */
+        free_list(domus_propagate_message(device_id, MESSAGE_TYPE_TERMINATE, "", MESSAGE_TYPE_TERMINATE));
 
-    /* Delete current Devices */
-    free_list(domus_propagate_message(device_id, MESSAGE_TYPE_TERMINATE, "", MESSAGE_TYPE_TERMINATE));
+        /* Spawn Devices */
+        device_to_spawn = (DeviceCommunicationMessage *) list_get_first(device_list);
+        device_communication_message_modify(&out_message, control_device_id, MESSAGE_TYPE_SPAWN_DEVICE,
+                                            "%ld\n%ld\n%s",
+                                            device_to_spawn->id_sender,
+                                            device_to_spawn->id_device_descriptor,
+                                            device_to_spawn->message);
 
-    /* Spawn Devices */
-    device_to_spawn = (DeviceCommunicationMessage *) list_get_first(device_list);
-    device_communication_message_modify(&out_message, control_device_id, MESSAGE_TYPE_SPAWN_DEVICE,
-                                        "%ld\n%ld\n%s",
-                                        device_to_spawn->id_sender,
-                                        device_to_spawn->id_device_descriptor,
-                                        device_to_spawn->message);
-
-    list_for_each(data, domus->devices) {
-        if (device_communication_write_message_with_ack(data, &out_message).type ==
-            MESSAGE_TYPE_SPAWN_DEVICE) {
-            DeviceDad *device_dad;
-            DeviceDad find_dad;
-            size_t dad_id;
-
-            list_add_last(device_dad_list, new_device_dad(device_to_spawn->id_sender, device_to_spawn->ctr_hop));
-            list_remove_first(device_list);
-
-            while (!list_is_empty(device_list)) {
-                device_to_spawn = (DeviceCommunicationMessage *) list_get_first(device_list);
-                device_dad = new_device_dad(device_to_spawn->id_sender, device_to_spawn->ctr_hop);
-                find_dad.id = device_dad->id;
-                find_dad.hop_distance = device_dad->hop_distance - 1;
-
-                if (((DeviceDad *) list_get_last(device_dad_list))->hop_distance > device_dad->hop_distance) {
-                    while (((DeviceDad *) list_get_last(device_dad_list))->hop_distance >= device_dad->hop_distance) {
-                        list_remove_last(device_dad_list);
-                    }
+        list_for_each(data, domus->devices) {
+            switch ((in_message = device_communication_write_message_with_ack(data, &out_message)).type) {
+                case MESSAGE_TYPE_ERROR: {
+                    println_color(COLOR_RED, "ERROR_MESSAGE: %s", in_message.message);
+                    toRtn = 2;
+                    break;
                 }
+                case MESSAGE_TYPE_SPAWN_DEVICE: {
+                    DeviceDad *device_dad;
+                    DeviceDad find_dad;
+                    size_t dad_id;
 
-                list_add_last(device_dad_list, device_dad);
+                    list_add_last(device_dad_list,
+                                  new_device_dad(device_to_spawn->id_sender, device_to_spawn->ctr_hop));
+                    list_remove_first(device_list);
 
-                dad_id = ((DeviceDad *) list_get(device_dad_list, list_get_index(device_dad_list, &find_dad)))->id;
+                    while (!list_is_empty(device_list)) {
+                        device_to_spawn = (DeviceCommunicationMessage *) list_get_first(device_list);
+                        device_dad = new_device_dad(device_to_spawn->id_sender, device_to_spawn->ctr_hop);
+                        find_dad.id = device_dad->id;
+                        find_dad.hop_distance = device_dad->hop_distance - 1;
 
-                device_communication_message_modify(&out_message, dad_id, MESSAGE_TYPE_SPAWN_DEVICE,
-                                                    "%ld\n%ld\n%s",
-                                                    device_to_spawn->id_sender,
-                                                    device_to_spawn->id_device_descriptor,
-                                                    device_to_spawn->message);
+                        if (((DeviceDad *) list_get_last(device_dad_list))->hop_distance > device_dad->hop_distance) {
+                            while (((DeviceDad *) list_get_last(device_dad_list))->hop_distance >=
+                                   device_dad->hop_distance) {
+                                list_remove_last(device_dad_list);
+                            }
+                        }
 
-                device_communication_write_message_with_ack(data, &out_message);
+                        list_add_last(device_dad_list, device_dad);
 
-                list_remove_first(device_list);
+                        dad_id = ((DeviceDad *) list_get(device_dad_list,
+                                                         list_get_index(device_dad_list, &find_dad)))->id;
+
+                        device_communication_message_modify(&out_message, dad_id, MESSAGE_TYPE_SPAWN_DEVICE,
+                                                            "%ld\n%ld\n%s",
+                                                            device_to_spawn->id_sender,
+                                                            device_to_spawn->id_device_descriptor,
+                                                            device_to_spawn->message);
+
+                        device_communication_write_message_with_ack(data, &out_message);
+
+                        list_remove_first(device_list);
+                    }
+
+                    break;
+                }
+                default: {
+                    break;
+                }
             }
-
-            break;
         }
-    }
-
-    if (!list_is_empty(device_list)) {
-        free_list(device_list);
-        free_list(device_dad_list);
-        return 2;
     }
 
     free_list(device_list);
     free_list(device_dad_list);
 
-    return 0;
+    return toRtn;
 }
