@@ -116,9 +116,8 @@ domus_propagate_message(size_t id, size_t out_message_type, const char *out_mess
 
             if (in_message.flag_continue) {
                 do {
-                    if ((in_message = device_communication_write_message_with_ack_silent(data, &out_message)).type ==
-                        in_message_type)
-                        list_add_first(message_list, device_communication_message_copy(&in_message));
+                    in_message = device_communication_write_message_with_ack_silent(data, &out_message);
+                    list_add_first(message_list, device_communication_message_copy(&in_message));
                 } while (in_message.flag_continue);
             }
 
