@@ -235,6 +235,7 @@ bool domus_info_by_id(size_t id) {
             case DEVICE_TYPE_CONTROLLER: {
                 println("DIRECTLY_CONNECTED_CHILD: %-*s",
                         sizeof(double) + 1, fields[1]);
+                break;
             }
             case DEVICE_TYPE_HUB: {
                 println("");

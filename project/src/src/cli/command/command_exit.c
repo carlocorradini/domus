@@ -10,7 +10,6 @@
  * @return CLI status code
  */
 static int __exit(char **args) {
-    domus_del_all();
     println_color(COLOR_GREEN, "\tThanks for using Domus");
 
     return CLI_TERMINATE;
