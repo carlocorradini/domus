@@ -228,6 +228,10 @@ bool domus_info_by_id(size_t id) {
                         DEVICE_SWITCH_NAME_LENGTH, fridge_door_switch_state.data.String);
                 break;
             }
+            case DEVICE_TYPE_CONTROLLER: {
+                println("DIRECTLY_CONNECTED_CHILD: %-*s",
+                        sizeof(double) + 1, fields[1]);
+            }
             case DEVICE_TYPE_HUB: {
                 println("");
                 break;

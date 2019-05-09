@@ -26,8 +26,6 @@ static int _info(char **args) {
 
         if (result.error) {
             println("\tConversion Error: %s", result.error_message);
-        } else if (result.data.Long == CONTROLLER_ID) {
-            println("\tCannot show domus info");
         } else if (!domus_info_by_id(result.data.Long)) {
             println("\tCannot find a Device with id %ld", result.data.Long);
         }

@@ -31,6 +31,8 @@ ControllerRegistry *new_controller_registry(void) {
         exit(EXIT_FAILURE);
     }
 
+    controller_registry->directly_connected_child = 0;
+
     return controller_registry;
 }
 
@@ -41,12 +43,14 @@ static void controller_message_handler(DeviceCommunicationMessage in_message) {
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
-                                                "%ld\n",
-                                                controller->devices->size);
+                                                "%ld\n%ld\n",
+                                                controller->devices->size,
+                                                ((ControllerRegistry *) controller->device->registry)->directly_connected_child);
             break;
         }
         case MESSAGE_TYPE_SPAWN_DEVICE: {
             device_child_set_device_to_spawn(in_message);
+            ((ControllerRegistry *) controller->device->registry)->directly_connected_child++;
             return;
         }
         default: {
