@@ -204,7 +204,6 @@ static char *cli_read_line(void) {
 
                     strncpy(dat, "", CLI_READ_LINE_BUFFER_SIZE);
                     char *res = command_autocomplete_search(buffer, dat);
-
                     /*
                      * if exists a word with that prefix
                      */

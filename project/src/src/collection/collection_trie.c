@@ -88,6 +88,13 @@ char *trie_search(Trie_node *node, char *word, char *dat) {
     char tmp[100];
     char a[2];
 
+    /**
+     * if there is a space in the word, return NULL
+     */
+    if(word[0] == 32){
+        return NULL;
+    }
+
     if (strlen(word) == 0) {
         strcat(dat, "\0");
         strcpy(tmp, dat);
