@@ -94,4 +94,9 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos);
  */
 int domus_link(size_t device_id, size_t control_device_id);
 
+/**
+ * Display the current devices hierarchy in the system
+ */
+void domus_hierarchy(void);
+
 #endif

@@ -277,8 +277,8 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
     DeviceCommunicationMessage *data;
     DeviceDescriptor *device_descriptor;
     const char out_message_message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
-    if (!device_check_control_device(domus)) return false;
-    if (!control_device_has_devices(domus)) return false;
+    if (!device_check_control_device(domus)) return;
+    if (!control_device_has_devices(domus)) return;
 
     snprintf((char *) out_message_message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%s\n%s\n", switch_label, switch_pos);
     message_list = domus_propagate_message(id, MESSAGE_TYPE_SET_ON, out_message_message, MESSAGE_TYPE_SET_ON);
@@ -290,7 +290,7 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
                 println_color(COLOR_RED, "\tSet On Command: Device with unknown Device Descriptor id %ld",
                               data->id_device_descriptor);
             }
-            print("\t[%ld] %-*s: ", data->id_sender, DEVICE_NAME_LENGTH,
+            print("\t[%ld] %-*s ", data->id_sender, DEVICE_NAME_LENGTH,
                   (device_descriptor == NULL) ? "?" : device_descriptor->name);
 
             if (strcmp(data->message, MESSAGE_RETURN_SUCCESS) == 0) {
@@ -458,6 +458,38 @@ int domus_link(size_t device_id, size_t control_device_id) {
     free_list(device_dad_list);
 
     return toRtn;
+}
+
+void domus_hierarchy(void) {
+    List *device_list;
+    DeviceCommunicationMessage *data;
+    DeviceDescriptor *device_descriptor;
+    char device_name[DEVICE_NAME_LENGTH];
+    size_t i;
+    if (!device_check_control_device(domus)) return;
+
+    device_list = domus_propagate_message(DEVICE_MESSAGE_TO_ALL_DEVICES, MESSAGE_TYPE_INFO, "", MESSAGE_TYPE_INFO);
+    println_color(COLOR_CYAN, "\tDOMUS");
+
+    list_for_each(data, device_list) {
+        device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
+        if (device_descriptor == NULL) {
+            println_color(COLOR_RED, "\tHierarchy Command: Device with unknown Device Descriptor id %ld",
+                          data->id_device_descriptor);
+        }
+        strncpy(device_name, (device_descriptor == NULL) ? "?" : device_descriptor->name, DEVICE_NAME_LENGTH);
+        print("\t");
+        for (i = 0; i < data->ctr_hop; i++) print("   ");
+
+        if (device_descriptor != NULL && device_descriptor->control_device)
+            print_color(COLOR_YELLOW, "%s", device_name);
+        else
+            print("%s", device_name);
+
+        println(" %ld", data->id_sender);
+    }
+
+    free_list(device_list);
 }
 
 

@@ -15,6 +15,7 @@
 #include "cli/command/command_device.h"
 #include "cli/command/command_exit.h"
 #include "cli/command/command_help.h"
+#include "cli/command/command_hierarchy.h"
 #include "cli/command/command_info.h"
 #include "cli/command/command_link.h"
 #include "cli/command/command_list.h"
@@ -48,6 +49,8 @@ void command_init(void) {
     autocomplete = trie_insert(autocomplete, command_exit()->name, 1);
     list_add_last(commands, command_help());
     autocomplete = trie_insert(autocomplete, command_help()->name, 1);
+    list_add_last(commands, command_hierarchy());
+    autocomplete = trie_insert(autocomplete, command_hierarchy()->name, 1);
     list_add_last(commands, command_info());
     autocomplete = trie_insert(autocomplete, command_info()->name, 1);
     list_add_last(commands, command_link());
@@ -114,7 +117,7 @@ void command_print(const Command *command) {
 }
 
 char *command_autocomplete_search(char *buffer, char *dat) {
-    char* tmp = (char *) malloc(sizeof(char)*strlen(buffer));
-    strcpy(tmp,buffer);
+    char *tmp = (char *) malloc(sizeof(char) * strlen(buffer));
+    strcpy(tmp, buffer);
     return trie_search(autocomplete->root, tmp, dat);
 }

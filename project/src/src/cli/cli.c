@@ -54,7 +54,7 @@ static int cli_execute(char **args) {
     int status = command_execute(args);
     if (status == -1) {
         /* No Command found, CONTINUE */
-        println_color(COLOR_RED, "\tNO COMMAND FOUND");
+        println_color(COLOR_RED, "\tCommand '%s' not found", args[0]);
         status = CLI_CONTINUE;
     }
     return status;
@@ -170,7 +170,8 @@ static char *cli_read_line(void) {
 
         if (isCapital(c) || isLower(c) || isNumber(c) || c == CLI_CHARACTER_DELETE ||
             c == CLI_CHARACTER_CARRIAGE_RETURN || c == CLI_CHARACTER_TAB || c == CLI_CHARACTER_ARROW ||
-            c == CLI_CHARACTER_EXIT || c == CLI_CHARACTER_SPACE || c == CLI_CHARACTER_MINUS || c == CLI_CHARACTER_QUESTION_MARK) {
+            c == CLI_CHARACTER_EXIT || c == CLI_CHARACTER_SPACE || c == CLI_CHARACTER_MINUS ||
+            c == CLI_CHARACTER_QUESTION_MARK) {
             switch (c) {
                 /*
                  * If Ctrl + C is typed
