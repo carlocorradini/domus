@@ -106,7 +106,7 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
             ((WindowRegistry *) window->registry)->open = time(NULL) - open_time.data.Long;
 
             device_get_device_switch(window->switches, "open")->state = (bool *) switch_state.data.Bool;
-            
+
             device_communication_free_message_fields(fields);
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
                                                 "");
@@ -147,7 +147,7 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
 }
 
 int main(int argc, char **args) {
-    window = device_child_new_device(argc, args, new_window_registry());
+    window = device_child_new_device(argc, args, DEVICE_TYPE_WINDOW, new_window_registry());
     list_add_last(window->switches, new_device_switch("open", false, window_set_switch_state));
 
     window_communication = device_child_new_device_communication(argc, args, window_message_handler);

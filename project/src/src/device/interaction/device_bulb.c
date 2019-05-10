@@ -19,6 +19,7 @@ static DeviceCommunication *bulb_communication = NULL;
  * When the bulb lighted up last time
  */
 static time_t start = 0;
+
 /**
  * Set the bulb switch state
  * @param name The switch name
@@ -69,12 +70,11 @@ static bool bulb_set_switch_state(const char *name, bool state) {
     bulb->state = state;
     bulb_switch->state = (bool *) state;
 
-    if(state){
-        if(start == 0){
+    if (state) {
+        if (start == 0) {
             start = time(NULL);
         }
-    }
-    else{
+    } else {
         bulb_registry->_time = difftime(time(NULL), start);
         start = 0;
     }
@@ -118,9 +118,9 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
             device_get_device_switch(bulb->switches, "turn")->state = (bool *) switch_state.data.Bool;
 
-            if((bool) device_get_device_switch(bulb->switches, "turn")->state){
+            if ((bool) device_get_device_switch(bulb->switches, "turn")->state) {
                 start = time(NULL) - start_time.data.Long;
-            } else{
+            } else {
                 ((BulbRegistry *) bulb->registry)->_time = start_time.data.Long;
             }
 
@@ -167,7 +167,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 }
 
 int main(int argc, char **args) {
-    bulb = device_child_new_device(argc, args, new_bulb_registry());
+    bulb = device_child_new_device(argc, args, DEVICE_TYPE_BULB, new_bulb_registry());
     list_add_last(bulb->switches, new_device_switch("turn", DEVICE_STATE, bulb_set_switch_state));
     bulb_communication = device_child_new_device_communication(argc, args, bulb_message_handler);
 

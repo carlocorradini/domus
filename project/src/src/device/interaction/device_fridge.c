@@ -289,7 +289,7 @@ static void close_door() {
 
 
 int main(int argc, char **args) {
-    fridge = device_child_new_device(argc, args, new_fridge_registry());
+    fridge = device_child_new_device(argc, args, DEVICE_TYPE_FRIDGE, new_fridge_registry());
     list_add_last(fridge->switches, new_device_switch("state", DEVICE_STATE, fridge_set_switch_state));
     list_add_last(fridge->switches, new_device_switch("door", DEVICE_FRIDGE_DEFAULT_DOOR, fridge_set_switch_state));
 

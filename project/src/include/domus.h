@@ -6,10 +6,6 @@
 #include <stdbool.h>
 #include "device/device.h"
 
-#define DOMUS_VERSION "1.0.0"
-#define DOMUS_LICENSE "MIT"
-#define DOMUS_SLOGAN "Unicuique sua domus nota"
-#define DOMUS_DESCRIPTION "Home Automation at your CLI"
 #define DOMUS_ID 0
 #define CONTROLLER_ID 1
 #define DEVICE_MESSAGE_TO_ALL_DEVICES -1

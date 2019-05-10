@@ -290,8 +290,7 @@ static void control_device_fork_child(size_t child_id, const DeviceDescriptor *d
 
     device_args[0] = device_name;
     device_args[1] = device_id;
-    device_args[2] = device_descriptor_id;
-    device_args[3] = NULL;
+    device_args[2] = NULL;
 
     if (execv(device_descriptor->file_name, device_args) == -1) {
         perror("Error exec Controller Fork Child");

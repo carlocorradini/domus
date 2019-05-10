@@ -6,7 +6,7 @@
 #include "device/device.h"
 #include "device/device_communication.h"
 
-#define DEVICE_CHILD_ARGS_LENGTH 3
+#define DEVICE_CHILD_ARGS_LENGTH 2
 
 /**
  * An endless loop with pause for low LEVEL CPU LOAD
@@ -27,10 +27,11 @@ bool device_child_set_device_to_spawn(DeviceCommunicationMessage message);
  *  Only for child process!
  * @param argc The number of arguments
  * @param args The arguments
+ * @param device_descriptor_id The Device Descriptor ID
  * @param registry Device registry
  * @return The new Device, NULL otherwise
  */
-Device *device_child_new_device(int argc, char **args, void *registry);
+Device *device_child_new_device(int argc, char **args, size_t device_descriptor_id, void *registry);
 
 /**
  * Create and return a Device Communication like,
@@ -48,10 +49,11 @@ device_child_new_device_communication(int argc, char **args, void (*message_hand
  * Create and return a Control Device like but with arguments parameters
  * @param argc The number of arguments
  * @param args The arguments
+ * @param device_descriptor_id The Device Descriptor ID
  * @param registry Device registry
  * @return The new Control Device, NULL otherwise
  */
-ControlDevice *device_child_new_control_device(int argc, char **args, void *registry);
+ControlDevice *device_child_new_control_device(int argc, char **args, size_t device_descriptor_id, void *registry);
 
 /**
  * Create and return a Device Communication like,

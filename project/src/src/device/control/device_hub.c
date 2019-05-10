@@ -96,7 +96,7 @@ HubRegistry *new_hub_registry(void) {
 }
 
 int main(int argc, char **args) {
-    hub = device_child_new_control_device(argc, args, new_hub_registry());
+    hub = device_child_new_control_device(argc, args, DEVICE_TYPE_HUB,new_hub_registry());
     hub_communication = device_child_new_control_device_communication(argc, args, hub_message_handler);
 
     device_child_run(NULL);

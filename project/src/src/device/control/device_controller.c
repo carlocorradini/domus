@@ -63,7 +63,7 @@ static void controller_message_handler(DeviceCommunicationMessage in_message) {
 }
 
 int main(int argc, char **args) {
-    controller = device_child_new_control_device(argc, args, new_controller_registry());
+    controller = device_child_new_control_device(argc, args, DEVICE_TYPE_CONTROLLER, new_controller_registry());
     controller_communication = device_child_new_control_device_communication(argc, args, controller_message_handler);
 
     device_child_run(NULL);

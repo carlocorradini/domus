@@ -4,6 +4,11 @@
 #include "author.h"
 #include "util/util_printer.h"
 
+#define DOMUS_VERSION "1.0.0"
+#define DOMUS_LICENSE "MIT"
+#define DOMUS_SLOGAN "Unicuique sua domus nota"
+#define DOMUS_DESCRIPTION "Home Automation at your CLI"
+
 /**
  * Show information about Domus
  */

@@ -37,6 +37,11 @@ static ControlDevice *control_device_child = NULL;
 static DeviceCommunication *device_child_communication = NULL;
 
 /**
+ * Set to true if this Device is Locked, false otherwise
+ */
+static bool device_child_lock = false;
+
+/**
  * Function for handling signal when receiving a message
  * @param signal_number The signal number to identify as macro DEVICE_COMMUNICATION_READ_PIPE
  */
@@ -182,9 +187,8 @@ static bool device_child_check_args(int argc, char **args) {
     return true;
 }
 
-Device *device_child_new_device(int argc, char **args, void *registry) {
+Device *device_child_new_device(int argc, char **args, size_t device_descriptor_id, void *registry) {
     ConverterResult device_id;
-    ConverterResult device_descriptor_id;
     const DeviceDescriptor *device_descriptor;
     if (!device_child_check_args(argc, args)) return NULL;
     if (registry == NULL) return NULL;
@@ -192,23 +196,19 @@ Device *device_child_new_device(int argc, char **args, void *registry) {
     device_init();
 
     device_id = converter_string_to_long(args[1]);
-    device_descriptor_id = converter_string_to_long(args[2]);
 
     if (device_id.error) {
         fprintf(stderr, "Device ID Conversion Error: %s\n", device_id.error_message);
         exit(EXIT_FAILURE);
-    } else if (device_descriptor_id.error) {
-        fprintf(stderr, "Device Descriptor ID Conversion Error: %s\n", device_descriptor_id.error_message);
-        exit(EXIT_FAILURE);
-    } else if ((device_descriptor = device_is_supported_by_id(device_descriptor_id.data.Long)) == NULL) {
-        fprintf(stderr, "Cannot find a Device Descriptor with ID %ld\n", device_descriptor_id.data.Long);
+    } else if ((device_descriptor = device_is_supported_by_id(device_descriptor_id)) == NULL) {
+        fprintf(stderr, "Cannot find a Device Descriptor with ID %ld\n", device_descriptor_id);
         exit(EXIT_FAILURE);
     } else if (device_descriptor->control_device) {
         fprintf(stderr, "Cannot create a simple Device that is a Control Device\n");
         exit(EXIT_FAILURE);
     }
 
-    device_child = new_device(device_id.data.Long, device_descriptor_id.data.Long, DEVICE_STATE, registry);
+    device_child = new_device(device_id.data.Long, device_descriptor_id, DEVICE_STATE, registry);
 
     return device_child;
 }
@@ -228,8 +228,6 @@ device_child_new_device_communication(int argc, char **args, void (*message_hand
                                                           DEVICE_COMMUNICATION_CHILD_WRITE);
     return device_child_communication;
 }
-
-static bool device_child_lock = false;
 
 static void devive_child_middleware_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
@@ -280,9 +278,8 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
     device_communication_write_message(device_child_communication, &out_message);
 }
 
-ControlDevice *device_child_new_control_device(int argc, char **args, void *registry) {
+ControlDevice *device_child_new_control_device(int argc, char **args, size_t device_descriptor_id, void *registry) {
     ConverterResult control_device_id;
-    ConverterResult control_device_descriptor_id;
     const DeviceDescriptor *device_descriptor;
     if (!device_child_check_args(argc, args)) return NULL;
     if (registry == NULL) return NULL;
@@ -290,17 +287,12 @@ ControlDevice *device_child_new_control_device(int argc, char **args, void *regi
     device_init();
 
     control_device_id = converter_string_to_long(args[1]);
-    control_device_descriptor_id = converter_string_to_long(args[2]);
 
     if (control_device_id.error) {
         fprintf(stderr, "Control Device ID Conversion Error: %s\n", control_device_id.error_message);
         exit(EXIT_FAILURE);
-    } else if (control_device_descriptor_id.error) {
-        fprintf(stderr, "Control Device Descriptor ID Conversion Error: %s\n",
-                control_device_descriptor_id.error_message);
-        exit(EXIT_FAILURE);
-    } else if ((device_descriptor = device_is_supported_by_id(control_device_descriptor_id.data.Long)) == NULL) {
-        fprintf(stderr, "Cannot find a Device Descriptor with ID %ld\n", control_device_descriptor_id.data.Long);
+    } else if ((device_descriptor = device_is_supported_by_id(device_descriptor_id)) == NULL) {
+        fprintf(stderr, "Cannot find a Device Descriptor with ID %ld\n", device_descriptor_id);
         exit(EXIT_FAILURE);
     } else if (!device_descriptor->control_device) {
         fprintf(stderr, "Cannot create a Control Device that is a simple Device\n");
@@ -308,7 +300,7 @@ ControlDevice *device_child_new_control_device(int argc, char **args, void *regi
     }
 
     control_device_child = new_control_device(
-            new_device(control_device_id.data.Long, control_device_descriptor_id.data.Long, DEVICE_STATE,
+            new_device(control_device_id.data.Long, device_descriptor_id, DEVICE_STATE,
                        registry));
 
     return control_device_child;
