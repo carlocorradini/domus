@@ -17,7 +17,7 @@ static int _hierarchy(char **args) {
 Command *command_hierarchy(void) {
     return new_command(
             "hierarchy",
-            "Display the current devices hierarchy in the system",
+            "Display the current devices hierarchy in the system, described by <name> <id>",
             "hierarchy",
             _hierarchy);
 }

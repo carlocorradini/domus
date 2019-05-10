@@ -290,7 +290,7 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
                 println_color(COLOR_RED, "\tSet On Command: Device with unknown Device Descriptor id %ld",
                               data->id_device_descriptor);
             }
-            print("\t[%ld] %-*s ", data->id_sender, DEVICE_NAME_LENGTH,
+            print("\t[%3ld] %-*s ", data->id_sender, DEVICE_NAME_LENGTH,
                   (device_descriptor == NULL) ? "?" : device_descriptor->name);
 
             if (strcmp(data->message, MESSAGE_RETURN_SUCCESS) == 0) {
@@ -481,7 +481,9 @@ void domus_hierarchy(void) {
         print("\t");
         for (i = 0; i < data->ctr_hop; i++) print("   ");
 
-        if (device_descriptor != NULL && device_descriptor->control_device)
+        if (device_descriptor != NULL && device_descriptor->id == DEVICE_TYPE_CONTROLLER)
+            print_color(COLOR_CYAN, "%s", device_name);
+        else if (device_descriptor != NULL && device_descriptor->control_device)
             print_color(COLOR_YELLOW, "%s", device_name);
         else
             print("%s", device_name);

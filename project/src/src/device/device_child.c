@@ -362,7 +362,7 @@ static void control_devive_child_middleware_message_handler(void) {
 
         list_for_each(data, control_device_child->devices) {
             if ((child_in_message = device_communication_write_message_with_ack(data, &child_out_message)).type ==
-                in_message.type) {
+                in_message.type || child_in_message.type == MESSAGE_TYPE_ERROR) {
 
                 if (child_in_message.flag_continue) {
                     device_communication_write_message_with_ack_silent(device_child_communication,
