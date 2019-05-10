@@ -450,3 +450,28 @@ int domus_link(size_t device_id, size_t control_device_id) {
 
     return toRtn;
 }
+
+
+__pid_t domus_getpid(size_t device_id) {
+    List *message_list;
+    DeviceCommunicationMessage *in_message;
+    ConverterResult pid;
+    bool to_Rt = false;
+
+    if (!device_check_control_device(domus)) return false;
+    if (!control_device_has_devices(domus)) return false;
+
+    if(device_id == DOMUS_ID){
+        return getpid();
+    }
+    message_list = domus_propagate_message(device_id, MESSAGE_TYPE_GET_PID, "", MESSAGE_TYPE_GET_PID);
+
+    if (!list_is_empty(message_list)) {
+        pid = converter_string_to_long(((DeviceCommunicationMessage *) list_get_first(message_list))->message);
+        if (!pid.error) {
+            to_Rt = true;
+        }
+    }
+    free_list(message_list);
+    return (to_Rt) ? (__pid_t) pid.data.Long : 0;
+}
