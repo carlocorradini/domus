@@ -58,7 +58,7 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
  * Control Device only
  * Middleware message handler for messages that must be handled before forwarding
  */
-static void control_devive_child_middleware_message_handler(void);
+static void control_device_child_middleware_message_handler(void);
 
 /**
  * A function pointer to the child Message Handler for easy of use
@@ -166,7 +166,7 @@ static void device_child_read_pipe(int signal_number) {
 
         if (control_device_child != NULL && device_child == NULL) {
             /* Middleware for Control Device */
-            control_devive_child_middleware_message_handler();
+            control_device_child_middleware_message_handler();
         } else if (device_child != NULL && control_device_child == NULL) {
             /* Middleware for Device */
             devive_child_middleware_message_handler(device_communication_read_message(device_child_communication));
@@ -318,7 +318,7 @@ DeviceCommunication *device_child_new_control_device_communication(int argc, cha
     return device_child_new_device_communication(argc, args, message_handler);
 }
 
-static void control_devive_child_middleware_message_handler(void) {
+static void control_device_child_middleware_message_handler(void) {
     DeviceCommunication *data;
     DeviceCommunicationMessage in_message;
     DeviceCommunicationMessage out_message;

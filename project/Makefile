@@ -76,6 +76,7 @@ all:
 build: clean $(TARGET)
 
 $(TARGET): $(ALL_OBJ)
+	@$(ECHO) "$(COLOR_YELLOW)=== COMPILING $@ ===$(COLOR_RESET)"
 	$(MKDIR) $(DEV_BIN)
 	#      get the .o file having $(TARGET) in the name                                    add all common files
 	$(CC) $(filter-out $(foreach a,$(ALL_OBJ),$(if $(findstring $@,$a),,$a)), $(ALL_OBJ)) $(OBJ) -o $(DEV_BIN)/$@ -lrt
@@ -101,8 +102,8 @@ help:
 	@$(ECHO) "$(COLOR_MAGENTA)- LICENSE$(COLOR_RESET)"
 	@$(ECHO) "\t$(LICENSE)"
 	@$(ECHO) "$(COLOR_MAGENTA)- RECIPES AVAILABLE$(COLOR_RESET)"
-	@$(ECHO) "\t$(COLOR_YELLOW)build$(COLOR_RESET)            Build & Compile all files under $(SRC_DIR) and generate $(TARGET) binaries"
-	@$(ECHO) "\t$(COLOR_YELLOW)clean$(COLOR_RESET)            Delete $(BUILD_DIR) directory and $(TARGET) binaries"
+	@$(ECHO) "\t$(COLOR_YELLOW)build$(COLOR_RESET)            Build & Compile all files under $(SRC_DIR) and generate [$(TARGET)] binaries"
+	@$(ECHO) "\t$(COLOR_YELLOW)clean$(COLOR_RESET)            Delete $(BUILD_DIR) directory and [$(TARGET)] binaries"
 	@$(ECHO) "\t$(COLOR_YELLOW)help$(COLOR_RESET)             Show useful information"
 
 clean:

@@ -51,10 +51,7 @@ static void controller_message_handler(DeviceCommunicationMessage in_message) {
             return;
         }
         default: {
-            device_communication_message_modify(&out_message, MESSAGE_TYPE_ERROR,
-                                                "{%d, %s}",
-                                                in_message.type,
-                                                in_message.message);
+            device_communication_message_modify(&out_message, in_message.id_sender,MESSAGE_TYPE_UNKNOWN, "%s", in_message.message);
             break;
         }
     }

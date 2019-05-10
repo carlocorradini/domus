@@ -155,9 +155,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         default: {
-            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_ERROR,
-                                                "{%d, %s}",
-                                                in_message.type,
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_UNKNOWN, "%s",
                                                 in_message.message);
             break;
         }
@@ -168,7 +166,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
 int main(int argc, char **args) {
     bulb = device_child_new_device(argc, args, DEVICE_TYPE_BULB, new_bulb_registry());
-    list_add_last(bulb->switches, new_device_switch("turn", DEVICE_STATE, bulb_set_switch_state));
+    list_add_last(bulb->switches, new_device_switch("turn", (bool *) DEVICE_STATE, bulb_set_switch_state));
     bulb_communication = device_child_new_device_communication(argc, args, bulb_message_handler);
 
     device_child_run(NULL);

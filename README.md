@@ -1,7 +1,5 @@
 # ![alt text](https://github.githubassets.com/images/icons/emoji/unicode/1f3e1.png) Domus
 
-Unicuique sua domus nota
-
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
@@ -33,6 +31,7 @@ $ ./domus
         device                             Display all supported devices and their description
         exit                               Close Domus
         help                               Display help information about Domus
+        hierarchy                          Display the current devices hierarchy in the system, described by <name> <id>
         info <id> [--all]                  Show device info with <id>. Show all devices info with [--all]
         link <id> to <id>                  Connect two devices each other. One must be a control device
         list                               Display all available devices and their features

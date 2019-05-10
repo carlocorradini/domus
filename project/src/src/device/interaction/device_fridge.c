@@ -254,9 +254,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         default: {
-            device_communication_message_modify(&out_message, MESSAGE_TYPE_ERROR,
-                                                "{%d, %s}",
-                                                in_message.type,
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_UNKNOWN, "%s",
                                                 in_message.message);
             break;
         }
@@ -275,8 +273,9 @@ static void close_door() {
 
 int main(int argc, char **args) {
     fridge = device_child_new_device(argc, args, DEVICE_TYPE_FRIDGE, new_fridge_registry());
-    list_add_last(fridge->switches, new_device_switch("state", DEVICE_STATE, fridge_set_switch_state));
-    list_add_last(fridge->switches, new_device_switch("door", DEVICE_FRIDGE_DEFAULT_DOOR, fridge_set_switch_state));
+    list_add_last(fridge->switches, new_device_switch("state", (bool *) DEVICE_STATE, fridge_set_switch_state));
+    list_add_last(fridge->switches,
+                  new_device_switch("door", (bool *) DEVICE_FRIDGE_DEFAULT_DOOR, fridge_set_switch_state));
 
     double *default_tmp = malloc(sizeof(double));
     *default_tmp = DEVICE_FRIDGE_DEFAULT_TEMP;

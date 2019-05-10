@@ -69,10 +69,7 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         default: {
-            device_communication_message_modify(&out_message, MESSAGE_TYPE_ERROR,
-                                                "{%d, %s}",
-                                                in_message.type,
-                                                in_message.message);
+            device_communication_message_modify(&out_message, in_message.id_sender,MESSAGE_TYPE_UNKNOWN, "%s", in_message.message);
             break;
         }
     }
@@ -96,7 +93,7 @@ HubRegistry *new_hub_registry(void) {
 }
 
 int main(int argc, char **args) {
-    hub = device_child_new_control_device(argc, args, DEVICE_TYPE_HUB,new_hub_registry());
+    hub = device_child_new_control_device(argc, args, DEVICE_TYPE_HUB, new_hub_registry());
     hub_communication = device_child_new_control_device_communication(argc, args, hub_message_handler);
 
     device_child_run(NULL);
