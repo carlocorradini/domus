@@ -434,7 +434,7 @@ static void control_devive_child_middleware_message_handler(void) {
                 device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
             }
 
-            device_communication_message_modify_message(&out_message, "Control Device Switch ");
+            in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
 
             break;
         }

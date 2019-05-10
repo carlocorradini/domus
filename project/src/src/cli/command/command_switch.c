@@ -21,37 +21,8 @@ static int _switch(char **args) {
         result = converter_string_to_long(args[1]);
         if (result.error) {
             println("\tConversion Error: %s", result.error_message);
-        } else if (result.data.Long == CONTROLLER_ID) {
-            println("\tCannot switch the Controller");
         } else {
-            switch (domus_switch(result.data.Long, args[2], args[3])) {
-                case 0: {
-                    print_color(COLOR_GREEN, "\tSwitched ");
-                    print("'%s'", args[2]);
-                    print_color(COLOR_GREEN, " to ");
-                    println("'%s'", args[3]);
-
-                    break;
-                }
-                case 1: {
-                    println_color(COLOR_RED,
-                                  "\tError while setting switch '%s': <label> doesn't exist",
-                                  args[2], args[3]);
-                    break;
-                }
-                case 2: {
-                    println_color(COLOR_RED,
-                                  "\tError while setting switch '%s': <pos> doesn't exist",
-                                  args[2], args[3]);
-                    break;
-                }
-                default: {
-                    println_color(COLOR_RED, "\tError while setting <label> '%s' to <pos> '%s': Unknown error",
-                                  args[2],
-                                  args[3]);
-                    break;
-                }
-            }
+            domus_switch(result.data.Long, args[2], args[3]);
         }
     }
 

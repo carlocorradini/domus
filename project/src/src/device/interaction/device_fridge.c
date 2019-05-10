@@ -148,7 +148,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             float perc = fridge_registry->perc;
             double temp = fridge_registry->temp;
             bool switch_door = (bool) (device_get_device_switch_state(fridge->switches, "door"));
-            if(switch_door == false){
+            if (switch_door == false) {
                 time_difference = 0;
             }
             double switch_thermo = *((double *) (device_get_device_switch_state(fridge->switches, "thermo")));
@@ -161,7 +161,6 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         case MESSAGE_TYPE_SET_INIT_VALUES: {
-
             ConverterResult state;
             ConverterResult open_time;
             ConverterResult delay_time;
@@ -219,12 +218,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                 fridge_set_switch_state(switch_label, (void *) bool_switch_pos)
                 ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
                 : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
-
-                device_communication_free_message_fields(fields);
-                break;
-            }
-
-            if (strcmp(switch_label, "thermo") == 0) {
+            } else if (strcmp(switch_label, "thermo") == 0) {
                 ConverterResult result1;
                 result1 = converter_string_to_double(switch_pos);
 
@@ -234,23 +228,14 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                     fridge_set_switch_state(switch_label, temp_result)
                     ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
                     : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
-
-                    device_communication_free_message_fields(fields);
-                    break;
                 }
-            }
-
-            if (strcmp(switch_label, "state") == 0) {
+            } else if (strcmp(switch_label, "state") == 0) {
                 bool_switch_pos = strcmp(switch_pos, "on") == 0 ? true : false;
 
                 fridge_set_switch_state(switch_label, (void *) bool_switch_pos)
                 ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
                 : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
-
-                device_communication_free_message_fields(fields);
-                break;
-            }
-            if (strcmp(switch_label, "delay") == 0) {
+            } else if (strcmp(switch_label, "delay") == 0) {
                 ConverterResult result1;
                 result1 = converter_string_to_long(switch_pos);
 
@@ -260,12 +245,13 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                     fridge_set_switch_state(switch_label, delay_result)
                     ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
                     : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
-
-                    device_communication_free_message_fields(fields);
-                    break;
                 }
+            } else {
+                device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
             }
 
+            device_communication_free_message_fields(fields);
+            break;
         }
         default: {
             device_communication_message_modify(&out_message, MESSAGE_TYPE_ERROR,

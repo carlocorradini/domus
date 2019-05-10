@@ -278,28 +278,40 @@ int domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
     DeviceCommunicationMessage *data;
     DeviceDescriptor *device_descriptor;
     const char out_message_message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
-    int toRtn;
     if (!device_check_control_device(domus)) return false;
     if (!control_device_has_devices(domus)) return false;
 
     snprintf((char *) out_message_message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%s\n%s\n", switch_label, switch_pos);
     message_list = domus_propagate_message(id, MESSAGE_TYPE_SET_ON, out_message_message, MESSAGE_TYPE_SET_ON);
 
-    data = (DeviceCommunicationMessage *) list_get_first(message_list);
-    device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
-    if (device_descriptor == NULL) {
-        println_color(COLOR_RED, "\tSet On Command: Device with unknown Device Descriptor id %ld",
-                      data->id_device_descriptor);
-    }
+    list_for_each(data, message_list) {
+        if (data->type == MESSAGE_TYPE_SET_ON) {
+            device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
+            if (device_descriptor == NULL) {
+                println_color(COLOR_RED, "\tSet On Command: Device with unknown Device Descriptor id %ld",
+                              data->id_device_descriptor);
+            }
+            print("\t[%ld] %-*s: ", data->id_sender, DEVICE_NAME_LENGTH,
+                  (device_descriptor == NULL) ? "?" : device_descriptor->name);
 
-    if (strcmp(data->message, MESSAGE_RETURN_SUCCESS) == 0) toRtn = 0;
-    else if (strcmp(data->message, MESSAGE_RETURN_NAME_ERROR) == 0) toRtn = 1;
-    else if (strcmp(data->message, MESSAGE_RETURN_VALUE_ERROR) == 0) toRtn = 2;
-    else toRtn = -1;
+            if (strcmp(data->message, MESSAGE_RETURN_SUCCESS) == 0) {
+                print_color(COLOR_GREEN, "Switched ");
+                print("'%s'", switch_label);
+                print_color(COLOR_GREEN, " to ");
+                println("'%s'", switch_pos);
+            } else if (strcmp(data->message, MESSAGE_RETURN_NAME_ERROR) == 0) {
+                println_color(COLOR_RED, "<label> %s doesn't exist",
+                              switch_label);
+            } else if (strcmp(data->message, MESSAGE_RETURN_NAME_ERROR) == 0) {
+                println_color(COLOR_RED, "<pos> %s doesn't exist",
+                              switch_pos);
+            }
+        }
+    }
 
     free_list(message_list);
 
-    return toRtn;
+    return 0;
 }
 
 /**
@@ -461,7 +473,7 @@ __pid_t domus_getpid(size_t device_id) {
     if (!device_check_control_device(domus)) return false;
     if (!control_device_has_devices(domus)) return false;
 
-    if(device_id == DOMUS_ID){
+    if (device_id == DOMUS_ID) {
         return getpid();
     }
     message_list = domus_propagate_message(device_id, MESSAGE_TYPE_GET_PID, "", MESSAGE_TYPE_GET_PID);
