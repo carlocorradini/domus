@@ -154,10 +154,9 @@ bool domus_del_by_id(size_t id) {
             }
 
             println_color(COLOR_GREEN,
-                          "\t%s with id %ld has been deleted | %ld hop distance",
+                          "\t%s with id %ld has been deleted",
                           (device_descriptor == NULL) ? "?" : device_descriptor->name,
-                          data->id_sender,
-                          data->ctr_hop);
+                          data->id_sender);
         }
     }
 
