@@ -80,9 +80,8 @@ bool domus_info_all(void);
  * @param id The Device id
  * @param switch_label The Device Switch Label
  * @param switch_pos switch pos The Device Switch Position
- * @return 0 if successful, error value otherwise
  */
-int domus_switch(size_t id, const char *switch_label, const char *switch_pos);
+void domus_switch(size_t id, const char *switch_label, const char *switch_pos);
 
 /**
  * Link a Device with a Control Device
