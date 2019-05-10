@@ -273,7 +273,7 @@ void domus_list(void) {
     domus_info_all();
 }
 
-int domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
+void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
     List *message_list;
     DeviceCommunicationMessage *data;
     DeviceDescriptor *device_descriptor;
@@ -310,8 +310,6 @@ int domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
     }
 
     free_list(message_list);
-
-    return 0;
 }
 
 /**
