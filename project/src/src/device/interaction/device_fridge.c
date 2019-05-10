@@ -269,7 +269,6 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
 
 static void close_door() {
     fridge_set_switch_state("door", (void *) false);
-    perror("Here close\n");
     door_timer = NULL;
 }
 
