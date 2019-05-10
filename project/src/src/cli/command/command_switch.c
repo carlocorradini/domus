@@ -24,7 +24,7 @@ static int _switch(char **args) {
         } else if (result.data.Long == CONTROLLER_ID) {
             println("\tCannot switch the Controller");
         } else {
-            switch (domus_switch((size_t) result.data.Long, args[2], args[3])) {
+            switch (domus_switch(result.data.Long, args[2], args[3])) {
                 case 0: {
                     print_color(COLOR_GREEN, "\tSwitched ");
                     print("'%s'", args[2]);

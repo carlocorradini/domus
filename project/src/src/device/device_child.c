@@ -264,6 +264,11 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
             device_communication_message_modify_message(&out_message, "This is not a Control Device");
             break;
         }
+        case MESSAGE_TYPE_GET_PID : {
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_GET_PID, "%d",
+                                                getpid());
+            break;
+        }
         case MESSAGE_TYPE_RECIPIENT_ID_MISLEADING: {
             break;
         }
@@ -402,6 +407,38 @@ static void control_devive_child_middleware_message_handler(void) {
     child_out_message.flag_force = true;
 
     switch (in_message.type) {
+        case MESSAGE_TYPE_GET_PID: {
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_GET_PID, "%d",
+                                                getpid());
+            break;
+        }
+        case MESSAGE_TYPE_SET_ON: {
+            list_for_each(data, control_device_child->devices) {
+                child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
+                child_in_message.id_recipient = in_message.id_sender;
+
+                if (child_in_message.flag_continue) {
+                    device_communication_write_message_with_ack_silent(device_child_communication,
+                                                                       &child_in_message);
+                    do {
+                        child_in_message = device_communication_write_message_with_ack_silent(data,
+                                                                                              &child_out_message);
+                        if (child_in_message.flag_continue) {
+                            device_communication_write_message_with_ack_silent(device_child_communication,
+                                                                               &child_in_message);
+                        }
+                    } while (child_in_message.flag_continue);
+                }
+
+                child_in_message.flag_continue = true;
+                device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
+            }
+
+            device_communication_message_modify_message(&out_message, "Control Device Switch ");
+
+            break;
+        }
+
         case MESSAGE_TYPE_TERMINATE:
         case MESSAGE_TYPE_INFO: {
             list_for_each(data, control_device_child->devices) {
