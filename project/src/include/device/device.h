@@ -145,7 +145,7 @@ DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(con
  * @param name name of the switches
  * @return pointer to switch
  */
-void *device_get_device_switch_state(const List *switch_list, char name[]);
+void *device_get_device_switch_state(const List *switch_list, const char *name);
 
 /**
  * Get switch object from its name
@@ -153,7 +153,7 @@ void *device_get_device_switch_state(const List *switch_list, char name[]);
  * @param name name of the switches
  * @return pointer to switch
  */
-DeviceSwitch *device_get_device_switch(const List *switch_list, char name[]);
+DeviceSwitch *device_get_device_switch(const List *switch_list, const char *name);
 
 /**
  * Check if a Device is correctly initialized

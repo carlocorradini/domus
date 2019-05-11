@@ -1,3 +1,4 @@
+
 #include <time.h>
 #include <string.h>
 #include "device/control/device_timer.h"
@@ -58,8 +59,8 @@ static bool timer_set_switch_state(const char *name, char *dates) {
 
     if (!list_contains(timer->device->switches, name)) return false;
 
-    char *start_date = strtok(dates, "?");
-    char *end_date = strtok(NULL, "?");
+    char *start_date = strtok(dates, TIMER_DATE_DELIMITER);
+    char *end_date = strtok(NULL, TIMER_DATE_DELIMITER);
 
     //timer_registry = (TimerRegistry *) device_get_device_switch(timer->device->switches, name);
     timer_registry = (TimerRegistry *) timer->device->registry;
@@ -233,7 +234,7 @@ static void set_device() {
 
 int main(int argc, char **args) {
     timer = device_child_new_control_device(argc, args, DEVICE_TYPE_TIMER, new_timer_registry());
-    list_add_last(timer->device->switches, new_device_switch("time", (bool *) DEVICE_STATE, timer_set_switch_state));
+    list_add_last(timer->device->switches, new_device_switch(TIMER_SWITCH_TIME, (bool *) DEVICE_STATE, timer_set_switch_state));
     timer_communication = device_child_new_control_device_communication(argc, args, timer_message_handler);
 
     signal(DEVICE_COMMUNICATION_TIMER, set_device);

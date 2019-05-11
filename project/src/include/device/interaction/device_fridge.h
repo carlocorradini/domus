@@ -8,6 +8,13 @@
 #define DEVICE_FRIDGE_DEFAULT_DELAY 16.0
 #define DEVICE_FRIDGE_DEFAULT_PERC 50.0
 
+#define FRIDGE_SWITCH_DOOR "door"
+#define FRIDGE_SWITCH_DOOR_ON "on"
+#define FRIDGE_SWITCH_DOOR_OFF "off"
+#define FRIDGE_SWITCH_STATE "state"
+#define FRIDGE_SWITCH_STATE_ON "on"
+#define FRIDGE_SWITCH_STATE_OFF "off"
+
 /**
  * The Registry of the Fridge
  */
