@@ -70,20 +70,18 @@ static bool window_set_switch_state(const char *name, bool state) {
 }
 
 static bool window_check_value(const char *input) {
-    return strcmp(input, "on") == 0 || strcmp(input, "off") == 0;
+    return strcmp(input, WINDOW_SWITCH_OPEN_ON) == 0 || strcmp(input, WINDOW_SWITCH_OPEN_OFF) == 0;
 }
 
 static void window_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
-    ConverterResult result;
-
     device_communication_message_init(window, &out_message);
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
             time_t open_time = ((WindowRegistry *) window->registry)->open;
             double time_difference = (open_time == 0) ? 0.0 : difftime(time(NULL), open_time);
-            bool switch_state = (bool) (device_get_device_switch_state(window->switches, "open"));
+            bool switch_state = (bool) (device_get_device_switch_state(window->switches, WINDOW_SWITCH_OPEN));
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
                                                 "%d\n%.0lf\n%d\n",
@@ -95,8 +93,9 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
             ConverterResult state;
             ConverterResult open_time;
             ConverterResult switch_state;
+            char **fields;
 
-            char **fields = device_communication_split_message_fields(&in_message);
+            fields = device_communication_split_message_fields(&in_message);
 
             state = converter_char_to_bool(fields[2][0]);
             open_time = converter_string_to_long(fields[3]);
@@ -105,7 +104,7 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
             window->state = state.data.Bool;
             ((WindowRegistry *) window->registry)->open = time(NULL) - open_time.data.Long;
 
-            device_get_device_switch(window->switches, "open")->state = (bool *) switch_state.data.Bool;
+            device_get_device_switch(window->switches, WINDOW_SWITCH_OPEN)->state = (bool *) switch_state.data.Bool;
 
             device_communication_free_message_fields(fields);
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
@@ -113,24 +112,22 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         case MESSAGE_TYPE_SET_ON: {
-            out_message.type = MESSAGE_TYPE_SET_ON;
-            char *switch_label;
-            char *switch_pos;
-            bool bool_switch_pos;
+            char **fields;
 
-            switch_label = strtok(in_message.message, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
-            switch_pos = strtok(NULL, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_ON, "");
+            fields = device_communication_split_message_fields(&in_message);
 
-            if (!window_check_value(switch_pos)) {
+            if (device_get_device_switch(window->switches, fields[0]) == NULL) {
+                device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+            } else if (!window_check_value(fields[1])) {
                 device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ERROR);
-                break;
+            } else {
+                window_set_switch_state(fields[0], strcmp(fields[1], WINDOW_SWITCH_OPEN_ON) == 0)
+                ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
+                : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
             }
 
-            bool_switch_pos = strcmp(switch_pos, "on") == 0 ? true : false;
-
-            window_set_switch_state(switch_label, bool_switch_pos)
-            ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
-            : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+            device_communication_free_message_fields(fields);
 
             break;
         }
@@ -146,7 +143,7 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
 
 int main(int argc, char **args) {
     window = device_child_new_device(argc, args, DEVICE_TYPE_WINDOW, new_window_registry());
-    list_add_last(window->switches, new_device_switch("open", (bool *) false, window_set_switch_state));
+    list_add_last(window->switches, new_device_switch(WINDOW_SWITCH_OPEN, (bool *) false, window_set_switch_state));
 
     window_communication = device_child_new_device_communication(argc, args, window_message_handler);
 

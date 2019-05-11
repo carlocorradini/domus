@@ -104,8 +104,9 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             ConverterResult state;
             ConverterResult start_time;
             ConverterResult switch_state;
+            char **fields;
 
-            char **fields = device_communication_split_message_fields(&in_message);
+            fields = device_communication_split_message_fields(&in_message);
 
             state = converter_char_to_bool(fields[2][0]);
             start_time = converter_string_to_long(fields[3]);
@@ -127,21 +128,17 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         case MESSAGE_TYPE_SET_ON: {
-            const char *switch_label;
-            const char *switch_pos;
+            char **fields;
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_ON, "");
-            char **fields = device_communication_split_message_fields(&in_message);
+            fields = device_communication_split_message_fields(&in_message);
 
-            switch_label = fields[0];
-            switch_pos = fields[1];
-
-            if (device_get_device_switch(bulb->switches, switch_label) == NULL) {
+            if (device_get_device_switch(bulb->switches, fields[0]) == NULL) {
                 device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
-            } else if (!bulb_check_value(switch_pos)) {
+            } else if (!bulb_check_value(fields[1])) {
                 device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ERROR);
             } else {
-                bulb_set_switch_state(switch_label, strcmp(switch_pos, BULB_SWITCH_TURN_ON) == 0)
+                bulb_set_switch_state(fields[0], strcmp(fields[1], BULB_SWITCH_TURN_ON) == 0)
                 ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
                 : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
             }

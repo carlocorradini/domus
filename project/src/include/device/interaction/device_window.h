@@ -1,6 +1,10 @@
 #ifndef _DEVICE_WINDOW_H
 #define _DEVICE_WINDOW_H
 
+#define WINDOW_SWITCH_OPEN "open"
+#define WINDOW_SWITCH_OPEN_ON "on"
+#define WINDOW_SWITCH_OPEN_OFF "off"
+
 /**
  * The registry of the Window
  */
