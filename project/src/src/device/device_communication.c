@@ -5,6 +5,7 @@
 #include <string.h>
 #include <sys/signal.h>
 #include <sys/wait.h>
+#include <sys/msg.h>
 #include "device/device_communication.h"
 #include "util/util_printer.h"
 
@@ -253,4 +254,65 @@ bool device_communication_free_message_fields(char **fields) {
     free(fields);
 
     return true;
+}
+
+Queue_message *new_queue_message(char queue_name[], int queue_number, int msg_type, char *msg_text, bool clear) {
+    Queue_message *tmp_message;
+
+    tmp_message = malloc(sizeof(Queue_message));
+
+    if (tmp_message == NULL) {
+        perror("Queue_message Memory Allocation Error");
+        exit(EXIT_FAILURE);
+    }
+    tmp_message->key = ftok(queue_name, queue_number);
+    tmp_message->message_id = msgget(tmp_message->key, 0666 | IPC_CREAT);
+
+    if (clear) {
+        msgctl(tmp_message->message_id, IPC_RMID, NULL);
+        tmp_message->message_id = msgget(tmp_message->key, 0666 | IPC_CREAT);
+    }
+
+    tmp_message->_message.mesg_type = msg_type;
+
+    strcpy(tmp_message->_message.mesg_text, msg_text);
+
+    return tmp_message;
+}
+
+void queue_message_send_message(Queue_message *message) {
+    msgsnd(message->message_id, &message->_message, sizeof(Message), 0);
+}
+
+Message *queue_message_receive_message(int msg_id, bool blocking) {
+    Message *tmp_message;
+    tmp_message = malloc(sizeof(Message));
+
+    if (tmp_message == NULL) {
+        perror("Message Memory Allocation Error");
+        exit(EXIT_FAILURE);
+    }
+
+    if (!blocking) {
+        msgrcv(msg_id, tmp_message, sizeof(Message), 1, 0);
+    } else{
+        msgrcv(msg_id, tmp_message, sizeof(Message), 1, IPC_NOWAIT);
+    }
+
+    return tmp_message;
+}
+
+void queue_message_notify(__pid_t pid){
+    kill(pid, DEVICE_COMMUNICATION_READ_QUEUE);
+}
+
+int queue_message_get_message_id(char queue_name[], int queue_number){
+    return msgget(ftok(queue_name, queue_number), 0666 | IPC_CREAT);
+}
+
+bool queue_message_remove_message_queue(int msg_id){
+    if(msgctl(msg_id, IPC_RMID, NULL) == 0){
+        return true;
+    }
+    return false;
 }

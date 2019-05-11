@@ -20,7 +20,9 @@
 #include "cli/command/command_link.h"
 #include "cli/command/command_list.h"
 #include "cli/command/command_switch.h"
-
+#include "cli/command/command_connect.h"
+#include "cli/command/command_test.h"
+#include "cli/command/command_connect_manual.h"
 /* END Supported Commands */
 
 /**
@@ -59,6 +61,27 @@ void command_init(void) {
     autocomplete = trie_insert(autocomplete, command_list()->name, 1);
     list_add_last(commands, command_switch());
     autocomplete = trie_insert(autocomplete, command_switch()->name, 1);
+    list_add_last(commands, command_connect());
+    autocomplete = trie_insert(autocomplete, command_connect()->name, 1);
+}
+
+void manual_command_init(void) {
+    if (commands != NULL || autocomplete != NULL) return;
+    commands = new_list(NULL, NULL);
+    autocomplete = new_trie(NULL, NULL);
+
+    list_add_last(commands, command_clear());
+    autocomplete = trie_insert(autocomplete, command_clear()->name, 1);
+    list_add_last(commands, command_device());
+    autocomplete = trie_insert(autocomplete, command_device()->name, 1);
+    list_add_last(commands, command_exit());
+    autocomplete = trie_insert(autocomplete, command_exit()->name, 1);
+    list_add_last(commands, command_help());
+    autocomplete = trie_insert(autocomplete, command_help()->name, 1);
+    list_add_last(commands, command_test());
+    autocomplete = trie_insert(autocomplete, command_test()->name, 1);
+    list_add_last(commands, command_connect_manual());
+    autocomplete = trie_insert(autocomplete, command_connect_manual()->name, 1);
 }
 
 void command_tini(void) {

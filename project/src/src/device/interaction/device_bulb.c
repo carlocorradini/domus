@@ -163,12 +163,48 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
     device_communication_write_message(bulb_communication, &out_message);
 }
+#include <sys/ipc.h>
+#include <sys/msg.h>
+
+typedef struct _message {
+    long mesg_type;
+    char mesg_text[100];
+} _message;
+
+static key_t child_message_key;
+static int child_message_id;
+static _message child_in_message;
+
+static void get_child_queue_message();
+
+static char *queue_message = NULL;
+
+void get_child_queue_message() {
+
+    /**
+     * Check wheter the device is a control one or not
+     */
+    /*
+    if (control_device_child != NULL && device_child == NULL) {
+        child_message_key = ftok("control", control_device_child->device->id);
+    } else if (device_child != NULL && control_device_child == NULL) {
+        child_message_key = ftok("control", device_child->id);
+    }
+    */
+    child_message_key = ftok("control", 4);
+    child_message_id = msgget(child_message_key, 0666 | IPC_CREAT);
+
+    if (msgrcv(child_message_id, &child_in_message, sizeof(child_in_message), 1, IPC_NOWAIT) != -1) {
+        fprintf(stderr, "\t%s\n", child_in_message.mesg_text);
+    }
+    msgctl(child_message_id, IPC_RMID, NULL);
+}
 
 int main(int argc, char **args) {
     bulb = device_child_new_device(argc, args, DEVICE_TYPE_BULB, new_bulb_registry());
     list_add_last(bulb->switches, new_device_switch("turn", (bool *) DEVICE_STATE, bulb_set_switch_state));
     bulb_communication = device_child_new_device_communication(argc, args, bulb_message_handler);
-
+    signal(SIGUSR2, get_child_queue_message);
     device_child_run(NULL);
 
     return EXIT_SUCCESS;

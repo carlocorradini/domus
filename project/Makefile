@@ -9,7 +9,7 @@ SLOGAN := Unicuique sua domus nota
 DESCRIPTION := Home Automation at your CLI
 
 # MAINS
-TARGET:= main controller bulb window fridge hub timer
+TARGET:= main controller bulb window fridge hub timer manual_control
 
 # DIRECTORIES
 SRC_DIR := ./src/src
@@ -25,10 +25,11 @@ DEV_BIN := $(BIN_DIR)/device
 SRC := $(shell find $(SRC_DIR)/ -type f -name '*.c')
 OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 DEV := $(shell find $(DEV_SRC_DIR) -type f -name '*.c')
-# Take all .c file in src/device/, exclude controller.c | device.c | communication.c | child.c
+# Take all .c file in src/device/, exclude controller.c | device.c | communication.c | child.c | manual_control_libs.c
 DEV_OBJ := $(patsubst $(DEV_SRC_DIR)/%.c, $(DEV_OBJ_DIR)/%.o, $(DEV))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring device.o,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring communication,$a),,$a))
+DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring control_libs,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring child,$a),,$a))
 
 # All .o files, both commons and specific ones
@@ -40,7 +41,7 @@ OBJ := $(filter-out $(DEV_OBJ), $(OBJ))
 
 # COMPILER
 CC := gcc
-CFLAGS := -std=gnu90 -Wall -Wextra -pedantic -g
+CFLAGS := -std=gnu90
 CPPFLAGS := -I$(HDR_DIR)
 
 # UTILS

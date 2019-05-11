@@ -22,6 +22,12 @@ typedef struct Command {
 void command_init(void);
 
 /**
+ * Initialize the List of supported Commands for
+ * Manual Control
+ */
+void manual_command_init(void);
+
+/**
  * Free the List of supported Commands
  */
 void command_tini(void);

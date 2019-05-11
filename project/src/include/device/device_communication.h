@@ -10,6 +10,7 @@
 #define DEVICE_COMMUNICATION_CHILD_WRITE 1
 #define DEVICE_COMMUNICATION_READ_PIPE SIGUSR1
 #define DEVICE_COMMUNICATION_TIMER SIGUSR2
+#define DEVICE_COMMUNICATION_READ_QUEUE SIGCONT
 #define DEVICE_COMMUNICATION_MESSAGE_LENGTH 256
 #define DEVICE_COMMUNICATION_MESSAGE_FIELDS_MAX 16
 #define DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER "\n"
@@ -38,6 +39,12 @@
 #define MESSAGE_RETURN_VALUE_ERROR "ERROR\nVALUE"
 /* END Message Status */
 
+/* Queue Message Definitions */
+#define QUEUE_MESSAGE_QUEUE_NAME "/tmp/control"
+#define QUEUE_MESSAGE_QUEUE_NUMBER 1
+#define QUEUE_MESSAGE_TYPE_PID_REQUEST 1
+#define QUEUE_MESSAGE_MESSAGE_LENGTH 100
+/* END Queue Message Definitions */
 /** Struct Device Communication for storing information about a Communication between two processes
  */
 typedef struct DeviceCommunication {
@@ -173,5 +180,35 @@ char **device_communication_split_message_fields(const DeviceCommunicationMessag
  * @return true if freed, false otherwise
  */
 bool device_communication_free_message_fields(char **fields);
+
+/*
+ *
+ * Queue Messages
+ *
+ */
+
+typedef struct Message {
+    long mesg_type;
+    char mesg_text[QUEUE_MESSAGE_MESSAGE_LENGTH];
+} Message;
+
+typedef struct Queue_message {
+    key_t key;
+    int message_id;
+    Message _message;
+
+} Queue_message;
+
+Queue_message *new_queue_message(char queue_name[], int queue_number, int msg_type, char *msg_text, bool clear);
+
+void queue_message_send_message(Queue_message *message);
+
+Message *queue_message_receive_message(int msg_id, bool blocking);
+
+void queue_message_notify(__pid_t pid);
+
+int queue_message_get_message_id(char queue_name[], int queue_number);
+
+bool queue_message_remove_message_queue(int msg_id);
 
 #endif
