@@ -1,6 +1,8 @@
 #ifndef _DEVICE_WINDOW_H
 #define _DEVICE_WINDOW_H
 
+#include <unistd.h>
+
 #define WINDOW_SWITCH_OPEN "open"
 #define WINDOW_SWITCH_OPEN_ON "on"
 #define WINDOW_SWITCH_OPEN_OFF "off"

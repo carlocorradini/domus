@@ -7,6 +7,7 @@
 
 #define CONVERTER_RESULT_ERROR_LENGTH 64
 #define CONVERTER_DATA_STRING_LENGTH 32
+#define CONVERTER_DATA_MAX_DATE_STRING_LENGTH 64
 
 typedef struct ConverterResult {
     bool error;
@@ -49,7 +50,6 @@ ConverterResult converter_char_to_bool(char char_value);
  */
 ConverterResult converter_bool_to_string(bool value);
 
-
 /**
  * Convert a char to double
  * @param char_value The char value to convert
@@ -57,5 +57,10 @@ ConverterResult converter_bool_to_string(bool value);
  */
 ConverterResult converter_string_to_double(const char *char_string);
 
-ConverterResult converter_string_to_date(char *char_string);
+/**
+ * Convert a string into a date
+ * @param char_string The String to convert
+ * @return The Converter Result
+ */
+ConverterResult converter_string_to_date(const char *char_string);
 #endif

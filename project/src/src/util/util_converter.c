@@ -42,7 +42,7 @@ ConverterResult converter_string_to_long(const char *char_string) {
 }
 
 ConverterResult converter_char_to_bool(char char_value) {
-    const char char_string[2] = { char_value, '\0' };
+    const char char_string[2] = {char_value, '\0'};
     ConverterResult result = converter_string_to_int(char_string);
 
     if (!result.error && (result.data.Int != false || result.data.Int != true)) {
@@ -95,43 +95,44 @@ ConverterResult converter_string_to_double(const char *char_string) {
     return result;
 }
 
-ConverterResult converter_string_to_date(char *char_string){
+ConverterResult converter_string_to_date(const char *char_string) {
     ConverterResult result;
+    char str_date[CONVERTER_DATA_MAX_DATE_STRING_LENGTH];
     const char *toRtn_str;
     char *toRtn_str_end = NULL;
+    char *pch;
+    int tmp;
 
+    strncpy(str_date, char_string, CONVERTER_DATA_MAX_DATE_STRING_LENGTH);
     result.error = false;
-    toRtn_str = char_string;
+    toRtn_str = str_date;
     toRtn_str_end = NULL;
     errno = 0;
-
-    char* pch;
-    pch = strtok(char_string, " ,.-:");
-
-    int tmp = strtol(pch, &toRtn_str_end, 10);
-
+    pch = strtok(str_date, " ,.-:");
+    tmp = strtol(pch, &toRtn_str_end, 10);
 
 
     if (toRtn_str == toRtn_str_end) {
         result.error = true;
         strncpy(result.error_message, "No date found", CONVERTER_RESULT_ERROR_LENGTH);
-    }
-    result.data.Date.tm_year = tmp-1900; //get the year value
-    tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);;
-    result.data.Date.tm_mon = tmp-1;  //get the month value
-    tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
-    result.data.Date.tm_mday = tmp; //get the day value
-    tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
-    result.data.Date.tm_hour = tmp-1; //get the hour value
-    tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
-    result.data.Date.tm_min = tmp; //get the min value
-    tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
-    result.data.Date.tm_sec = tmp; //get the sec value
+    } else {
+        result.data.Date.tm_year = tmp - 1900; //get the year value
+        tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);;
+        result.data.Date.tm_mon = tmp - 1;  //get the month value
+        tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
+        result.data.Date.tm_mday = tmp; //get the day value
+        tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
+        result.data.Date.tm_hour = tmp - 1; //get the hour value
+        tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
+        result.data.Date.tm_min = tmp; //get the min value
+        tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
+        result.data.Date.tm_sec = tmp; //get the sec value
 
-
-    if(difftime(mktime(&result.data.Date), time(NULL)) < 0){
+        if (difftime(mktime(&result.data.Date), time(NULL)) < 0) {
             result.error = true;
             strncpy(result.error_message, "Wrong date", CONVERTER_RESULT_ERROR_LENGTH);
+        }
     }
+
     return result;
 }
