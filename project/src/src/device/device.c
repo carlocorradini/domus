@@ -210,12 +210,12 @@ DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(con
     return device_switch;
 }
 
-void *device_get_device_switch_state(const List *switch_list, char name[]) {
+void *device_get_device_switch_state(const List *switch_list, const char *name) {
     return ((DeviceSwitch *) list_get(switch_list, list_get_index(switch_list, name)))->state;
 }
 
-DeviceSwitch *device_get_device_switch(const List *switch_list, char name[]) {
-    return list_get(switch_list, list_get_index(switch_list, name));
+DeviceSwitch *device_get_device_switch(const List *switch_list, const char *name) {
+    return (DeviceSwitch *) list_get(switch_list, list_get_index(switch_list, name));
 }
 
 bool device_check_device(const Device *device) {

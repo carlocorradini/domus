@@ -412,35 +412,9 @@ static void control_device_child_middleware_message_handler(void) {
                                                 getpid());
             break;
         }
-        case MESSAGE_TYPE_SET_ON: {
-            list_for_each(data, control_device_child->devices) {
-                child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
-                child_in_message.id_recipient = in_message.id_sender;
-
-                if (child_in_message.flag_continue) {
-                    device_communication_write_message_with_ack_silent(device_child_communication,
-                                                                       &child_in_message);
-                    do {
-                        child_in_message = device_communication_write_message_with_ack_silent(data,
-                                                                                              &child_out_message);
-                        if (child_in_message.flag_continue) {
-                            device_communication_write_message_with_ack_silent(device_child_communication,
-                                                                               &child_in_message);
-                        }
-                    } while (child_in_message.flag_continue);
-                }
-
-                child_in_message.flag_continue = true;
-                device_communication_write_message_with_ack_silent(device_child_communication, &child_in_message);
-            }
-
-            in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
-
-            break;
-        }
-
         case MESSAGE_TYPE_TERMINATE:
-        case MESSAGE_TYPE_INFO: {
+        case MESSAGE_TYPE_INFO:
+        case MESSAGE_TYPE_SET_ON: {
             list_for_each(data, control_device_child->devices) {
                 child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
                 child_in_message.id_recipient = in_message.id_sender;
@@ -474,7 +448,7 @@ static void control_device_child_middleware_message_handler(void) {
                 /* Stop the Device */
                 _device_child_run = false;
                 break;
-            } else if (in_message.type == MESSAGE_TYPE_INFO) {
+            } else if (in_message.type == MESSAGE_TYPE_INFO || in_message.type == MESSAGE_TYPE_SET_ON) {
                 device_child_message_handler(in_message);
                 return;
             }

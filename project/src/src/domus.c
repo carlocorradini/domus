@@ -301,9 +301,11 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
             } else if (strcmp(data->message, MESSAGE_RETURN_NAME_ERROR) == 0) {
                 println_color(COLOR_RED, "<label> %s doesn't exist",
                               switch_label);
-            } else if (strcmp(data->message, MESSAGE_RETURN_NAME_ERROR) == 0) {
+            } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_ERROR) == 0) {
                 println_color(COLOR_RED, "<pos> %s doesn't exist",
                               switch_pos);
+            } else {
+                println_color(COLOR_RED, "Unknown Error");
             }
         }
     }
