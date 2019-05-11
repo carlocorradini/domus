@@ -363,7 +363,7 @@ int domus_link(size_t device_id, size_t control_device_id) {
     if (!device_check_control_device(domus)) return false;
 
     device_list = domus_propagate_message(device_id, MESSAGE_TYPE_INFO, "", MESSAGE_TYPE_INFO);
-    device_dad_list = new_list(NULL, device_dad_equals);
+    device_dad_list = new_list(NULL, (bool (*)(const void *, const void *)) device_dad_equals);
     device_communication_message_init(domus->device, &out_message);
     toRtn = -1;
 

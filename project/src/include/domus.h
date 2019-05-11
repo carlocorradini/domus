@@ -99,4 +99,6 @@ int domus_link(size_t device_id, size_t control_device_id);
  */
 void domus_hierarchy(void);
 
+__pid_t domus_getpid(size_t device_id);
+
 #endif

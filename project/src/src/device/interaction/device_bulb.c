@@ -195,7 +195,8 @@ void get_child_queue_message() {
 
 int main(int argc, char **args) {
     bulb = device_child_new_device(argc, args, DEVICE_TYPE_BULB, new_bulb_registry());
-    list_add_last(bulb->switches, new_device_switch(BULB_SWITCH_TURN, (bool *) DEVICE_STATE, bulb_set_switch_state));
+    list_add_last(bulb->switches, new_device_switch(BULB_SWITCH_TURN, (bool *) DEVICE_STATE,
+                                                    (bool (*)(const char *, void *)) bulb_set_switch_state));
     bulb_communication = device_child_new_device_communication(argc, args, bulb_message_handler);
     signal(SIGUSR2, get_child_queue_message);
     device_child_run(NULL);

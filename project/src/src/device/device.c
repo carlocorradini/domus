@@ -59,7 +59,7 @@ static bool device_switch_equals(const char *data_1, const char *data_2) {
 
 void device_init(void) {
     if (supported_devices != NULL) return;
-    supported_devices = new_list(NULL, device_device_descriptor_equals);
+    supported_devices = new_list(NULL, (bool (*)(const void *, const void *)) device_device_descriptor_equals);
 
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_DOMUS, true, "domus",
                                                            "The Domus System",
@@ -110,7 +110,7 @@ Device *new_device(size_t device_id, size_t device_descriptor_id, bool state, vo
     }
     device->state = state;
     device->registry = registry;
-    device->switches = new_list(NULL, device_switch_equals);
+    device->switches = new_list(NULL, (bool (*)(const void *, const void *)) device_switch_equals);
 
     return device;
 }
@@ -140,7 +140,7 @@ ControlDevice *new_control_device(Device *device) {
     }
 
     control_device->device = device;
-    control_device->devices = new_list(NULL, device_device_communication_equals);
+    control_device->devices = new_list(NULL, (bool (*)(const void *, const void *)) device_device_communication_equals);
 
     return control_device;
 }

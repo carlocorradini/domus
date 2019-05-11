@@ -234,7 +234,7 @@ static void set_device() {
 
 int main(int argc, char **args) {
     timer = device_child_new_control_device(argc, args, DEVICE_TYPE_TIMER, new_timer_registry());
-    list_add_last(timer->device->switches, new_device_switch(TIMER_SWITCH_TIME, (bool *) DEVICE_STATE, timer_set_switch_state));
+    list_add_last(timer->device->switches, new_device_switch(TIMER_SWITCH_TIME, (bool *) DEVICE_STATE, (bool (*)(const char *, void *)) timer_set_switch_state));
     timer_communication = device_child_new_control_device_communication(argc, args, timer_message_handler);
 
     signal(DEVICE_COMMUNICATION_TIMER, set_device);

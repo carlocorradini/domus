@@ -143,7 +143,8 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
 
 int main(int argc, char **args) {
     window = device_child_new_device(argc, args, DEVICE_TYPE_WINDOW, new_window_registry());
-    list_add_last(window->switches, new_device_switch(WINDOW_SWITCH_OPEN, (bool *) false, window_set_switch_state));
+    list_add_last(window->switches, new_device_switch(WINDOW_SWITCH_OPEN, (bool *) false,
+                                                      (bool (*)(const char *, void *)) window_set_switch_state));
 
     window_communication = device_child_new_device_communication(argc, args, window_message_handler);
 
