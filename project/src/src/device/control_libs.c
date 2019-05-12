@@ -66,7 +66,8 @@ bool manual_control_set_device(size_t device_id, char * switch_name, char * swit
 
     in_message = queue_message_send_message_with_ack(device_pid, out_message);
 
-    if(in_message->mesg_text == QUEUE_MESSAGE_RETURN_SUCCESS){
+    fprintf(stderr, "\tReceived : %s\n", in_message->mesg_text);
+    if(strcmp(in_message->mesg_text, QUEUE_MESSAGE_RETURN_SUCCESS) == 0){
         return true;
     }
     return false;

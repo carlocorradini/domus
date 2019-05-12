@@ -5,6 +5,7 @@
 #include "cli/command/command.h"
 #include "util/util_printer.h"
 #include "author.h"
+#include "device/device_communication.h"
 
 #define DOMUS_MANUAL_VERSION "1.0.0"
 #define DOMUS_MANUAL_LICENSE "MIT"
@@ -21,10 +22,13 @@ static void domus_manual_information(void);
  */
 static void domus_manual_welcome(void);
 
+
 int main(int argc, char **args) {
+    queue_message_create_queue();
     domus_manual_welcome();
     manual_command_init();
     cli_start();
+    command_tini();
 
     return EXIT_SUCCESS;
 }

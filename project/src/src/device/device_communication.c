@@ -337,3 +337,8 @@ Message *queue_message_send_message_with_ack(__pid_t device_pid, Queue_message *
     return in_message;
 }
 
+void queue_message_create_queue(){
+    char file[] = "touch ";
+    strcat(file, QUEUE_MESSAGE_QUEUE_NAME);
+    system(file);
+}

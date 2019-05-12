@@ -169,8 +169,6 @@ static void queue_message_handler(){
     message_id = queue_message_get_message_id(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER);
     in_message = queue_message_receive_message(message_id, QUEUE_MESSAGE_TYPE_DEVICE_START + bulb->id, true);
 
-    fprintf(stderr, "\tReceived message: %s", in_message->mesg_text);
-
     fake_message = malloc(sizeof(DeviceCommunicationMessage));
     device_communication_message_modify_message(fake_message, in_message->mesg_text);
 
@@ -178,7 +176,16 @@ static void queue_message_handler(){
 
     sender_pid = converter_string_to_long(fields[0]);
 
-    snprintf(text, 64, "%s", "Ok");
+    snprintf(text, 64, "%s", QUEUE_MESSAGE_RETURN_ERROR);
+
+    if(strcmp(fields[1], BULB_SWITCH_TURN) == 0){
+        if(strcmp(fields[2], BULB_SWITCH_TURN_OFF) == 0){
+            if(bulb_set_switch_state(BULB_SWITCH_TURN, false)) snprintf(text, 64, "%s", QUEUE_MESSAGE_RETURN_SUCCESS);
+        }
+        else if(strcmp(fields[2], BULB_SWITCH_TURN_ON) == 0){
+            if(bulb_set_switch_state(BULB_SWITCH_TURN, true)) snprintf(text, 64, "%s", QUEUE_MESSAGE_RETURN_SUCCESS);
+        }
+    }
 
     out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
                                     QUEUE_MESSAGE_TYPE_DEVICE_START + bulb->id, text, false);

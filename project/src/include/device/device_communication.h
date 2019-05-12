@@ -50,6 +50,7 @@
 
 #define QUEUE_MESSAGE_MESSAGE_LENGTH 100
 #define QUEUE_MESSAGE_RETURN_SUCCESS "Ok"
+#define QUEUE_MESSAGE_RETURN_ERROR "Error"
 
 /* END Queue Message Definitions */
 /** Struct Device Communication for storing information about a Communication between two processes
@@ -219,5 +220,7 @@ int queue_message_get_message_id(char queue_name[], int queue_number);
 bool queue_message_remove_message_queue(int msg_id);
 
 Message *queue_message_send_message_with_ack(__pid_t device_pid, Queue_message *message);
+
+void queue_message_create_queue();
 
 #endif

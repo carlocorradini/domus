@@ -92,6 +92,9 @@ $(TARGET): $(ALL_OBJ)
 	@if [ $@ = main ]; then \
 		mv $(DEV_BIN)/$@ $(BIN_DIR)/$(PRJ_NAME); \
 	fi;
+	@if [ $@ = manual_control ]; then \
+    	mv $(DEV_BIN)/$@ $(BIN_DIR)/$@; \
+    fi;
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	@if [ ! -d "./$(dir $@)" ]; then \

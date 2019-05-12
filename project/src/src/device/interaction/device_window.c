@@ -141,12 +141,52 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
     device_communication_write_message(window_communication, &out_message);
 }
 
+static void queue_message_handler(){
+    Message * in_message;
+    Queue_message * out_message;
+    DeviceCommunicationMessage *fake_message;
+    ConverterResult sender_pid;
+    char text[QUEUE_MESSAGE_MESSAGE_LENGTH];
+    char **fields;
+    int message_id;
+
+    message_id = queue_message_get_message_id(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER);
+    in_message = queue_message_receive_message(message_id, QUEUE_MESSAGE_TYPE_DEVICE_START + window->id, true);
+
+    fake_message = malloc(sizeof(DeviceCommunicationMessage));
+    device_communication_message_modify_message(fake_message, in_message->mesg_text);
+
+    fields = device_communication_split_message_fields(fake_message->message);
+
+    sender_pid = converter_string_to_long(fields[0]);
+
+    snprintf(text, 64, "%s", QUEUE_MESSAGE_RETURN_ERROR);
+
+    if(strcmp(fields[1], WINDOW_SWITCH_OPEN) == 0){
+        if(strcmp(fields[2], WINDOW_SWITCH_OPEN_OFF) == 0){
+            if(window_set_switch_state(WINDOW_SWITCH_OPEN, false)) snprintf(text, 64, "%s", QUEUE_MESSAGE_RETURN_SUCCESS);
+        }
+        else if(strcmp(fields[2], WINDOW_SWITCH_OPEN_ON) == 0){
+            if(window_set_switch_state(WINDOW_SWITCH_OPEN, true)) snprintf(text, 64, "%s", QUEUE_MESSAGE_RETURN_SUCCESS);
+        }
+    }
+
+    out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
+                                    QUEUE_MESSAGE_TYPE_DEVICE_START + window->id, text, false);
+    queue_message_send_message(out_message);
+    queue_message_notify((__pid_t) sender_pid.data.Long);
+
+    free(fake_message);
+    device_communication_free_message_fields(fields);
+}
+
 int main(int argc, char **args) {
     window = device_child_new_device(argc, args, DEVICE_TYPE_WINDOW, new_window_registry());
     list_add_last(window->switches, new_device_switch(WINDOW_SWITCH_OPEN, (bool *) false,
                                                       (bool (*)(const char *, void *)) window_set_switch_state));
 
     window_communication = device_child_new_device_communication(argc, args, window_message_handler);
+    signal(DEVICE_COMMUNICATION_READ_QUEUE, queue_message_handler);
 
     device_child_run(NULL);
 

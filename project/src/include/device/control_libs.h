@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include "util/util_converter.h"
 #include "device/device_communication.h"
+#include <string.h>
 
 bool manual_control_check_domus(__pid_t pid);
 

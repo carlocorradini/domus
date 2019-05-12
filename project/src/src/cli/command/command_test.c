@@ -12,17 +12,12 @@ static int test(char **args) {
     ConverterResult result;
     __pid_t device_id;
 
-    if(args[1] == NULL || (result = converter_string_to_long(args[1])).error){
+    if(args[1] == NULL || (result = converter_string_to_long(args[1])).error || args[2] == NULL || args[3] == NULL){
         println_color(COLOR_RED, "\tPlease type a valid Device ID");
         return CLI_CONTINUE;
     }
     println_color(COLOR_GREEN, "\tTest function\n");
-    device_id = manual_control_get_device_pid(result.data.Long);
-
-    if(device_id == 0){
-        println_color(COLOR_RED, "\tDevice not found or not started yet");
-        return CLI_CONTINUE;
-    }
+    println_color(COLOR_GREEN, "\tManual set device %lu : %d\n", result.data.Long, manual_control_set_device(result.data.Long, args[2], args[3]));
 
     return CLI_CONTINUE;
 }
