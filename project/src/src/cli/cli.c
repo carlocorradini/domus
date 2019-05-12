@@ -210,6 +210,7 @@ static char *cli_read_line(void) {
                      */
                     if (res != NULL) {
                         move_left();
+                        memset(buffer,0, CLI_READ_LINE_BUFFER_SIZE);
                         strncpy(buffer, res, strlen(res));
                         strcat(buffer, "\0");
                         printf("%s", buffer);
