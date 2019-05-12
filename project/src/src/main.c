@@ -29,13 +29,13 @@ int main(int argc, char **args) {
 }
 
 static void domus_information(void) {
-    println_color(COLOR_MAGENTA, "- AUTHORS");
+    println_color(COLOR_YELLOW, "- AUTHORS");
     author_print_all();
-    println_color(COLOR_MAGENTA, "- DESCRIPTION");
+    println_color(COLOR_YELLOW, "- DESCRIPTION");
     println("\t%s", DOMUS_DESCRIPTION);
-    println_color(COLOR_MAGENTA, "- VERSION");
+    println_color(COLOR_YELLOW, "- VERSION");
     println("\t%s", DOMUS_VERSION);
-    println_color(COLOR_MAGENTA, "- LICENSE");
+    println_color(COLOR_YELLOW, "- LICENSE");
     println("\t%s", DOMUS_LICENSE);
 }
 
