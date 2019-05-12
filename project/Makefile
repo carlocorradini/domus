@@ -9,7 +9,7 @@ SLOGAN := Unicuique sua domus nota
 DESCRIPTION := Home Automation at your CLI
 
 # MAINS
-TARGET:= main controller bulb window fridge hub timer manual_control
+TARGET:= main controller bulb window fridge hub timer domus_manual
 
 # DIRECTORIES
 SRC_DIR := ./src/src
@@ -92,7 +92,7 @@ $(TARGET): $(ALL_OBJ)
 	@if [ $@ = main ]; then \
 		mv $(DEV_BIN)/$@ $(BIN_DIR)/$(PRJ_NAME); \
 	fi;
-	@if [ $@ = manual_control ]; then \
+	@if [ $@ = domus_manual ]; then \
     	mv $(DEV_BIN)/$@ $(BIN_DIR)/$@; \
     fi;
 
