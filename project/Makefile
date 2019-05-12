@@ -25,12 +25,12 @@ DEV_BIN := $(BIN_DIR)/device
 SRC := $(shell find $(SRC_DIR)/ -type f -name '*.c')
 OBJ := $(patsubst $(SRC_DIR)/%.c, $(OBJ_DIR)/%.o, $(SRC))
 DEV := $(shell find $(DEV_SRC_DIR) -type f -name '*.c')
-# Take all .c file in src/device/, exclude controller.c | device.c | communication.c | child.c | manual_control_libs.c
+# Take all .c file in $(DEV_SRC_DIR), exclude device | communication | child | manual_control | control_libs
 DEV_OBJ := $(patsubst $(DEV_SRC_DIR)/%.c, $(DEV_OBJ_DIR)/%.o, $(DEV))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring device.o,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring communication,$a),,$a))
-DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring control_libs,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring child,$a),,$a))
+DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring control_libs,$a),,$a))
 
 # All .o files, both commons and specific ones
 ALL_OBJ := $(OBJ)
@@ -68,46 +68,57 @@ COLOR_WHITE := \033[0;37m
 # -------------------------
 # RECIPES
 # -------------------------
-.PHONY: all build help clean
+.PHONY: all build build_mkdir help clean
 
 all:
-	@$(ECHO) "$(COLOR_RED)Make without any recipe is not allowed$(COLOR_RESET)"
-	@$(ECHO) "$(COLOR_RED)Please type 'make help' for more information$(COLOR_RESET)"
+	@$(ECHO) "$(COLOR_RED)Make without any recipe is not allowed$(COLOR_RESET)";
+	@$(ECHO) "$(COLOR_RED)Please type 'make help' for more information$(COLOR_RESET)";
 
 build: clean $(TARGET)
+	@$(ECHO) "$(COLOR_GREEN)=== COMPILATION SUCCEDED ===$(COLOR_RESET)";
+	@$(ECHO) "$(COLOR_CYAN)\tTo run $(PRJ_NAME), go to $(BIN_DIR) and type './$(PRJ_NAME)'$(COLOR_RESET)\n";
+
+build_mkdir:
+	@$(ECHO) "$(COLOR_YELLOW)=== GENERATING DIRECTORY $(DEV_BIN) ===$(COLOR_RESET)";
+	@$(MKDIR) $(DEV_BIN);
 
 $(TARGET): $(ALL_OBJ)
-	@$(ECHO) "$(COLOR_YELLOW)=== COMPILING $@ ===$(COLOR_RESET)"
-	$(MKDIR) $(DEV_BIN)
-	#      get the .o file having $(TARGET) in the name                                    add all common files
+	@if [ ! -d "$(DEV_BIN)" ]; then \
+		$(ECHO) "$(COLOR_YELLOW)=== GENERATING DIRECTORY $(DEV_BIN) ===$(COLOR_RESET)"; \
+		$(MKDIR) $(DEV_BIN); \
+	fi;
+	@$(ECHO) "$(COLOR_YELLOW)=== COMPILING $@ ===$(COLOR_RESET)";
 	$(CC) $(filter-out $(foreach a,$(ALL_OBJ),$(if $(findstring $@,$a),,$a)), $(ALL_OBJ)) $(OBJ) -o $(DEV_BIN)/$@ -lrt
-	# if the executable is the main one, move it and rename it
 	@if [ $@ = main ]; then \
 		mv $(DEV_BIN)/$@ $(BIN_DIR)/$(PRJ_NAME); \
 	fi;
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
-	$(MKDIR) $(dir $@)
+	@if [ ! -d "./$(dir $@)" ]; then \
+		$(ECHO) "$(COLOR_YELLOW)=== GENERATING DIRECTORY ./$(dir $@) ===$(COLOR_RESET)"; \
+		$(MKDIR) $(dir $@); \
+	fi;
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 help:
-	@$(ECHO) "$(COLOR_GREEN)=== DOMUS ===$(COLOR_RESET)"
-	@$(ECHO) "\t$(SLOGAN)"
+	@$(ECHO) "$(COLOR_GREEN)=== DOMUS ===$(COLOR_RESET)";
+	@$(ECHO) "\t$(SLOGAN)";
 	@$(ECHO) "$(COLOR_MAGENTA)- AUTHORS$(COLOR_RESET)"
-	@$(ECHO) "\tCarlo Corradini  | carlo.corradini@studenti.unitn.it  | 192451"
-	@$(ECHO) "\tSimone Nascivera | simone.nascivera@studenti.unitn.it | 193246"
-	@$(ECHO) "$(COLOR_MAGENTA)- DESCRIPTION$(COLOR_RESET)"
-	@$(ECHO) "\t$(DESCRIPTION)"
-	@$(ECHO) "$(COLOR_MAGENTA)- VERSION$(COLOR_RESET)"
-	@$(ECHO) "\t$(VERSION)"
-	@$(ECHO) "$(COLOR_MAGENTA)- LICENSE$(COLOR_RESET)"
-	@$(ECHO) "\t$(LICENSE)"
-	@$(ECHO) "$(COLOR_MAGENTA)- RECIPES AVAILABLE$(COLOR_RESET)"
-	@$(ECHO) "\t$(COLOR_YELLOW)build$(COLOR_RESET)            Build & Compile all files under $(SRC_DIR) and generate [$(TARGET)] binaries"
-	@$(ECHO) "\t$(COLOR_YELLOW)clean$(COLOR_RESET)            Delete $(BUILD_DIR) directory and [$(TARGET)] binaries"
-	@$(ECHO) "\t$(COLOR_YELLOW)help$(COLOR_RESET)             Show useful information"
+	@$(ECHO) "\tCarlo Corradini  | carlo.corradini@studenti.unitn.it  | 192451";
+	@$(ECHO) "\tSimone Nascivera | simone.nascivera@studenti.unitn.it | 193246";
+	@$(ECHO) "$(COLOR_MAGENTA)- DESCRIPTION$(COLOR_RESET)";
+	@$(ECHO) "\t$(DESCRIPTION)";
+	@$(ECHO) "$(COLOR_MAGENTA)- VERSION$(COLOR_RESET)";
+	@$(ECHO) "\t$(VERSION)";
+	@$(ECHO) "$(COLOR_MAGENTA)- LICENSE$(COLOR_RESET)";
+	@$(ECHO) "\t$(LICENSE)";
+	@$(ECHO) "$(COLOR_MAGENTA)- RECIPES AVAILABLE$(COLOR_RESET)";
+	@$(ECHO) "\t$(COLOR_YELLOW)build$(COLOR_RESET)            Build & Compile all files under $(SRC_DIR) and generate [$(TARGET)] binaries";
+	@$(ECHO) "\t$(COLOR_YELLOW)clean$(COLOR_RESET)            Delete $(BUILD_DIR) directory and [$(TARGET)] binaries";
+	@$(ECHO) "\t$(COLOR_YELLOW)help$(COLOR_RESET)             Show useful information";
 
 clean:
+	@$(ECHO) "$(COLOR_YELLOW)=== CLEANING ===$(COLOR_RESET)";
 	$(RM) $(BUILD_DIR)
 # -------------------------
 # END RECIPES
