@@ -11,10 +11,11 @@ static int _manual_connect(char **args) {
     }
 
     domus_pid = result.data.Long;
-    manual_control_check_domus(domus_pid);
-
-    println_color(COLOR_GREEN, "\t%d", domus_pid);
-
+    if(manual_control_check_domus(domus_pid)) {
+        println_color(COLOR_GREEN, "\tSuccessfully established connection with Domus");
+    } else{
+        println_color(COLOR_RED, "\tError while establishing connection with Domus");
+    }
     return CLI_CONTINUE;
 }
 

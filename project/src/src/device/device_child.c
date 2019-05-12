@@ -5,6 +5,7 @@
 #include <errno.h>
 #include "device/device_child.h"
 #include "util/util_converter.h"
+#include "domus.h"
 
 /**
  * The volatile variable for knowing if the process must continue or die
@@ -73,31 +74,6 @@ static void (*device_child_message_handler)(DeviceCommunicationMessage) = NULL;
  */
 static bool device_child_check_args(int argc, char **args);
 
-void prova(){
-    if(control_device_child != NULL && control_device_child->device->id == 1) {
-        perror("\nHere\n");
-        ConverterResult result;
-        Queue_message *out_message;
-        Message *in_message;
-        int message_id;
-
-        message_id = queue_message_get_message_id(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER);
-        in_message = queue_message_receive_message(message_id, true);
-
-        result = converter_string_to_long(in_message->mesg_text);
-        fprintf(stderr, "\t Received message from pid %ld \n", result.data.Long);
-
-        char text[QUEUE_MESSAGE_MESSAGE_LENGTH];
-        snprintf(text, 64, "%d", getpid());
-
-        out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
-                                        QUEUE_MESSAGE_TYPE_PID_REQUEST, "ciao", false);
-        queue_message_send_message(out_message);
-        queue_message_notify((__pid_t) result.data.Long);
-
-        fprintf(stderr, "\t Sent message\n");
-    }
-}
 
 void device_child_run(void (*do_on_wake_up)(void)) {
     DeviceCommunicationMessage out_message;
@@ -115,7 +91,6 @@ void device_child_run(void (*do_on_wake_up)(void)) {
     device_communication_message_modify(&out_message, 0, MESSAGE_TYPE_I_AM_ALIVE, "");
     device_communication_write_message(device_child_communication, &out_message);
 
-    signal(SIGCONT, prova);
     while (_device_child_run) {
         pause();
         if (control_device_child != NULL) device_child_control_device_spawn();

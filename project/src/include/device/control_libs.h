@@ -5,6 +5,9 @@
 #include "util/util_converter.h"
 #include "device/device_communication.h"
 
-bool manual_control_check_domus(__pid_t domus_pid);
+bool manual_control_check_domus(__pid_t pid);
 
+__pid_t manual_control_get_device_pid(size_t device_id);
+
+bool manual_control_set_device(size_t device_id, char * switch_name, char * switch_pos);
 #endif

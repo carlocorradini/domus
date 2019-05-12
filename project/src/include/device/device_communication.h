@@ -42,8 +42,15 @@
 /* Queue Message Definitions */
 #define QUEUE_MESSAGE_QUEUE_NAME "/tmp/control"
 #define QUEUE_MESSAGE_QUEUE_NUMBER 1
-#define QUEUE_MESSAGE_TYPE_PID_REQUEST 1
+
+#define QUEUE_MESSAGE_TYPE_ALL_TYPES 0
+#define QUEUE_MESSAGE_TYPE_DOMUS_PID_REQUEST 1
+#define QUEUE_MESSAGE_TYPE_PID_REQUEST 2
+#define QUEUE_MESSAGE_TYPE_DEVICE_START 5
+
 #define QUEUE_MESSAGE_MESSAGE_LENGTH 100
+#define QUEUE_MESSAGE_RETURN_SUCCESS "Ok"
+
 /* END Queue Message Definitions */
 /** Struct Device Communication for storing information about a Communication between two processes
  */
@@ -203,12 +210,14 @@ Queue_message *new_queue_message(char queue_name[], int queue_number, int msg_ty
 
 void queue_message_send_message(Queue_message *message);
 
-Message *queue_message_receive_message(int msg_id, bool blocking);
+Message *queue_message_receive_message(int msg_id, int message_type, bool blocking);
 
 void queue_message_notify(__pid_t pid);
 
 int queue_message_get_message_id(char queue_name[], int queue_number);
 
 bool queue_message_remove_message_queue(int msg_id);
+
+Message * queue_message_send_message_with_ack(__pid_t device_pid, Queue_message *message);
 
 #endif

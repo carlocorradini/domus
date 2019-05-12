@@ -6,9 +6,9 @@
 #include <unistd.h>
 
 static int _connect(char **args) {
-    println_color(COLOR_YELLOW, "\tDomus PID is %ld", domus_getpid(1));
+    println_color(COLOR_YELLOW, "\tDomus PID is %ld", domus_getpid(DOMUS_ID));
     println_color(COLOR_YELLOW, "\tNow you can launch manual_control application and type: ");
-    println_color(COLOR_YELLOW, "\t\tconnect %ld", domus_getpid(1));
+    println_color(COLOR_YELLOW, "\t\tconnect %ld", domus_getpid(DOMUS_ID));
     return CLI_CONTINUE;
 }
 

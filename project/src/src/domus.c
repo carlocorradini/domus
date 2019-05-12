@@ -37,6 +37,8 @@ static void domus_tini(void);
 static List *
 domus_propagate_message(size_t id, size_t out_message_type, const char *out_message_message, size_t in_message_type);
 
+static void queue_message_handler();
+
 void domus_start(void) {
     domus_init();
     cli_start();
@@ -53,6 +55,7 @@ static void domus_init(void) {
     command_init();
     author_init();
     device_init();
+    signal(DEVICE_COMMUNICATION_READ_QUEUE, queue_message_handler);
     control_device_fork(domus, CONTROLLER_ID, device_is_supported_by_id(DEVICE_TYPE_CONTROLLER));
 }
 
@@ -518,5 +521,68 @@ __pid_t domus_getpid(size_t device_id) {
         }
     }
     free_list(message_list);
+
     return (to_Rt) ? (__pid_t) pid.data.Long : 0;
+}
+
+static void queue_message_handler() {
+    if (!device_check_control_device(domus)) return;
+    if (!control_device_has_devices(domus)) return;
+
+    ConverterResult result;
+    Queue_message *out_message;
+    Message *in_message;
+    int message_id;
+
+    message_id = queue_message_get_message_id(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER);
+    in_message = queue_message_receive_message(message_id, QUEUE_MESSAGE_TYPE_ALL_TYPES, true);
+
+    switch (in_message->mesg_type){
+        case QUEUE_MESSAGE_TYPE_DOMUS_PID_REQUEST : {
+
+            result = converter_string_to_long(in_message->mesg_text);
+
+            char text[QUEUE_MESSAGE_MESSAGE_LENGTH];
+            snprintf(text, 64, "%d", getpid());
+
+            out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
+                                            QUEUE_MESSAGE_TYPE_DOMUS_PID_REQUEST, text, false);
+            queue_message_send_message(out_message);
+            queue_message_notify((__pid_t) result.data.Long);
+
+            break;
+        }
+
+        case QUEUE_MESSAGE_TYPE_PID_REQUEST: {
+            DeviceCommunicationMessage *fake_message;
+            char text[QUEUE_MESSAGE_MESSAGE_LENGTH];
+            char **fields;
+            __pid_t device_pid;
+
+            fake_message = malloc(sizeof(DeviceCommunicationMessage));
+            device_communication_message_modify_message(fake_message, in_message->mesg_text);
+
+            fields = device_communication_split_message_fields(fake_message);
+
+            result = converter_string_to_long(fields[0]);
+
+            device_pid = domus_getpid(result.data.Long);
+
+            snprintf(text, 64, "%d", device_pid);
+
+            result = converter_string_to_long(fields[1]);
+
+            out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
+                                            QUEUE_MESSAGE_TYPE_PID_REQUEST, text, false);
+            queue_message_send_message(out_message);
+            queue_message_notify((__pid_t) result.data.Long);
+
+            free(fake_message);
+            device_communication_free_message_fields(fields);
+            break;
+        }
+        default:{
+            break;
+        }
+    }
 }

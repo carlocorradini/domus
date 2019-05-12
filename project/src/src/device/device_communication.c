@@ -269,13 +269,13 @@ Queue_message *new_queue_message(char queue_name[], int queue_number, int msg_ty
     tmp_message->message_id = msgget(tmp_message->key, 0666 | IPC_CREAT);
 
     if (clear) {
-        msgctl(tmp_message->message_id, IPC_RMID, NULL);
+        queue_message_remove_message_queue(tmp_message->message_id);
         tmp_message->message_id = msgget(tmp_message->key, 0666 | IPC_CREAT);
     }
 
     tmp_message->_message.mesg_type = msg_type;
 
-    strcpy(tmp_message->_message.mesg_text, msg_text);
+    strncpy(tmp_message->_message.mesg_text, msg_text, QUEUE_MESSAGE_MESSAGE_LENGTH);
 
     return tmp_message;
 }
@@ -284,7 +284,7 @@ void queue_message_send_message(Queue_message *message) {
     msgsnd(message->message_id, &message->_message, sizeof(Message), 0);
 }
 
-Message *queue_message_receive_message(int msg_id, bool blocking) {
+Message *queue_message_receive_message(int msg_id, int message_type, bool blocking) {
     Message *tmp_message;
     tmp_message = malloc(sizeof(Message));
 
@@ -294,9 +294,9 @@ Message *queue_message_receive_message(int msg_id, bool blocking) {
     }
 
     if (!blocking) {
-        msgrcv(msg_id, tmp_message, sizeof(Message), 1, 0);
+        msgrcv(msg_id, tmp_message, sizeof(Message), message_type, 0);
     } else{
-        msgrcv(msg_id, tmp_message, sizeof(Message), 1, IPC_NOWAIT);
+        msgrcv(msg_id, tmp_message, sizeof(Message), message_type, IPC_NOWAIT);
     }
 
     return tmp_message;
@@ -316,3 +316,24 @@ bool queue_message_remove_message_queue(int msg_id){
     }
     return false;
 }
+
+static void queue_message_useless_handler(){}
+
+Message * queue_message_send_message_with_ack(__pid_t device_pid, Queue_message *message){
+    Message * in_message;
+    queue_message_send_message(message);
+
+    signal(DEVICE_COMMUNICATION_READ_QUEUE, queue_message_useless_handler);
+
+    queue_message_notify(device_pid);
+    pause();
+
+    in_message = queue_message_receive_message(message->message_id, message->_message.mesg_type, true);
+
+    if(!queue_message_remove_message_queue(message->message_id)){
+        fprintf(stderr, "\tError while closing queue message queue\n");
+        return  NULL;
+    }
+    return in_message;
+}
+

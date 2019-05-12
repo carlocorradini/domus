@@ -156,41 +156,37 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
     device_communication_write_message(bulb_communication, &out_message);
 }
-#include <sys/ipc.h>
-#include <sys/msg.h>
 
-typedef struct _message {
-    long mesg_type;
-    char mesg_text[100];
-} _message;
+static void queue_message_handler(){
+    Message * in_message;
+    Queue_message * out_message;
+    DeviceCommunicationMessage *fake_message;
+    ConverterResult sender_pid;
+    char text[QUEUE_MESSAGE_MESSAGE_LENGTH];
+    char **fields;
+    int message_id;
 
-static key_t child_message_key;
-static int child_message_id;
-static _message child_in_message;
+    message_id = queue_message_get_message_id(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER);
+    in_message = queue_message_receive_message(message_id, QUEUE_MESSAGE_TYPE_DEVICE_START + bulb->id, true);
 
-static void get_child_queue_message();
+    fprintf(stderr, "\tReceived message: %s", in_message->mesg_text);
 
-static char *queue_message = NULL;
+    fake_message = malloc(sizeof(DeviceCommunicationMessage));
+    device_communication_message_modify_message(fake_message, in_message->mesg_text);
 
-void get_child_queue_message() {
+    fields = device_communication_split_message_fields(fake_message);
 
-    /**
-     * Check wheter the device is a control one or not
-     */
-    /*
-    if (control_device_child != NULL && device_child == NULL) {
-        child_message_key = ftok("control", control_device_child->device->id);
-    } else if (device_child != NULL && control_device_child == NULL) {
-        child_message_key = ftok("control", device_child->id);
-    }
-    */
-    child_message_key = ftok("control", 4);
-    child_message_id = msgget(child_message_key, 0666 | IPC_CREAT);
+    sender_pid = converter_string_to_long(fields[0]);
 
-    if (msgrcv(child_message_id, &child_in_message, sizeof(child_in_message), 1, IPC_NOWAIT) != -1) {
-        fprintf(stderr, "\t%s\n", child_in_message.mesg_text);
-    }
-    msgctl(child_message_id, IPC_RMID, NULL);
+    snprintf(text, 64, "%s", "Ok");
+
+    out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
+                                    QUEUE_MESSAGE_TYPE_DEVICE_START + bulb->id, text, false);
+    queue_message_send_message(out_message);
+    queue_message_notify((__pid_t) sender_pid.data.Long);
+
+    free(fake_message);
+    device_communication_free_message_fields(fields);
 }
 
 int main(int argc, char **args) {
@@ -198,7 +194,8 @@ int main(int argc, char **args) {
     list_add_last(bulb->switches, new_device_switch(BULB_SWITCH_TURN, (bool *) DEVICE_STATE,
                                                     (bool (*)(const char *, void *)) bulb_set_switch_state));
     bulb_communication = device_child_new_device_communication(argc, args, bulb_message_handler);
-    signal(SIGUSR2, get_child_queue_message);
+
+    signal(DEVICE_COMMUNICATION_READ_QUEUE, queue_message_handler);
     device_child_run(NULL);
 
     return EXIT_SUCCESS;
