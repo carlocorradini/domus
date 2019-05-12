@@ -76,7 +76,7 @@ all:
 
 build: clean $(TARGET)
 	@$(ECHO) "$(COLOR_GREEN)=== COMPILATION SUCCEDED ===$(COLOR_RESET)";
-	@$(ECHO) "$(COLOR_CYAN)\tTo run $(PRJ_NAME), go to $(BIN_DIR) and type './$(PRJ_NAME)'$(COLOR_RESET)\n";
+	@$(ECHO) "\tTo run $(PRJ_NAME), go to $(BIN_DIR) and type './$(PRJ_NAME)'\n";
 
 build_mkdir:
 	@$(ECHO) "$(COLOR_YELLOW)=== GENERATING DIRECTORY $(DEV_BIN) ===$(COLOR_RESET)";
@@ -87,7 +87,7 @@ $(TARGET): $(ALL_OBJ)
 		$(ECHO) "$(COLOR_YELLOW)=== GENERATING DIRECTORY $(DEV_BIN) ===$(COLOR_RESET)"; \
 		$(MKDIR) $(DEV_BIN); \
 	fi;
-	@$(ECHO) "$(COLOR_YELLOW)=== COMPILING $@ ===$(COLOR_RESET)";
+	@$(ECHO) "$(COLOR_CYAN)=== COMPILING $@ ===$(COLOR_RESET)";
 	$(CC) $(filter-out $(foreach a,$(ALL_OBJ),$(if $(findstring $@,$a),,$a)), $(ALL_OBJ)) $(OBJ) -o $(DEV_BIN)/$@ -lrt
 	@if [ $@ = main ]; then \
 		mv $(DEV_BIN)/$@ $(BIN_DIR)/$(PRJ_NAME); \
