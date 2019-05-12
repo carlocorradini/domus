@@ -338,7 +338,7 @@ Message *queue_message_send_message_with_ack(__pid_t device_pid, Queue_message *
 }
 
 void queue_message_create_queue(){
-    char file[] = "touch ";
-    strcat(file, QUEUE_MESSAGE_QUEUE_NAME);
-    system(file);
+    char create_command[256];
+    snprintf(create_command, sizeof(create_command), "touch %s", QUEUE_MESSAGE_QUEUE_NAME);
+    system(create_command);
 }
