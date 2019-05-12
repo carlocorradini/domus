@@ -486,14 +486,14 @@ void domus_hierarchy(void) {
         print("\t");
         for (i = 0; i < data->ctr_hop; i++) print("   ");
 
-        if (device_descriptor != NULL && device_descriptor->id == DEVICE_TYPE_CONTROLLER)
-            print_color(COLOR_CYAN, "%s", device_name);
-        else if (device_descriptor != NULL && device_descriptor->control_device)
-            print_color(COLOR_YELLOW, "%s", device_name);
-        else
-            print("%s", device_name);
-
-        println(" %ld", data->id_sender);
+        if (device_descriptor != NULL && device_descriptor->id == DEVICE_TYPE_CONTROLLER &&
+            device_descriptor->control_device) {
+            println_color(COLOR_CYAN, "%s %ld", device_name, data->id_sender);
+        } else if (device_descriptor != NULL && device_descriptor->control_device) {
+            println_color(COLOR_YELLOW, "%s %ld", device_name, data->id_sender);
+        } else {
+            println("%s %ld", device_name, data->id_sender);
+        }
     }
 
     free_list(device_list);
@@ -537,7 +537,7 @@ static void queue_message_handler() {
     message_id = queue_message_get_message_id(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER);
     in_message = queue_message_receive_message(message_id, QUEUE_MESSAGE_TYPE_ALL_TYPES, true);
 
-    switch (in_message->mesg_type){
+    switch (in_message->mesg_type) {
         case QUEUE_MESSAGE_TYPE_DOMUS_PID_REQUEST : {
 
             result = converter_string_to_long(in_message->mesg_text);
@@ -581,7 +581,7 @@ static void queue_message_handler() {
             device_communication_free_message_fields(fields);
             break;
         }
-        default:{
+        default: {
             break;
         }
     }
