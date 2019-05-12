@@ -210,7 +210,7 @@ static char *cli_read_line(void) {
                      */
                     if (res != NULL) {
                         move_left();
-                        strncpy(buffer, res, sizeof(res));
+                        strncpy(buffer, res, strlen(res));
                         strcat(buffer, "\0");
                         printf("%s", buffer);
                         position = (int) strlen(buffer);
