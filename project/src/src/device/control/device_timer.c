@@ -145,7 +145,7 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
             char *switch_pos;
             bool bool_switch_pos;
 
-            char **fields = device_communication_split_message_fields(&in_message);
+            char **fields = device_communication_split_message_fields(in_message.message);
 
             timer_set_switch_state(fields[0], fields[1])
             ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)

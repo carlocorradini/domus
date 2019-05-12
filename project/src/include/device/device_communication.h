@@ -179,7 +179,7 @@ DeviceCommunicationMessage *device_communication_message_copy(const DeviceCommun
  * @param message The message to split from
  * @return An array of fields, NULL otherwise
  */
-char **device_communication_split_message_fields(const DeviceCommunicationMessage *message);
+char **device_communication_split_message_fields(const char *message);
 
 /**
  * Free the Splitted Message Fields
@@ -218,6 +218,6 @@ int queue_message_get_message_id(char queue_name[], int queue_number);
 
 bool queue_message_remove_message_queue(int msg_id);
 
-Message * queue_message_send_message_with_ack(__pid_t device_pid, Queue_message *message);
+Message *queue_message_send_message_with_ack(__pid_t device_pid, Queue_message *message);
 
 #endif

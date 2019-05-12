@@ -203,13 +203,13 @@ DeviceCommunicationMessage *device_communication_message_copy(const DeviceCommun
     return message_copy;
 }
 
-char **device_communication_split_message_fields(const DeviceCommunicationMessage *message) {
+char **device_communication_split_message_fields(const char *message) {
     char message_copy[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
     int position = 0;
     int buffer_size = DEVICE_COMMUNICATION_MESSAGE_FIELDS_MAX + 1;
     char *token;
     char **buffer;
-    if (message == NULL || strlen(message->message) == 0) return NULL;
+    if (message == NULL || strlen(message) == 0) return NULL;
 
     buffer = (char **) malloc(sizeof(char *) * buffer_size);
     if (buffer == NULL) {
@@ -217,7 +217,7 @@ char **device_communication_split_message_fields(const DeviceCommunicationMessag
         exit(EXIT_FAILURE);
     }
 
-    strncpy(message_copy, message->message, DEVICE_COMMUNICATION_MESSAGE_LENGTH);
+    strncpy(message_copy, message, DEVICE_COMMUNICATION_MESSAGE_LENGTH);
 
     token = strtok((char *) message_copy, DEVICE_COMMUNICATION_MESSAGE_FIELDS_DELIMITER);
     while (token != NULL) {
@@ -295,32 +295,32 @@ Message *queue_message_receive_message(int msg_id, int message_type, bool blocki
 
     if (!blocking) {
         msgrcv(msg_id, tmp_message, sizeof(Message), message_type, 0);
-    } else{
+    } else {
         msgrcv(msg_id, tmp_message, sizeof(Message), message_type, IPC_NOWAIT);
     }
 
     return tmp_message;
 }
 
-void queue_message_notify(__pid_t pid){
+void queue_message_notify(__pid_t pid) {
     kill(pid, DEVICE_COMMUNICATION_READ_QUEUE);
 }
 
-int queue_message_get_message_id(char queue_name[], int queue_number){
+int queue_message_get_message_id(char queue_name[], int queue_number) {
     return msgget(ftok(queue_name, queue_number), 0666 | IPC_CREAT);
 }
 
-bool queue_message_remove_message_queue(int msg_id){
-    if(msgctl(msg_id, IPC_RMID, NULL) == 0){
+bool queue_message_remove_message_queue(int msg_id) {
+    if (msgctl(msg_id, IPC_RMID, NULL) == 0) {
         return true;
     }
     return false;
 }
 
-static void queue_message_useless_handler(){}
+static void queue_message_useless_handler() {}
 
-Message * queue_message_send_message_with_ack(__pid_t device_pid, Queue_message *message){
-    Message * in_message;
+Message *queue_message_send_message_with_ack(__pid_t device_pid, Queue_message *message) {
+    Message *in_message;
     queue_message_send_message(message);
 
     signal(DEVICE_COMMUNICATION_READ_QUEUE, queue_message_useless_handler);
@@ -330,9 +330,9 @@ Message * queue_message_send_message_with_ack(__pid_t device_pid, Queue_message 
 
     in_message = queue_message_receive_message(message->message_id, message->_message.mesg_type, true);
 
-    if(!queue_message_remove_message_queue(message->message_id)){
+    if (!queue_message_remove_message_queue(message->message_id)) {
         fprintf(stderr, "\tError while closing queue message queue\n");
-        return  NULL;
+        return NULL;
     }
     return in_message;
 }

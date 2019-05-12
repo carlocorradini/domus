@@ -194,7 +194,7 @@ bool domus_info_by_id(size_t id) {
                           data->id_device_descriptor);
         }
 
-        char **fields = device_communication_split_message_fields(data);
+        char **fields = device_communication_split_message_fields(data->message);
         ConverterResult device_state = converter_bool_to_string(
                 converter_char_to_bool(fields[0][0]).data.Bool);
 
@@ -562,7 +562,7 @@ static void queue_message_handler() {
             fake_message = malloc(sizeof(DeviceCommunicationMessage));
             device_communication_message_modify_message(fake_message, in_message->mesg_text);
 
-            fields = device_communication_split_message_fields(fake_message);
+            fields = device_communication_split_message_fields(fake_message->message);
 
             result = converter_string_to_long(fields[0]);
 

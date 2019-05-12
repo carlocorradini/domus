@@ -118,7 +118,7 @@ static void device_child_control_device_spawn() {
     if (_device_to_spawn.type == MESSAGE_TYPE_SPAWN_DEVICE) {
         device_communication_message_init(control_device_child->device, &out_message);
         device_communication_message_init(control_device_child->device, &child_out_message);
-        fields = device_communication_split_message_fields(&_device_to_spawn);
+        fields = device_communication_split_message_fields(_device_to_spawn.message);
         child_id = converter_string_to_long(fields[0]);
         child_descriptor_id = converter_string_to_long(fields[1]);
 

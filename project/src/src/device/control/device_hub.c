@@ -44,7 +44,7 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
                 DeviceCommunicationMessage child_out_message;
                 DeviceCommunicationMessage child_in_message;
 
-                fields = device_communication_split_message_fields(&in_message);
+                fields = device_communication_split_message_fields(in_message.message);
                 child_descriptor_id = converter_string_to_long(fields[1]);
                 device_communication_message_init(hub->device, &child_out_message);
                 device_communication_message_modify(&child_out_message, hub->device->id, MESSAGE_TYPE_INFO, "");

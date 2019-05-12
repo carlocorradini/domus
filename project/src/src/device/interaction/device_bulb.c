@@ -106,7 +106,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             ConverterResult switch_state;
             char **fields;
 
-            fields = device_communication_split_message_fields(&in_message);
+            fields = device_communication_split_message_fields(in_message.message);
 
             state = converter_char_to_bool(fields[2][0]);
             start_time = converter_string_to_long(fields[3]);
@@ -131,7 +131,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             char **fields;
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_ON, "");
-            fields = device_communication_split_message_fields(&in_message);
+            fields = device_communication_split_message_fields(in_message.message);
 
             if (device_get_device_switch(bulb->switches, fields[0]) == NULL) {
                 device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
@@ -174,7 +174,7 @@ static void queue_message_handler(){
     fake_message = malloc(sizeof(DeviceCommunicationMessage));
     device_communication_message_modify_message(fake_message, in_message->mesg_text);
 
-    fields = device_communication_split_message_fields(fake_message);
+    fields = device_communication_split_message_fields(fake_message->message);
 
     sender_pid = converter_string_to_long(fields[0]);
 

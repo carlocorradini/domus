@@ -147,8 +147,6 @@ static bool fridge_check_value_state(const char *input) {
 
 static void fridge_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
-    ConverterResult result;
-
     device_communication_message_init(fridge, &out_message);
 
     switch (in_message.type) {
@@ -180,7 +178,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             ConverterResult switch_thermo;
             ConverterResult switch_door;
 
-            char **fields = device_communication_split_message_fields(&in_message);
+            char **fields = device_communication_split_message_fields(in_message.message);
 
             state = converter_char_to_bool(fields[2][0]);
             open_time = converter_string_to_long(fields[3]);
@@ -213,7 +211,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             char *switch_pos;
             bool bool_switch_pos;
 
-            char **fields = device_communication_split_message_fields(&in_message);
+            char **fields = device_communication_split_message_fields(in_message.message);
 
             switch_label = fields[0];
             switch_pos = fields[1];
