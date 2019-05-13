@@ -316,10 +316,13 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
     message_list = domus_propagate_message(id, MESSAGE_TYPE_SET_ON, out_message_message, MESSAGE_TYPE_SET_ON);
 
     if (list_is_empty(message_list)) {
+        /* No Device under controller */
         message_list = domus_propagate_message(id, MESSAGE_TYPE_INFO, "", MESSAGE_TYPE_INFO);
         if (list_is_empty(message_list)) {
+            /* No Device in the entire System */
             println("\tCannot find a Device with id %ld", id);
         } else {
+            /* Device found but is not linked to the controller */
             list_for_each(data, message_list) {
                 if (data->id_sender == id) {
                     device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
@@ -327,13 +330,13 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
                         println_color(COLOR_RED, "\tSwitch Command: Device with unknown Device Descriptor id %ld",
                                       data->id_device_descriptor);
                     }
-                    println("\tDevice %s has been found but is NOT connected to the %s",
+                    println("\tDevice %s has been found but is NOT linked to %s",
                             (device_descriptor == NULL) ? "?" : device_descriptor->name, controller_name);
-                    println("\tSwitch command ONLY work if %s with id %ld is directly or indirectly connected to the %s with id %ld",
+                    println("\tPlease link %s with id %ld to the %s with id %ld",
                             (device_descriptor == NULL) ? "?" : device_descriptor->name, id, controller_name,
                             CONTROLLER_ID);
-                    println("\tPlease try type:");
-                    println("\t\tlink %ld to %ld", id, CONTROLLER_ID);
+                    println("\tTry type:");
+                    println_color(COLOR_YELLOW, "\t\tlink %ld to %ld", id, CONTROLLER_ID);
                 }
             }
         }
