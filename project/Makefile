@@ -10,6 +10,8 @@ DESCRIPTION := Home Automation at your CLI
 
 # MAINS
 TARGET:= main controller bulb window fridge hub timer domus_manual
+DOMUS_MAIN := domus
+DOMUS_MANUAL_MAIN := domus_manual
 
 # DIRECTORIES
 SRC_DIR := ./src/src
@@ -76,7 +78,10 @@ all:
 
 build: clean $(TARGET)
 	@$(ECHO) "$(COLOR_GREEN)=== COMPILATION SUCCEDED ===$(COLOR_RESET)";
-	@$(ECHO) "\tTo run $(PRJ_NAME), go to $(BIN_DIR) and type './$(PRJ_NAME)'\n";
+	@$(ECHO) "\tNow go to $(COLOR_YELLOW)'$(BIN_DIR)'$(COLOR_RESET):";
+	@$(ECHO) "\tTo run $(COLOR_YELLOW)$(DOMUS_MAIN)$(COLOR_RESET), type $(COLOR_YELLOW)'./$(DOMUS_MAIN)'$(COLOR_RESET)";
+	@$(ECHO) "\tTo run $(COLOR_YELLOW)$(DOMUS_MANUAL_MAIN)$(COLOR_RESET), type $(COLOR_YELLOW)'./$(DOMUS_MANUAL_MAIN)'$(COLOR_RESET)";
+	@$(ECHO) "";
 
 build_mkdir:
 	@$(ECHO) "$(COLOR_YELLOW)=== GENERATING DIRECTORY $(DEV_BIN) ===$(COLOR_RESET)";
@@ -89,10 +94,11 @@ $(TARGET): $(ALL_OBJ)
 	fi;
 	@$(ECHO) "$(COLOR_CYAN)=== COMPILING $@ ===$(COLOR_RESET)";
 	$(CC) $(filter-out $(foreach a,$(ALL_OBJ),$(if $(findstring $@,$a),,$a)), $(ALL_OBJ)) $(OBJ) -o $(DEV_BIN)/$@ -lrt
+
 	@if [ $@ = main ]; then \
-		mv $(DEV_BIN)/$@ $(BIN_DIR)/$(PRJ_NAME); \
+		mv $(DEV_BIN)/$@ $(BIN_DIR)/$(DOMUS_MAIN); \
 	fi;
-	@if [ $@ = domus_manual ]; then \
+	@if [ $@ = DOMUS_MANUAL_MAIN ]; then \
     	mv $(DEV_BIN)/$@ $(BIN_DIR)/$@; \
     fi;
 
