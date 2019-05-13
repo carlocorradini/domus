@@ -22,8 +22,8 @@ typedef struct List {
     void (*destroy)(void *);
 } List;
 
-static Node *list_for_each_node;
 #define list_for_each(data, list) \
+    Node *list_for_each_node; \
     for(list_for_each_node = list->head, data = list_node_data(list_for_each_node); list_for_each_node != NULL; list_for_each_node = list_for_each_node->next, data = list_node_data(list_for_each_node))
 
 /**

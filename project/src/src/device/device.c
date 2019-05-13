@@ -70,6 +70,11 @@ void device_init(void) {
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_BULB, false, "bulb",
                                                            "An electric light with a wire filament heated to such a high temperature that it glows with visible light",
                                                            "./device/bulb"));
+    device_device_descriptor_add_switch(list_get_last(supported_devices), "turn", "Can Turn on and off the Bulb");
+    device_device_descritor_add_position(list_get_last(supported_devices), "on", "Turn on the Bulb");
+    device_device_descritor_add_position(list_get_last(supported_devices), "off", "Turn off the Light");
+
+
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_WINDOW, false, "window",
                                                            "An opening in a wall, door, roof or vehicle that allows the passage of light, sound, and air",
                                                            "./device/window"));
@@ -169,8 +174,54 @@ new_device_descriptor(size_t id, bool control_device, char name[], char descript
     strncpy(device_descriptor->name, name, DEVICE_NAME_LENGTH);
     strncpy(device_descriptor->description, description, DEVICE_DESCRIPTION_LENGTH);
     strncpy(device_descriptor->file_name, file_name, DEVICE_FILE_NAME_LENGTH);
+    device_descriptor->switches = new_list(NULL, NULL);
 
     return device_descriptor;
+}
+
+DeviceDescriptorSwitch *new_device_descriptor_switch(char name[], char description[]) {
+    DeviceDescriptorSwitch *device_descriptor_switch = (DeviceDescriptorSwitch *) malloc(
+            sizeof(DeviceDescriptorSwitch));
+    if (device_descriptor_switch == NULL) {
+        perror("DeviceDescriptorSwitch Memory Allocation");
+        exit(EXIT_FAILURE);
+    }
+
+    strncpy(device_descriptor_switch->name, name, DEVICE_SWITCH_NAME_LENGTH);
+    strncpy(device_descriptor_switch->description, description, DEVICE_SWITCH_DESCRIPTION_LENGTH);
+    device_descriptor_switch->positions = new_list(NULL, NULL);
+
+    return device_descriptor_switch;
+}
+
+DeviceDescriptorSwitchPosition *new_device_descriptor_switch_position(char name[], char description[]) {
+    DeviceDescriptorSwitchPosition *device_descriptor_switch_position = (DeviceDescriptorSwitchPosition *) malloc(
+            sizeof(DeviceDescriptorSwitchPosition));
+    if (device_descriptor_switch_position == NULL) {
+        perror("DeviceDescriptorSwitchPosition Memory Allocation");
+        exit(EXIT_FAILURE);
+    }
+
+    strncpy(device_descriptor_switch_position->name, name, DEVICE_SWITCH_NAME_LENGTH);
+    strncpy(device_descriptor_switch_position->description, description, DEVICE_SWITCH_DESCRIPTION_LENGTH);
+
+    return device_descriptor_switch_position;
+}
+
+bool device_device_descriptor_add_switch(DeviceDescriptor *device_descriptor, char name[], char description[]) {
+    if (device_descriptor == NULL) return false;
+
+    return list_add_last(device_descriptor->switches, new_device_descriptor_switch(name, description));
+}
+
+bool device_device_descritor_add_position(DeviceDescriptor *device_descriptor, char name[],
+                                          char description[]) {
+    DeviceDescriptorSwitch *device_descriptor_switch;
+    if (device_descriptor == NULL) return false;
+    if (list_is_empty(device_descriptor->switches)) return false;
+
+    device_descriptor_switch = (DeviceDescriptorSwitch *) list_get_last(device_descriptor->switches);
+    return list_add_last(device_descriptor_switch->positions, new_device_descriptor_switch_position(name, description));
 }
 
 DeviceDescriptor *device_is_supported_by_name(const char *device) {
@@ -313,6 +364,27 @@ void device_print_all(void) {
 }
 
 void device_print(const DeviceDescriptor *device_descriptor) {
+    DeviceDescriptorSwitch *data;
+    DeviceDescriptorSwitchPosition *position;
+    size_t i;
+
     print_color(COLOR_YELLOW, "\t%-*s", DEVICE_NAME_LENGTH, device_descriptor->name);
     println("%s", device_descriptor->description);
+
+    print("\t\tN° SWITCHES: ");
+    if (list_is_empty(device_descriptor->switches)) {
+        println("No Switches found");
+    } else {
+        println("%ld switches", device_descriptor->switches->size);
+
+        list_for_each(data, device_descriptor->switches) {
+            print("\t\t%-*s", DEVICE_SWITCH_NAME_LENGTH, data->name);
+            println("%-*s", DEVICE_SWITCH_DESCRIPTION_LENGTH, data->description);
+            for (i = 0; i < data->positions->size; ++i) {
+                position = (DeviceDescriptorSwitchPosition *) list_get(data->positions, i);
+                print("\t\t%-*s", DEVICE_SWITCH_NAME_LENGTH, position->name);
+                println("%-*s", DEVICE_SWITCH_DESCRIPTION_LENGTH, position->description);
+            }
+        }
+    }
 }
