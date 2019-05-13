@@ -42,6 +42,8 @@ typedef struct DeviceDescriptor {
 typedef struct DeviceDescriptorSwitch {
     char name[DEVICE_SWITCH_NAME_LENGTH];
     char description[DEVICE_SWITCH_DESCRIPTION_LENGTH];
+    bool only_manual;
+
     List *positions;
 } DeviceDescriptorSwitch;
 
@@ -50,11 +52,11 @@ typedef struct DeviceDescriptorSwitchPosition {
     char description[DEVICE_SWITCH_DESCRIPTION_LENGTH];
 } DeviceDescriptorSwitchPosition;
 
-DeviceDescriptorSwitch *new_device_descriptor_switch(char name[], char description[]);
+DeviceDescriptorSwitch *new_device_descriptor_switch(char name[], char description[], bool only_manual);
 
 DeviceDescriptorSwitchPosition *new_device_descriptor_switch_position(char name[], char description[]);
 
-bool device_device_descriptor_add_switch(DeviceDescriptor *device_descriptor, char name[], char description[]);
+bool device_device_descriptor_add_switch(DeviceDescriptor *device_descriptor, char name[], char description[], bool only_manual);
 
 bool device_device_descritor_add_position(DeviceDescriptor *device_descriptor, char name[],
                                           char description[]);
