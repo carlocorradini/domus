@@ -66,10 +66,10 @@ static int timer_set_switch_state(const char *name, char *dates) {
     ConverterResult result = converter_string_to_date(start_date);
 
     if (result.error) {
-        if(strcmp(result.error_message, "Format") == 0){
+        if (strcmp(result.error_message, "Format") == 0) {
             return -1;
         }
-        if(strcmp(result.error_message, "Passed") == 0){
+        if (strcmp(result.error_message, "Passed") == 0) {
             return -2;
         }
         return 0;
@@ -82,10 +82,10 @@ static int timer_set_switch_state(const char *name, char *dates) {
     result = converter_string_to_date(end_date);
 
     if (result.error) {
-        if(strcmp(result.error_message, "Format") == 0){
+        if (strcmp(result.error_message, "Format") == 0) {
             return -1;
         }
-        if(strcmp(result.error_message, "Passed") == 0){
+        if (strcmp(result.error_message, "Passed") == 0) {
             return -2;
         }
         return 0;
@@ -113,10 +113,9 @@ static int timer_set_switch_state(const char *name, char *dates) {
             return 0;
         }
         t.it_value.tv_sec = timer_registry->begin - time(NULL);
-        fprintf(stderr, "S : %ld", t.it_value.tv_sec);
         timer_settime(internal_timer, 0, &t, NULL);
     } else {
-        return 0;
+        return -5;
     }
     return 1;
 }
@@ -176,6 +175,10 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
                     device_communication_message_modify_message(&out_message, QUEUE_MESSAGE_RETURN_NAME_ERROR);
                     break;
                 }
+                case -5 : {
+                    device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ALREADY_DEFINED_DATE_ERROR);
+                    break;
+                }
                 default: {
                     device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ERROR);
                 }
@@ -208,7 +211,7 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
 }
 
 static void set_device() {
-    if(list_get_first(timer->devices) != NULL) {
+    if (list_get_first(timer->devices) != NULL) {
         /**
          * First of all, get informations about the device id and descriptor in
          * order to know what switches to set
@@ -266,6 +269,75 @@ static void set_device() {
     }
 }
 
+static void queue_message_handler() {
+    Message *in_message;
+    Queue_message *out_message;
+    DeviceCommunicationMessage *fake_message;
+    ConverterResult sender_pid;
+    char text[QUEUE_MESSAGE_MESSAGE_LENGTH];
+    char **fields;
+    int message_id;
+
+    message_id = queue_message_get_message_id(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER);
+    in_message = queue_message_receive_message(message_id, QUEUE_MESSAGE_TYPE_DEVICE_START + timer->device->id, true);
+
+    fake_message = malloc(sizeof(DeviceCommunicationMessage));
+    device_communication_message_modify_message(fake_message, in_message->mesg_text);
+
+    fields = device_communication_split_message_fields(fake_message->message);
+
+    sender_pid = converter_string_to_long(fields[0]);
+
+    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+
+    if (strcmp(fields[1], TIMER_SWITCH_TIME) == 0) {
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+
+        int res;
+
+        res = (timer_set_switch_state(fields[1], fields[2]));
+        switch (res) {
+            case 1 : {
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, MESSAGE_RETURN_SUCCESS);
+                break;
+            }
+            case -1 : {
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, MESSAGE_RETURN_VALUE_FORMAT_DATE_ERROR);
+                break;
+            }
+            case -2 : {
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, MESSAGE_RETURN_VALUE_PASSED_DATE_ERROR);
+                break;
+            }
+            case -3 : {
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, MESSAGE_RETURN_VALUE_ORDER_DATE_ERROR);
+                break;
+            }
+            case -4 : {
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+                break;
+            }
+            case -5 : {
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, MESSAGE_RETURN_VALUE_ALREADY_DEFINED_DATE_ERROR);
+                break;
+            }
+            default: {
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, MESSAGE_RETURN_VALUE_ERROR);
+            }
+        }
+
+
+    }
+
+    out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
+                                    QUEUE_MESSAGE_TYPE_DEVICE_START + timer->device->id, text, false);
+    queue_message_send_message(out_message);
+    queue_message_notify((__pid_t) sender_pid.data.Long);
+
+    free(fake_message);
+    device_communication_free_message_fields(fields);
+}
+
 int main(int argc, char **args) {
     timer = device_child_new_control_device(argc, args, DEVICE_TYPE_TIMER, new_timer_registry());
     list_add_last(timer->device->switches, new_device_switch(TIMER_SWITCH_TIME, (bool *) DEVICE_STATE,
@@ -273,6 +345,7 @@ int main(int argc, char **args) {
     timer_communication = device_child_new_control_device_communication(argc, args, timer_message_handler);
 
     signal(DEVICE_COMMUNICATION_TIMER, set_device);
+    signal(DEVICE_COMMUNICATION_READ_QUEUE, queue_message_handler);
     device_child_run(NULL);
 
     return EXIT_SUCCESS;

@@ -312,6 +312,8 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
                 println_color(COLOR_RED, "Please insert the dates in the right order");
             } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_FORMAT_DATE_ERROR) == 0) {
                 println_color(COLOR_RED, "Date format not valid");
+            } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_ALREADY_DEFINED_DATE_ERROR) == 0) {
+                println_color(COLOR_RED, "Timer values already defined");
             } else {
                 println_color(COLOR_RED, "Unknown Error");
             }

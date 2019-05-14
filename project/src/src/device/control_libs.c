@@ -88,18 +88,29 @@ void manual_control_set_device(size_t device_id, char * switch_label, char * swi
     }
     print("\t[%3ld] %-*s ", device_id, DEVICE_NAME_LENGTH,
           (device_descriptor == NULL) ? "?" : device_descriptor->name);
-    if (strcmp(fields[1], QUEUE_MESSAGE_RETURN_SUCCESS) == 0) {
+    if (strcmp(fields[1], MESSAGE_RETURN_SUCCESS) == 0) {
         print_color(COLOR_GREEN, "Switched ");
         print("'%s'", switch_label);
         print_color(COLOR_GREEN, " to ");
         println("'%s'", switch_pos);
-    } else if (strcmp(fields[1], QUEUE_MESSAGE_RETURN_NAME_ERROR) == 0) {
-        println_color(COLOR_RED, "<label> %s doesn't exist",
-                      switch_label);
-    } else if (strcmp(fields[1], QUEUE_MESSAGE_RETURN_VALUE_ERROR) == 0) {
-        println_color(COLOR_RED, "<pos> %s doesn't exist",
-                      switch_pos);
     } else {
-        println_color(COLOR_RED, "Unknown Error");
+        snprintf(text, 64, "%s\n%s", fields[1], fields[2]);
+        if (strcmp(text, MESSAGE_RETURN_NAME_ERROR) == 0) {
+            println_color(COLOR_RED, "<label> %s doesn't exist",
+                          switch_label);
+        } else if (strcmp(text, MESSAGE_RETURN_VALUE_ERROR) == 0) {
+            println_color(COLOR_RED, "<pos> %s doesn't exist",
+                          switch_pos);
+        } else if (strcmp(text, MESSAGE_RETURN_VALUE_PASSED_DATE_ERROR) == 0) {
+            println_color(COLOR_RED, "The inserted date has already passsed");
+        } else if (strcmp(text, MESSAGE_RETURN_VALUE_ORDER_DATE_ERROR) == 0) {
+            println_color(COLOR_RED, "Please insert the dates in the right order");
+        } else if (strcmp(text, MESSAGE_RETURN_VALUE_FORMAT_DATE_ERROR) == 0) {
+            println_color(COLOR_RED, "Date format not valid");
+        } else if (strcmp(text, MESSAGE_RETURN_VALUE_ALREADY_DEFINED_DATE_ERROR) == 0) {
+            println_color(COLOR_RED, "Timer values already defined");
+        } else {
+            println_color(COLOR_RED, "Unknown Error");
+        }
     }
 }

@@ -292,7 +292,6 @@ static void close_door() {
 static void queue_message_handler() {
     Message *in_message;
     Queue_message *out_message;
-    DeviceCommunicationMessage *fake_message;
     ConverterResult sender_pid;
     char text[QUEUE_MESSAGE_MESSAGE_LENGTH];
     char **fields;
@@ -301,10 +300,7 @@ static void queue_message_handler() {
     message_id = queue_message_get_message_id(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER);
     in_message = queue_message_receive_message(message_id, QUEUE_MESSAGE_TYPE_DEVICE_START + fridge->id, true);
 
-    fake_message = malloc(sizeof(DeviceCommunicationMessage));
-    device_communication_message_modify_message(fake_message, in_message->mesg_text);
-
-    fields = device_communication_split_message_fields(fake_message->message);
+    fields = device_communication_split_message_fields(in_message->mesg_text);
 
     sender_pid = converter_string_to_long(fields[0]);
 
@@ -372,7 +368,6 @@ static void queue_message_handler() {
     queue_message_send_message(out_message);
     queue_message_notify((__pid_t) sender_pid.data.Long);
 
-    free(fake_message);
     device_communication_free_message_fields(fields);
 }
 
