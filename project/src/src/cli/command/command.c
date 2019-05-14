@@ -21,8 +21,8 @@
 #include "cli/command/command_list.h"
 #include "cli/command/command_switch.h"
 #include "cli/command/command_connect.h"
-#include "cli/command/command_test.h"
 #include "cli/command/command_connect_manual.h"
+#include "cli/command/command_switch_manual.h"
 /* END Supported Commands */
 
 /**
@@ -78,10 +78,10 @@ void manual_command_init(void) {
     autocomplete = trie_insert(autocomplete, command_exit()->name, 1);
     list_add_last(commands, command_help());
     autocomplete = trie_insert(autocomplete, command_help()->name, 1);
-    list_add_last(commands, command_test());
-    autocomplete = trie_insert(autocomplete, command_test()->name, 1);
     list_add_last(commands, command_connect_manual());
     autocomplete = trie_insert(autocomplete, command_connect_manual()->name, 1);
+    list_add_last(commands, command_switch_manual());
+    autocomplete = trie_insert(autocomplete, command_switch_manual()->name, 1);
 }
 
 void command_tini(void) {

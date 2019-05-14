@@ -63,4 +63,11 @@ ConverterResult converter_string_to_double(const char *char_string);
  * @return The Converter Result
  */
 ConverterResult converter_string_to_date(const char *char_string);
+
+/**
+ * Convert a date into a string
+ * @param date The String to convert
+ * @return The Converter Result
+ */
+ConverterResult converter_date_to_string(time_t date);
 #endif

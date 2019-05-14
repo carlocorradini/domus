@@ -25,6 +25,7 @@ static int _add(char **args) {
         println_color(COLOR_RED, "\tSomething goes wrong");
     } else {
         println_color(COLOR_GREEN, "\t%s added with id %ld", device_descriptor->name, id);
+        domus_info_by_id(id);
     }
 
     return CLI_CONTINUE;

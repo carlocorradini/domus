@@ -37,17 +37,6 @@ static void domus_tini(void);
 static List *
 domus_propagate_message(size_t id, size_t out_message_type, const char *out_message_message, size_t in_message_type);
 
-/**
- * Propagate a message into the system and populate the List of received messages
- * @param list The list to populate
- * @param device_communication The Device Communication
- * @param out_message The out message
- * @param in_message_type The incoming message type
- * @return true if propagate goes well, false otherwise
- */
-static bool domus_propagate_message_logic(List *list, DeviceCommunication *device_communication,
-                                          const DeviceCommunicationMessage *out_message, size_t in_message_type);
-
 static void queue_message_handler();
 
 void domus_start(void) {
@@ -105,7 +94,6 @@ size_t domus_fork_device(const DeviceDescriptor *device_descriptor) {
 
     child_id = ((DomusRegistry *) domus->device->registry)->next_id++;
     if (!control_device_fork(domus, child_id, device_descriptor)) return -1;
-
     return child_id;
 }
 
@@ -114,55 +102,39 @@ domus_propagate_message(size_t id, size_t out_message_type, const char *out_mess
     List *message_list;
     DeviceCommunication *data;
     DeviceCommunicationMessage out_message;
-    if (!device_check_control_device(domus)) return NULL;
-    if (!control_device_has_devices(domus)) return NULL;
+    DeviceCommunicationMessage in_message;
+    if (!device_check_control_device(domus)) return false;
+    if (!control_device_has_devices(domus)) return false;
 
     message_list = new_list(NULL, NULL);
     device_communication_message_init(domus->device, &out_message);
     device_communication_message_modify(&out_message, id, out_message_type, out_message_message);
     if (id == DEVICE_MESSAGE_TO_ALL_DEVICES) out_message.flag_force = true;
 
-    if (out_message_type == MESSAGE_TYPE_SET_ON) {
-        data = (DeviceCommunication *) list_get_first(domus->devices);
-        domus_propagate_message_logic(message_list, data, &out_message, in_message_type);
-    } else {
-        list_for_each(data, domus->devices) {
-            domus_propagate_message_logic(message_list, data, &out_message, in_message_type);
-            if (message_list->size > 0 && id != DEVICE_MESSAGE_TO_ALL_DEVICES) return message_list;
+    list_for_each(data, domus->devices) {
+        /* Found a Device with corresponding id */
+        if ((in_message = device_communication_write_message_with_ack(data, &out_message)).type == in_message_type) {
+            list_add_first(message_list, device_communication_message_copy(&in_message));
+
+            if (in_message.flag_continue) {
+                do {
+                    in_message = device_communication_write_message_with_ack_silent(data, &out_message);
+                    list_add_first(message_list, device_communication_message_copy(&in_message));
+                } while (in_message.flag_continue);
+            }
+
+            /* Delete only if type is TERMINATE & is directly connected */
+            if (in_message.type == MESSAGE_TYPE_TERMINATE &&
+                device_communication_device_is_directly_connected(&in_message)) {
+                device_communication_close_communication(data);
+                list_remove(domus->devices, data);
+            }
+
+            if (id != DEVICE_MESSAGE_TO_ALL_DEVICES) return message_list;
         }
     }
 
     return message_list;
-}
-
-static bool domus_propagate_message_logic(List *list, DeviceCommunication *device_communication,
-                                          const DeviceCommunicationMessage *out_message, size_t in_message_type) {
-    DeviceCommunicationMessage in_message;
-    if (!device_check_control_device(domus)) return false;
-    if (!control_device_has_devices(domus)) return false;
-    if (list == NULL || device_communication == NULL || out_message == NULL) return false;
-
-
-    if ((in_message = device_communication_write_message_with_ack(device_communication, out_message)).type ==
-        in_message_type) {
-        list_add_first(list, device_communication_message_copy(&in_message));
-
-        if (in_message.flag_continue) {
-            do {
-                in_message = device_communication_write_message_with_ack_silent(device_communication, out_message);
-                list_add_first(list, device_communication_message_copy(&in_message));
-            } while (in_message.flag_continue);
-        }
-
-        /* Delete only if type is TERMINATE & is directly connected */
-        if (in_message.type == MESSAGE_TYPE_TERMINATE &&
-            device_communication_device_is_directly_connected(&in_message)) {
-            device_communication_close_communication(device_communication);
-            list_remove(domus->devices, device_communication);
-        }
-    }
-
-    return true;
 }
 
 bool domus_del_by_id(size_t id) {
@@ -272,7 +244,7 @@ bool domus_info_by_id(size_t id) {
                 break;
             }
             case DEVICE_TYPE_TIMER: {
-                println("");
+                println("\tSTART TIME: %s    END TIME: %s", fields[1], fields[2]);
                 break;
             }
             default: {
@@ -307,61 +279,41 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
     DeviceCommunicationMessage *data;
     DeviceDescriptor *device_descriptor;
     const char out_message_message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
-    const char controller_name[DEVICE_NAME_LENGTH];
     if (!device_check_control_device(domus)) return;
     if (!control_device_has_devices(domus)) return;
 
     snprintf((char *) out_message_message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%s\n%s\n", switch_label, switch_pos);
-    strncpy((char *) controller_name, device_is_supported_by_id(DEVICE_TYPE_CONTROLLER)->name, DEVICE_NAME_LENGTH);
     message_list = domus_propagate_message(id, MESSAGE_TYPE_SET_ON, out_message_message, MESSAGE_TYPE_SET_ON);
 
-    if (list_is_empty(message_list)) {
-        message_list = domus_propagate_message(id, MESSAGE_TYPE_INFO, "", MESSAGE_TYPE_INFO);
-        if (list_is_empty(message_list)) {
-            println("\tCannot find a Device with id %ld", id);
-        } else {
-            list_for_each(data, message_list) {
-                if (data->id_sender == id) {
-                    device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
-                    if (device_descriptor == NULL) {
-                        println_color(COLOR_RED, "\tSwitch Command: Device with unknown Device Descriptor id %ld",
-                                      data->id_device_descriptor);
-                    }
-                    println("\tDevice %s has been found but is NOT connected to the %s",
-                            (device_descriptor == NULL) ? "?" : device_descriptor->name, controller_name);
-                    println("\tSwitch command ONLY work if %s with id %ld is directly or indirectly connected to the %s with id %ld",
-                            (device_descriptor == NULL) ? "?" : device_descriptor->name, id, controller_name,
-                            CONTROLLER_ID);
-                    println("\tPlease try type:");
-                    println("\t\tlink %ld to %ld", id, CONTROLLER_ID);
-                }
+    list_for_each(data, message_list) {
+        if (data->type == MESSAGE_TYPE_SET_ON) {
+            device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
+            if (device_descriptor == NULL) {
+                println_color(COLOR_RED, "\tSet On Command: Device with unknown Device Descriptor id %ld",
+                              data->id_device_descriptor);
             }
-        }
-    } else {
-        list_for_each(data, message_list) {
-            if (data->type == MESSAGE_TYPE_SET_ON) {
-                device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
-                if (device_descriptor == NULL) {
-                    println_color(COLOR_RED, "\tSwitch Command: Device with unknown Device Descriptor id %ld",
-                                  data->id_device_descriptor);
-                }
-                print("\t[%3ld] %-*s ", data->id_sender, DEVICE_NAME_LENGTH,
-                      (device_descriptor == NULL) ? "?" : device_descriptor->name);
+            print("\t[%3ld] %-*s ", data->id_sender, DEVICE_NAME_LENGTH,
+                  (device_descriptor == NULL) ? "?" : device_descriptor->name);
 
-                if (strcmp(data->message, MESSAGE_RETURN_SUCCESS) == 0) {
-                    print_color(COLOR_GREEN, "Switched ");
-                    print("'%s'", switch_label);
-                    print_color(COLOR_GREEN, " to ");
-                    println("'%s'", switch_pos);
-                } else if (strcmp(data->message, MESSAGE_RETURN_NAME_ERROR) == 0) {
-                    println_color(COLOR_RED, "<label> %s doesn't exist",
-                                  switch_label);
-                } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_ERROR) == 0) {
-                    println_color(COLOR_RED, "<pos> %s doesn't exist",
-                                  switch_pos);
-                } else {
-                    println_color(COLOR_RED, "Unknown Error");
-                }
+            if (strcmp(data->message, MESSAGE_RETURN_SUCCESS) == 0) {
+                print_color(COLOR_GREEN, "Switched ");
+                print("'%s'", switch_label);
+                print_color(COLOR_GREEN, " to ");
+                println("'%s'", switch_pos);
+            } else if (strcmp(data->message, MESSAGE_RETURN_NAME_ERROR) == 0) {
+                println_color(COLOR_RED, "<label> %s doesn't exist",
+                              switch_label);
+            } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_ERROR) == 0) {
+                println_color(COLOR_RED, "<pos> %s doesn't exist",
+                              switch_pos);
+            } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_PASSED_DATE_ERROR) == 0) {
+                println_color(COLOR_RED, "The inserted date has already passsed");
+            } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_ORDER_DATE_ERROR) == 0) {
+                println_color(COLOR_RED, "Please insert the dates in the right order");
+            } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_FORMAT_DATE_ERROR) == 0) {
+                println_color(COLOR_RED, "Date format not valid");
+            } else {
+                println_color(COLOR_RED, "Unknown Error");
             }
         }
     }
@@ -449,8 +401,7 @@ int domus_link(size_t device_id, size_t control_device_id) {
                     }
 
                     println_color(COLOR_RED, "\t%s Error: %s",
-                                  (device_descriptor == NULL) ? "?" : device_descriptor->name,
-                                  in_message.message);
+                                  (device_descriptor == NULL) ? "?" : device_descriptor->name, in_message.message);
                     toRtn = 3;
                     break;
                 }
@@ -469,8 +420,7 @@ int domus_link(size_t device_id, size_t control_device_id) {
                         find_dad.id = device_dad->id;
                         find_dad.hop_distance = device_dad->hop_distance - 1;
 
-                        if (((DeviceDad *) list_get_last(device_dad_list))->hop_distance >
-                            device_dad->hop_distance) {
+                        if (((DeviceDad *) list_get_last(device_dad_list))->hop_distance > device_dad->hop_distance) {
                             while (((DeviceDad *) list_get_last(device_dad_list))->hop_distance >=
                                    device_dad->hop_distance) {
                                 list_remove_last(device_dad_list);
@@ -528,8 +478,7 @@ void domus_hierarchy(void) {
     size_t i;
     if (!device_check_control_device(domus)) return;
 
-    device_list = domus_propagate_message(DEVICE_MESSAGE_TO_ALL_DEVICES, MESSAGE_TYPE_INFO, "",
-                                          MESSAGE_TYPE_INFO);
+    device_list = domus_propagate_message(DEVICE_MESSAGE_TO_ALL_DEVICES, MESSAGE_TYPE_INFO, "", MESSAGE_TYPE_INFO);
     println_color(COLOR_CYAN, "\tDOMUS");
 
     list_for_each(data, device_list) {

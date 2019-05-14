@@ -39,7 +39,7 @@ typedef struct DeviceSwitch {
     char name[DEVICE_SWITCH_NAME_LENGTH];
     void *state;
 
-    bool (*set_state)(const char *, void *);
+    int (*set_state)(const char *, void *);
 } DeviceSwitch;
 
 /**
@@ -137,7 +137,7 @@ DeviceDescriptor *device_is_supported_by_id(size_t id);
  * @param set_state method that set the state to the device
  * @return the created switch
  */
-DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(const char *, void *));
+DeviceSwitch *new_device_switch(char name[], void *state, int  (*set_state)(const char *, void *));
 
 /**
  * Get switch state from its name

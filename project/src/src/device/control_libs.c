@@ -1,4 +1,5 @@
 #include "device/control_libs.h"
+#include "util/util_printer.h"
 
 static __pid_t domus_pid = 0;
 
@@ -28,8 +29,8 @@ bool manual_control_check_domus(__pid_t pid){
 
 __pid_t manual_control_get_device_pid(size_t device_id){
     if(domus_pid == 0){
-        fprintf(stderr, "\tPlease connect to domus first\n");
-        return 0;
+        println_color(COLOR_RED, "\tPlease connect to domus first");
+        return -1;
     }
     ConverterResult out_pid;
     Queue_message * check_message;
@@ -49,26 +50,56 @@ __pid_t manual_control_get_device_pid(size_t device_id){
     return out_pid.data.Long;
 }
 
-bool manual_control_set_device(size_t device_id, char * switch_name, char * switch_pos){
+void manual_control_set_device(size_t device_id, char * switch_label, char * switch_pos) {
     __pid_t device_pid;
-    Queue_message * out_message;
-    Message * in_message;
+    Queue_message *out_message;
+    Message *in_message;
+    ConverterResult descriptor_id;
+    DeviceDescriptor *device_descriptor;
     char text[QUEUE_MESSAGE_MESSAGE_LENGTH];
 
     device_pid = manual_control_get_device_pid(device_id);
 
-    if(device_pid == 0){
-        return false;
+    if (device_pid == -1) {
+        return;
     }
 
-    snprintf(text, 64, "%d\n%s\n%s\n", getpid(), switch_name, switch_pos);
-    out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER, QUEUE_MESSAGE_TYPE_DEVICE_START + device_id, text, true);
+    if (device_pid == 0) {
+        println_color(COLOR_RED, "\tCannot find a device with id %d ",
+                      device_id);
+        return;
+    }
+
+    snprintf(text, 64, "%d\n%s\n%s\n", getpid(), switch_label, switch_pos);
+    out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
+                                    QUEUE_MESSAGE_TYPE_DEVICE_START + device_id, text, true);
 
     in_message = queue_message_send_message_with_ack(device_pid, out_message);
 
-    fprintf(stderr, "\tReceived : %s\n", in_message->mesg_text);
-    if(strcmp(in_message->mesg_text, QUEUE_MESSAGE_RETURN_SUCCESS) == 0){
-        return true;
+    char **fields = device_communication_split_message_fields(in_message->mesg_text);
+
+    descriptor_id = converter_string_to_long(fields[0]);
+
+    device_descriptor = device_is_supported_by_id(descriptor_id.data.Long);
+
+    if (device_descriptor == NULL) {
+        println_color(COLOR_RED, "\tSet On Command: Device with unknown Device Descriptor id %ld",
+                      descriptor_id.data.Long);
     }
-    return false;
+    print("\t[%3ld] %-*s ", device_id, DEVICE_NAME_LENGTH,
+          (device_descriptor == NULL) ? "?" : device_descriptor->name);
+    if (strcmp(fields[1], QUEUE_MESSAGE_RETURN_SUCCESS) == 0) {
+        print_color(COLOR_GREEN, "Switched ");
+        print("'%s'", switch_label);
+        print_color(COLOR_GREEN, " to ");
+        println("'%s'", switch_pos);
+    } else if (strcmp(fields[1], QUEUE_MESSAGE_RETURN_NAME_ERROR) == 0) {
+        println_color(COLOR_RED, "<label> %s doesn't exist",
+                      switch_label);
+    } else if (strcmp(fields[1], QUEUE_MESSAGE_RETURN_VALUE_ERROR) == 0) {
+        println_color(COLOR_RED, "<pos> %s doesn't exist",
+                      switch_pos);
+    } else {
+        println_color(COLOR_RED, "Unknown Error");
+    }
 }

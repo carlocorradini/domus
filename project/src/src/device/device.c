@@ -196,7 +196,7 @@ DeviceDescriptor *device_is_supported_by_id(size_t id) {
     return NULL;
 }
 
-DeviceSwitch *new_device_switch(char name[], void *state, bool  (*set_state)(const char *, void *)) {
+DeviceSwitch *new_device_switch(char name[], void *state, int  (*set_state)(const char *, void *)) {
     DeviceSwitch *device_switch = (DeviceSwitch *) malloc(sizeof(DeviceSwitch));
     if (device_switch == NULL) {
         perror("DeviceSwitch Memory Allocation");
