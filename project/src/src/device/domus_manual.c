@@ -25,6 +25,7 @@ static void domus_manual_welcome(void);
 
 int main(int argc, char **args) {
     queue_message_create_queue();
+    device_init();
     domus_manual_welcome();
     manual_command_init();
     cli_start();

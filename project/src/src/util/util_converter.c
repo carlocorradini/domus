@@ -114,7 +114,7 @@ ConverterResult converter_string_to_date(const char *char_string) {
 
     if (toRtn_str == toRtn_str_end) {
         result.error = true;
-        strncpy(result.error_message, "No date found", CONVERTER_RESULT_ERROR_LENGTH);
+        strncpy(result.error_message, "Format", CONVERTER_RESULT_ERROR_LENGTH);
     } else {
         result.data.Date.tm_year = tmp - 1900; //get the year value
         tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);;
@@ -122,7 +122,7 @@ ConverterResult converter_string_to_date(const char *char_string) {
         tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
         result.data.Date.tm_mday = tmp; //get the day value
         tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
-        result.data.Date.tm_hour = tmp; //get the hour value
+        result.data.Date.tm_hour = tmp - 1; //get the hour value
         tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
         result.data.Date.tm_min = tmp; //get the min value
         tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
@@ -130,9 +130,20 @@ ConverterResult converter_string_to_date(const char *char_string) {
 
         if (difftime(mktime(&result.data.Date), time(NULL)) < 0) {
             result.error = true;
-            strncpy(result.error_message, "Wrong date", CONVERTER_RESULT_ERROR_LENGTH);
+            strncpy(result.error_message, "Passed", CONVERTER_RESULT_ERROR_LENGTH);
         }
     }
+
+    return result;
+}
+
+ConverterResult converter_date_to_string(time_t date){
+    ConverterResult result;
+    struct tm* tm_info;
+
+    tm_info = localtime(&date);
+    strftime(result.data.String, 26, "%Y-%m-%d %H:%M:%S", tm_info);
+    result.error = false;
 
     return result;
 }

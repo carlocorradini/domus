@@ -10,5 +10,5 @@ bool manual_control_check_domus(__pid_t pid);
 
 __pid_t manual_control_get_device_pid(size_t device_id);
 
-bool manual_control_set_device(size_t device_id, char * switch_name, char * switch_pos);
+void manual_control_set_device(size_t device_id, char * switch_label, char * switch_pos);
 #endif
