@@ -367,23 +367,22 @@ bool control_device_has_devices(const ControlDevice *control_device) {
     return !list_is_empty(control_device->devices);
 }
 
+static inline void device_table_print_divider(void) {
+    size_t i;
+    print("\t");
+    for (i = 0; i < DEVICE_DESCRIPTION_LENGTH; ++i) print("-");
+    println("");
+}
+
 void device_print_all(void) {
     DeviceDescriptor *data;
-    int i;
     if (supported_devices == NULL) return;
 
-    println("\t%s%-*s | %s", COLOR_BOLD, DEVICE_NAME_LENGTH, "DEVICE NAME", "DESCRIPTION");
-    print("\t");
-    for (i = 0; i < (DEVICE_NAME_LENGTH + DEVICE_DESCRIPTION_LENGTH); ++i) print("-");
-    println("");
+    println("\t%s%-*s | %s", COLOR_BOLD, DEVICE_NAME_LENGTH, "NAME", "DESCRIPTION");
 
     list_for_each(data, supported_devices) {
+        device_table_print_divider();
         device_print(data);
-        if (!device_device_descriptor_equals(data, list_get_last(supported_devices))) {
-            print("\t");
-            for (i = 0; i < (DEVICE_NAME_LENGTH + DEVICE_DESCRIPTION_LENGTH); ++i) print("-");
-            println("");
-        }
     }
 }
 

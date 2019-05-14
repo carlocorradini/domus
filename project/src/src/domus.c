@@ -363,7 +363,7 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
                     println_color(COLOR_RED, "<pos> %s doesn't exist",
                                   switch_pos);
                 } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_PASSED_DATE_ERROR) == 0) {
-                    println_color(COLOR_RED, "The inserted date has already passsed");
+                    println_color(COLOR_RED, "The inserted date has already passed");
                 } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_ORDER_DATE_ERROR) == 0) {
                     println_color(COLOR_RED, "Please insert the dates in the right order");
                 } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_FORMAT_DATE_ERROR) == 0) {
