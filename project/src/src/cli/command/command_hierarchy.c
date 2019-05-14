@@ -1,8 +1,8 @@
 
 #include "cli/command/command_hierarchy.h"
+#include "device/device.h"
 #include "domus.h"
 #include "cli/cli.h"
-#include "util/util_printer.h"
 
 /**
  * Display the current Device hierarchy in the system
@@ -10,11 +10,7 @@
  * @return CLI status code
  */
 static int _hierarchy(char **args) {
-    print("\t\x1b[46m SYSTEM %s", COLOR_RESET);
-    print(" \x1b[43m CONTROL %s", COLOR_RESET);
-    println(" \x1b[7m INTERACTION %s", COLOR_RESET);
-    println("");
-
+    device_print_legend();
     domus_hierarchy();
 
     return CLI_CONTINUE;

@@ -9,6 +9,7 @@
  * @return CLI status code
  */
 static int _device(char **args) {
+    device_print_legend();
     device_print_all();
 
     return CLI_CONTINUE;

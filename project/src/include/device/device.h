@@ -227,4 +227,9 @@ void device_print_all(void);
  */
 void device_print(const DeviceDescriptor *device_descriptor);
 
+/**
+ * Print the Domus Devices Legend
+ */
+void device_print_legend(void);
+
 #endif

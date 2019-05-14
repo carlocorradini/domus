@@ -67,6 +67,13 @@ void device_init(void) {
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_CONTROLLER, true, "controller",
                                                            "The Master Controller",
                                                            "./device/controller"));
+    list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_HUB, true, "hub",
+                                                           "A Hub is a device for connecting multiple devices together and making them act as a single segment",
+                                                           "./device/hub"));
+    list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_TIMER, true, "timer",
+                                                           "An automatic mechanism for activating a device at a preset time",
+                                                           "./device/timer"));
+    device_device_descriptor_add_switch(list_get_last(supported_devices), "time", "Set the timer", true);
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_BULB, false, "bulb",
                                                            "An electric light with a wire filament heated to such a high temperature that it glows with visible light",
                                                            "./device/bulb"));
@@ -80,7 +87,7 @@ void device_init(void) {
     device_device_descritor_add_position(list_get_last(supported_devices), "on", "Open the window");
     device_device_descritor_add_position(list_get_last(supported_devices), "off", "Close the window");
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_FRIDGE, false, "fridge",
-                                                           "An appliance or compartment which is artificially kept cool and used to store food and drink. ",
+                                                           "An appliance or compartment which is artificially kept cool and used to store food and drink",
                                                            "./device/fridge"));
     device_device_descriptor_add_switch(list_get_last(supported_devices), "state", "Turn on and off the Fridge", true);
     device_device_descriptor_add_switch(list_get_last(supported_devices), "filling",
@@ -91,13 +98,6 @@ void device_init(void) {
                                         "Set the internal temperature of the Fridge", true);
     device_device_descriptor_add_switch(list_get_last(supported_devices), "delay",
                                         "Set the delay until the door automatically close", true);
-    list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_HUB, true, "hub",
-                                                           "A Hub is a device for connecting multiple devices together and making them act as a single segment",
-                                                           "./device/hub"));
-    list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_TIMER, true, "timer",
-                                                           "An automatic mechanism for activating a device at a preset time.",
-                                                           "./device/timer"));
-    device_device_descriptor_add_switch(list_get_last(supported_devices), "time", "Set the timer", true);
 }
 
 void device_tini(void) {
@@ -369,36 +369,72 @@ bool control_device_has_devices(const ControlDevice *control_device) {
 
 void device_print_all(void) {
     DeviceDescriptor *data;
+    int i;
     if (supported_devices == NULL) return;
+
+    println("\t%s%-*s | %s", COLOR_BOLD, DEVICE_NAME_LENGTH, "DEVICE NAME", "DESCRIPTION");
+    print("\t");
+    for (i = 0; i < (DEVICE_NAME_LENGTH + DEVICE_DESCRIPTION_LENGTH); ++i) print("-");
+    println("");
 
     list_for_each(data, supported_devices) {
         device_print(data);
+        if (!device_device_descriptor_equals(data, list_get_last(supported_devices))) {
+            print("\t");
+            for (i = 0; i < (DEVICE_NAME_LENGTH + DEVICE_DESCRIPTION_LENGTH); ++i) print("-");
+            println("");
+        }
     }
 }
 
 void device_print(const DeviceDescriptor *device_descriptor) {
     DeviceDescriptorSwitch *data;
     DeviceDescriptorSwitchPosition *position;
+    const char *color;
     size_t i;
     size_t j;
+    if (device_descriptor == NULL) return;
 
-    print_color(COLOR_YELLOW, "\t%-*s", DEVICE_NAME_LENGTH, device_descriptor->name);
-    println("%s", device_descriptor->description);
+    color = COLOR_WHITE;
+    switch (device_descriptor->id) {
+        case DEVICE_TYPE_CONTROLLER:
+        case DEVICE_TYPE_DOMUS: {
+            color = COLOR_CYAN;
+            break;
+        }
+        default: {
+            if (device_descriptor->control_device) color = COLOR_YELLOW;
+            break;
+        }
+    }
+
+    print_color(color, "\t%-*s", DEVICE_NAME_LENGTH, device_descriptor->name);
+    println(" | %s", device_descriptor->description);
 
     if (!list_is_empty(device_descriptor->switches)) {
-        println("\t%-*s%ld switches", DEVICE_NAME_LENGTH, "", device_descriptor->switches->size);
+        println("\t%-*s | %ld switches", DEVICE_NAME_LENGTH, "", device_descriptor->switches->size);
 
         j = 0;
         list_for_each(data, device_descriptor->switches) {
-            print("\t%-*s %2ld => %-*s", DEVICE_NAME_LENGTH, "", j + 1, DEVICE_SWITCH_NAME_LENGTH, data->name);
+            print("\t%-*s |  %2ld => %-*s", DEVICE_NAME_LENGTH, "", j + 1, DEVICE_SWITCH_NAME_LENGTH, data->name);
             println("%-*s", DEVICE_SWITCH_DESCRIPTION_LENGTH, data->description);
-            println("\t%-*s%ld positions", DEVICE_NAME_LENGTH + 3, "", data->positions->size);
+            println("\t%-*s |    %ld positions", DEVICE_NAME_LENGTH, "", data->positions->size);
             for (i = 0; i < data->positions->size; ++i) {
                 position = (DeviceDescriptorSwitchPosition *) list_get(data->positions, i);
-                print("\t%-*s%-*s", DEVICE_NAME_LENGTH + 5, "", DEVICE_SWITCH_NAME_LENGTH, position->name);
+                print("\t%-*s |      %-*s", DEVICE_NAME_LENGTH, "", DEVICE_SWITCH_NAME_LENGTH, position->name);
                 println("%-*s", DEVICE_SWITCH_DESCRIPTION_LENGTH, position->description);
             }
             j++;
         }
     }
+}
+
+void device_print_legend(void) {
+    print("\t");
+    print_color(BACKGROUND_COLOR_CYAN, "%s SYSTEM ", COLOR_BOLD);
+    print(" ");
+    print_color(BACKGROUND_COLOR_YELLOW, "%s CONTROL ", COLOR_BOLD);
+    print(" ");
+    println_color(COLOR_INVERSE, "%s INTERACTION ", COLOR_BOLD);
+    println("");
 }

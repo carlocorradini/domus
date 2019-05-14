@@ -345,7 +345,7 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
             if (data->type == MESSAGE_TYPE_SET_ON) {
                 device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
                 if (device_descriptor == NULL) {
-                    println_color(COLOR_RED, "\tSwitch Command: Device with unknown Device Descriptor id %ld",
+                    println_color(COLOR_RED, "\tSet On Command: Device with unknown Device Descriptor id %ld",
                                   data->id_device_descriptor);
                 }
                 print("\t[%3ld] %-*s ", data->id_sender, DEVICE_NAME_LENGTH,
@@ -362,6 +362,14 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
                 } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_ERROR) == 0) {
                     println_color(COLOR_RED, "<pos> %s doesn't exist",
                                   switch_pos);
+                } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_PASSED_DATE_ERROR) == 0) {
+                    println_color(COLOR_RED, "The inserted date has already passsed");
+                } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_ORDER_DATE_ERROR) == 0) {
+                    println_color(COLOR_RED, "Please insert the dates in the right order");
+                } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_FORMAT_DATE_ERROR) == 0) {
+                    println_color(COLOR_RED, "Date format not valid");
+                } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_ALREADY_DEFINED_DATE_ERROR) == 0) {
+                    println_color(COLOR_RED, "Timer values already defined");
                 } else {
                     println_color(COLOR_RED, "Unknown Error");
                 }
