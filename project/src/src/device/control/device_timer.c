@@ -100,6 +100,9 @@ static int timer_set_switch_state(const char *name, char *dates) {
     if (difftime(timer_registry->end, timer_registry->begin) < 0) {
         return -3;
     }
+    if (difftime(timer_registry->end, timer_registry->begin) == 0) {
+        return -6;
+    }
 
     if (internal_timer == NULL) {
 
@@ -177,6 +180,10 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
                 }
                 case -5 : {
                     device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ALREADY_DEFINED_DATE_ERROR);
+                    break;
+                }
+                case -6 : {
+                    device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_SAME_DATE_ERROR);
                     break;
                 }
                 default: {
@@ -319,6 +326,10 @@ static void queue_message_handler() {
             }
             case -5 : {
                 snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, MESSAGE_RETURN_VALUE_ALREADY_DEFINED_DATE_ERROR);
+                break;
+            }
+            case -6 : {
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, MESSAGE_RETURN_VALUE_SAME_DATE_ERROR);
                 break;
             }
             default: {

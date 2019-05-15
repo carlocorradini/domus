@@ -271,7 +271,7 @@ bool domus_info_by_id(size_t id) {
                 break;
             }
             case DEVICE_TYPE_TIMER: {
-                println("");
+                println("\tSTART TIME: %s    END TIME: %s", fields[1], fields[2]);
                 break;
             }
             default: {
@@ -369,6 +369,8 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
                     println_color(COLOR_RED, "Date format not valid");
                 } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_ALREADY_DEFINED_DATE_ERROR) == 0) {
                     println_color(COLOR_RED, "Timer values already defined");
+                } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_SAME_DATE_ERROR) == 0) {
+                    println_color(COLOR_RED, "The two dates should be different");
                 } else {
                     println_color(COLOR_RED, "Unknown Error");
                 }

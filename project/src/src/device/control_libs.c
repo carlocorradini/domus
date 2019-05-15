@@ -112,6 +112,8 @@ void manual_control_set_device(size_t device_id, char * switch_label, char * swi
             println_color(COLOR_RED, "Date format not valid");
         } else if (strcmp(text, MESSAGE_RETURN_VALUE_ALREADY_DEFINED_DATE_ERROR) == 0) {
             println_color(COLOR_RED, "Timer values already defined");
+        } else if (strcmp(text, MESSAGE_RETURN_VALUE_SAME_DATE_ERROR) == 0) {
+            println_color(COLOR_RED, "The two dates should be different");
         } else {
             println_color(COLOR_RED, "Unknown Error");
         }
