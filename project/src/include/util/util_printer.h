@@ -5,6 +5,9 @@
 #include <stdbool.h>
 
 #define COLOR_RESET   "\x1b[0m"
+#define COLOR_BOLD "\x1b[1m"
+#define COLOR_INVERSE "\x1b[7m"
+#define COLOR_BLACK "\x1b[30m"
 #define COLOR_RED     "\x1b[31m"
 #define COLOR_GREEN   "\x1b[32m"
 #define COLOR_YELLOW  "\x1b[33m"
@@ -12,6 +15,9 @@
 #define COLOR_MAGENTA "\x1b[35m"
 #define COLOR_CYAN    "\x1b[36m"
 #define COLOR_WHITE   "\x1b[37m"
+#define BACKGROUND_COLOR_CYAN "\x1b[46m"
+#define BACKGROUND_COLOR_YELLOW "\x1b[43m"
+#define BACKGROUND_COLOR_WHITE "\x1b[37m"
 
 /**
  * Print the string to stdout

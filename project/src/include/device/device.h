@@ -10,7 +10,8 @@
 #define DEVICE_NAME_LENGTH 16
 #define DEVICE_DESCRIPTION_LENGTH 128
 #define DEVICE_FILE_NAME_LENGTH 32
-#define DEVICE_SWITCH_NAME_LENGTH 16
+#define DEVICE_SWITCH_NAME_LENGTH 24
+#define DEVICE_SWITCH_DESCRIPTION_LENGTH 128
 
 #define DEVICE_TYPE_DOMUS 0
 #define DEVICE_TYPE_CONTROLLER 1
@@ -30,7 +31,35 @@ typedef struct DeviceDescriptor {
     char name[DEVICE_NAME_LENGTH];
     char description[DEVICE_DESCRIPTION_LENGTH];
     char file_name[DEVICE_FILE_NAME_LENGTH];
+
+    List *switches;
 } DeviceDescriptor;
+
+/**
+ * Struct Device Descriptor Switch,
+ *  Information about a Device Switch
+ */
+typedef struct DeviceDescriptorSwitch {
+    char name[DEVICE_SWITCH_NAME_LENGTH];
+    char description[DEVICE_SWITCH_DESCRIPTION_LENGTH];
+    bool only_manual;
+
+    List *positions;
+} DeviceDescriptorSwitch;
+
+typedef struct DeviceDescriptorSwitchPosition {
+    char name[DEVICE_SWITCH_NAME_LENGTH];
+    char description[DEVICE_SWITCH_DESCRIPTION_LENGTH];
+} DeviceDescriptorSwitchPosition;
+
+DeviceDescriptorSwitch *new_device_descriptor_switch(char name[], char description[], bool only_manual);
+
+DeviceDescriptorSwitchPosition *new_device_descriptor_switch_position(char name[], char description[]);
+
+bool device_device_descriptor_add_switch(DeviceDescriptor *device_descriptor, char name[], char description[], bool only_manual);
+
+bool device_device_descritor_add_position(DeviceDescriptor *device_descriptor, char name[],
+                                          char description[]);
 
 /**
  * Struct generic switch
@@ -197,5 +226,10 @@ void device_print_all(void);
  * @param device_descriptor The device descriptor to retrieve information
  */
 void device_print(const DeviceDescriptor *device_descriptor);
+
+/**
+ * Print the Domus Devices Legend
+ */
+void device_print_legend(void);
 
 #endif

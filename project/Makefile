@@ -98,7 +98,7 @@ $(TARGET): $(ALL_OBJ)
 	@if [ $@ = main ]; then \
 		mv $(DEV_BIN)/$@ $(BIN_DIR)/$(DOMUS_MAIN); \
 	fi;
-	@if [ $@ = DOMUS_MANUAL_MAIN ]; then \
+	@if [ $@ = $(DOMUS_MANUAL_MAIN) ]; then \
     	mv $(DEV_BIN)/$@ $(BIN_DIR)/$@; \
     fi;
 
