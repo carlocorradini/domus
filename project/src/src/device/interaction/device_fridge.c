@@ -169,12 +169,10 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             if (switch_door == false) {
                 time_difference = 0;
             }
-            double switch_thermo = *((double *) (device_get_device_switch_state(fridge->switches, "thermo")));
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
-                                                "%d\n%.0lf\n%ld\n%.2f\n%.2lf\n%.0lf\n%d\n",
-                                                fridge->state, time_difference, delay, perc, temp, switch_thermo,
-                                                switch_door);
+                                                "%d\n%.0lf\n%ld\n%.2f\n%.2lf\n%d\n",
+                                                fridge->state, time_difference, delay, perc, temp, switch_door);
 
             break;
         }
@@ -194,8 +192,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             delay_time = converter_string_to_long(fields[4]);
             perc = converter_string_to_double(fields[5]);
             temp = converter_string_to_double(fields[6]);
-            switch_thermo = converter_char_to_bool(fields[7][0]);
-            switch_door = converter_char_to_bool(fields[8][0]);
+            switch_door = converter_char_to_bool(fields[7][0]);
 
 
             fridge->state = state.data.Bool;
@@ -207,8 +204,8 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             ((FridgeRegistry *) fridge->registry)->temp = temp.data.Double;
 
             double *thermo_tmp = malloc(sizeof(double));
-            *thermo_tmp = switch_thermo.data.Double;
-            device_get_device_switch(fridge->switches, "thermo")->state = thermo_tmp;
+            *thermo_tmp = temp.data.Double;
+            device_get_device_switch(fridge->switches, FRIDGE_SWITCH_THERMO)->state = thermo_tmp;
             device_get_device_switch(fridge->switches, FRIDGE_SWITCH_DOOR)->state = (bool *) switch_door.data.Bool;
 
             device_communication_free_message_fields(fields);

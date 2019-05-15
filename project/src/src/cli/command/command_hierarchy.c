@@ -3,6 +3,7 @@
 #include "device/device.h"
 #include "domus.h"
 #include "cli/cli.h"
+#include "util/util_printer.h"
 
 /**
  * Display the current Device hierarchy in the system
@@ -11,6 +12,7 @@
  */
 static int _hierarchy(char **args) {
     device_print_legend();
+    println("");
     domus_hierarchy();
 
     return CLI_CONTINUE;

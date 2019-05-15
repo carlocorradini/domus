@@ -251,14 +251,13 @@ bool domus_info_by_id(size_t id) {
             }
             case DEVICE_TYPE_FRIDGE: {
                 ConverterResult fridge_door_switch_state = converter_bool_to_string(
-                        converter_char_to_bool(fields[6][0]).data.Bool);
+                        converter_char_to_bool(fields[5][0]).data.Bool);
 
-                println("\tOPEN_TIME(s): %-*s   DELAY_TIME(s): %-*s     PERC(%): %-*s     TEMP(C°): %-*s     SWITCH_THERMO: %-*s     SWITCH_DOOR: %-*s",
+                println("\tOPEN_TIME(s): %-*s   DELAY_TIME(s): %-*s     PERC(%): %-*s     TEMP(C°): %-*s     SWITCH_DOOR: %-*s",
                         sizeof(double) + 1, fields[1],
                         sizeof(double) + 1, fields[2],
                         sizeof(double) + 1, fields[3],
                         sizeof(double) + 1, fields[4],
-                        sizeof(double) + 1, fields[5],
                         DEVICE_SWITCH_NAME_LENGTH, fridge_door_switch_state.data.String);
                 break;
             }
