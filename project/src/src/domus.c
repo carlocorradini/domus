@@ -235,7 +235,7 @@ bool domus_info_by_id(size_t id) {
                 ConverterResult bulb_switch_state = converter_bool_to_string(
                         converter_char_to_bool(fields[2][0]).data.Bool);
 
-                println("\tACTIVE_TIME(s): %-*s SWITCH_STATE: %-*s",
+                println("\tACTIVE_TIME(s): %-*s SWITCH_TURN: %-*s",
                         sizeof(double) + 1, fields[1],
                         DEVICE_SWITCH_NAME_LENGTH, bulb_switch_state.data.String);
                 break;
@@ -244,7 +244,7 @@ bool domus_info_by_id(size_t id) {
                 ConverterResult window_switch_state = converter_bool_to_string(
                         converter_char_to_bool(fields[2][0]).data.Bool);
 
-                println("\tOPEN_TIME(s): %-*s   SWITCH_STATE: %-*s",
+                println("\tOPEN_TIME(s): %-*s   SWITCH_OPEN: %-*s",
                         sizeof(double) + 1, fields[1],
                         DEVICE_SWITCH_NAME_LENGTH, window_switch_state.data.String);
                 break;
