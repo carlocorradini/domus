@@ -12,8 +12,11 @@ bool manual_control_check_domus(__pid_t pid){
     snprintf(text, 64, "%d", getpid());
     check_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER, QUEUE_MESSAGE_TYPE_DOMUS_PID_REQUEST, text, true);
 
-    in_message = queue_message_send_message_with_ack(pid, check_message);
+    queue_message_send_message(check_message);
+    queue_message_notify(pid);
+    usleep(DOMUS_GET_PID_SLEEP);
 
+    in_message = queue_message_receive_message(check_message->message_id, QUEUE_MESSAGE_TYPE_DOMUS_PID_REQUEST, false);
     if(in_message != NULL) {
         in_pid = converter_string_to_long(in_message->mesg_text);
 
