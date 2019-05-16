@@ -50,7 +50,7 @@
 /* END Message Status */
 
 /* Queue Message Definitions */
-#define QUEUE_MESSAGE_QUEUE_NAME "/tmp/control"
+#define QUEUE_MESSAGE_QUEUE_NAME "/tmp/domus_control"
 #define QUEUE_MESSAGE_QUEUE_NUMBER 1
 
 #define QUEUE_MESSAGE_TYPE_ALL_TYPES 0
