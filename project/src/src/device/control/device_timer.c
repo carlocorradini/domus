@@ -146,6 +146,25 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         case MESSAGE_TYPE_SET_INIT_VALUES: {
+            char **fields = device_communication_split_message_fields(in_message.message);
+
+            result = converter_char_to_bool(fields[2][0]);
+
+            timer->device->state = result.data.Bool;
+
+            if(strcmp(fields[3], "NOT SET") == 0){
+                ((TimerRegistry *) timer->device->registry)->begin = 0;
+                ((TimerRegistry *) timer->device->registry)->end = 0;
+            }
+            else{
+                ConverterResult date1, date2;
+                date1 = converter_string_to_date(fields[3]);
+                ((TimerRegistry *) timer->device->registry)->begin = mktime(&date1.data.Date) + 3600;
+                date2 = converter_string_to_date(fields[4]);
+                ((TimerRegistry *) timer->device->registry)->end = mktime(&date2.data.Date);
+            }
+
+            device_communication_free_message_fields(fields);
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
                                                 "");
             break;

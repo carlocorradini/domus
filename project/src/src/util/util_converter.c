@@ -122,6 +122,7 @@ ConverterResult converter_string_to_date(const char *char_string) {
         tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
         result.data.Date.tm_mday = tmp; //get the day value
         tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
+        /* TODO */
         result.data.Date.tm_hour = tmp - 1; //get the hour value
         tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
         result.data.Date.tm_min = tmp; //get the min value
@@ -140,7 +141,8 @@ ConverterResult converter_string_to_date(const char *char_string) {
 ConverterResult converter_date_to_string(time_t date){
     ConverterResult result;
     struct tm* tm_info;
-
+    /* TODO */
+    date+=3600;
     tm_info = localtime(&date);
     strftime(result.data.String, 26, "%Y-%m-%d %H:%M:%S", tm_info);
     result.error = false;
