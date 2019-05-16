@@ -374,6 +374,14 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
                     println_color(COLOR_RED, "Timer values already defined");
                 } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_SAME_DATE_ERROR) == 0) {
                     println_color(COLOR_RED, "The two dates should be different");
+                } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_EXCEEDED_FRIDGE_ERROR) == 0) {
+                    println_color(COLOR_RED, "Maximum fridge capacity reached");
+                } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_EMPTY_FRIDGE_ERROR) == 0) {
+                    println_color(COLOR_RED, "Fridge is empty");
+                } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_MAXTHERMO_FRIDGE_ERROR) == 0) {
+                    println_color(COLOR_RED, "Cannot set internal temperature : too high");
+                } else if (strcmp(data->message, MESSAGE_RETURN_VALUE_MINTHERMO_FRIDGE_ERROR) == 0) {
+                    println_color(COLOR_RED, "Cannot set internal temperature : too low");
                 } else {
                     println_color(COLOR_RED, "Unknown Error");
                 }
