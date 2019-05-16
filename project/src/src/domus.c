@@ -63,7 +63,7 @@ void domus_start(void) {
 static void domus_init(void) {
     /* Create Domus, only once in the entire program with id 0 */
     domus = new_control_device(
-            new_device(DOMUS_ID, DEVICE_TYPE_DOMUS,
+            new_device(DOMUS_ID, DEVICE_TYPE_DOMUS, NULL,
                        DEVICE_STATE,
                        new_domus_registry()
             ));
@@ -71,7 +71,7 @@ static void domus_init(void) {
     author_init();
     device_init();
     signal(DEVICE_COMMUNICATION_READ_QUEUE, queue_message_handler);
-    control_device_fork(domus, CONTROLLER_ID, device_is_supported_by_id(DEVICE_TYPE_CONTROLLER));
+    control_device_fork(domus, CONTROLLER_ID, device_is_supported_by_id(DEVICE_TYPE_CONTROLLER), NULL);
 }
 
 static void domus_tini(void) {
@@ -103,12 +103,12 @@ bool domus_has_devices(void) {
     return control_device_has_devices(domus);
 }
 
-size_t domus_fork_device(const DeviceDescriptor *device_descriptor) {
+size_t domus_fork_device(const DeviceDescriptor *device_descriptor, const char *custom_name) {
     size_t child_id;
     if (!device_check_control_device(domus) || device_descriptor == NULL) return -1;
 
     child_id = ((DomusRegistry *) domus->device->registry)->next_id++;
-    if (!control_device_fork(domus, child_id, device_descriptor)) return -1;
+    if (!control_device_fork(domus, child_id, device_descriptor, custom_name)) return -1;
 
     return child_id;
 }
@@ -237,8 +237,9 @@ bool domus_info_by_id(size_t id) {
     if (!list_is_empty(message_list)) {
         device_print_legend();
         println("");
-        println_color(COLOR_BOLD, "\t%-*s | %-*s | %-*s |",
+        println_color(COLOR_BOLD, "\t%-*s | %-*s | %-*s | %-*s |",
                       sizeof(size_t) + 1, "ID",
+                      DEVICE_NAME_LENGTH, "TYPE",
                       DEVICE_NAME_LENGTH, "NAME",
                       DEVICE_STATE_LEGTH, "STATE");
     }
@@ -273,7 +274,7 @@ bool domus_info_by_id(size_t id) {
         print("\t%-*ld | ",
               sizeof(size_t) + 1, data->id_sender);
         print_color(color, "%-*s", DEVICE_NAME_LENGTH, (device_descriptor == NULL) ? "?" : device_descriptor->name);
-        print(" | ");
+        print(" | %-*s | ", DEVICE_NAME_LENGTH, data->device_name);
 
         switch (data->id_device_descriptor) {
             case DEVICE_TYPE_BULB: {
@@ -518,6 +519,7 @@ int domus_link(size_t device_id, size_t control_device_id) {
                                             device_to_spawn->id_sender,
                                             device_to_spawn->id_device_descriptor,
                                             device_to_spawn->message);
+        strncpy(out_message.device_name, device_to_spawn->device_name, DEVICE_NAME_LENGTH);
 
         list_for_each(data, domus->devices) {
             switch ((in_message = device_communication_write_message_with_ack(data, &out_message)).type) {
@@ -569,6 +571,7 @@ int domus_link(size_t device_id, size_t control_device_id) {
                                                             device_to_spawn->id_sender,
                                                             device_to_spawn->id_device_descriptor,
                                                             device_to_spawn->message);
+                        strncpy(out_message.device_name, device_to_spawn->device_name, DEVICE_NAME_LENGTH);
 
                         device_communication_write_message_with_ack(data, &out_message);
 
@@ -606,8 +609,8 @@ void domus_hierarchy(void) {
     List *device_list;
     DeviceCommunicationMessage *data;
     DeviceDescriptor *device_descriptor;
-    char device_name[DEVICE_NAME_LENGTH];
     size_t i;
+    const char *color;
     int old_hop = 0;
 
     if (!device_check_control_device(domus)) return;
@@ -617,19 +620,33 @@ void domus_hierarchy(void) {
     println_color(COLOR_CYAN, "\tDOMUS");
 
     list_for_each(data, device_list) {
+        color = COLOR_WHITE;
         device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
         if (device_descriptor == NULL) {
             println_color(COLOR_RED, "\tHierarchy Command: Device with unknown Device Descriptor id %ld",
                           data->id_device_descriptor);
         }
-        strncpy(device_name, (device_descriptor == NULL) ? "?" : device_descriptor->name, DEVICE_NAME_LENGTH);
 
-        if(old_hop != 0){
+        if (device_descriptor != NULL) {
+            switch (device_descriptor->id) {
+                case DEVICE_TYPE_CONTROLLER:
+                case DEVICE_TYPE_DOMUS: {
+                    color = COLOR_CYAN;
+                    break;
+                }
+                default: {
+                    if (device_descriptor->control_device) color = COLOR_YELLOW;
+                    break;
+                }
+            }
+        }
+
+        if (old_hop != 0) {
             printf("\t");
             for (i = 0; i < old_hop; i++) print("   ");
             printf("\033[3D");
             printf("\033[1A");
-            printf("%s", (old_hop-data->ctr_hop == 0) ? "├─" : "└─");
+            printf("%s", (old_hop - data->ctr_hop == 0) ? "├─" : "└─");
             printf("\033[1B");
             printf("\033[100D");
         }
@@ -637,13 +654,10 @@ void domus_hierarchy(void) {
         print("\t");
         for (i = 0; i < data->ctr_hop; i++) print("   ");
 
-        if (device_descriptor != NULL && device_descriptor->id == DEVICE_TYPE_CONTROLLER &&
-            device_descriptor->control_device) {
-            println_color(COLOR_CYAN, "%s %ld", device_name, data->id_sender);
-        } else if (device_descriptor != NULL && device_descriptor->control_device) {
-            println_color(COLOR_YELLOW, "%s %ld", device_name, data->id_sender);
+        if (strcmp(device_descriptor->name, data->device_name) == 0) {
+            println_color(color, "%s %ld", device_descriptor->name, data->id_sender);
         } else {
-            println("%s %ld", device_name, data->id_sender);
+            println_color(color, "%s %s %ld", device_descriptor->name, data->device_name, data->id_sender);
         }
     }
 

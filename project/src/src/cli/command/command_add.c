@@ -21,7 +21,7 @@ static int _add(char **args) {
         println("\tDevice %s is not supported", args[1]);
     } else if (device_descriptor->id == CONTROLLER_ID) {
         println("\tCannot add another Controller, only one is allowed");
-    } else if ((id = domus_fork_device(device_descriptor)) == -1) {
+    } else if ((id = domus_fork_device(device_descriptor, args[2])) == -1) {
         println_color(COLOR_RED, "\tSomething goes wrong");
     } else {
         println_color(COLOR_GREEN, "\t%s added with id %ld", device_descriptor->name, id);
@@ -35,7 +35,7 @@ static int _add(char **args) {
 Command *command_add(void) {
     return new_command(
             "add",
-            "Add a <device> to the system and show its features",
-            "add <device>",
+            "Add a <device> to the system and show its features. Add [name] to define a custom name for the <device>",
+            "add <device> [name]",
             _add);
 }

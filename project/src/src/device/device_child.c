@@ -131,7 +131,8 @@ static void device_child_control_device_spawn() {
                                                 "Child Descriptor ID Conversion Error: %s",
                                                 child_id.error_message);
         } else if (!control_device_fork(control_device_child, child_id.data.Long,
-                                        device_is_supported_by_id(child_descriptor_id.data.Long))) {
+                                        device_is_supported_by_id(child_descriptor_id.data.Long),
+                                        _device_to_spawn.device_name)) {
             device_communication_message_modify(&out_message, _device_to_spawn.id_sender, MESSAGE_TYPE_ERROR,
                                                 "Error Forking Device");
         } else {
@@ -210,7 +211,7 @@ Device *device_child_new_device(int argc, char **args, size_t device_descriptor_
         exit(EXIT_FAILURE);
     }
 
-    device_child = new_device(device_id.data.Long, device_descriptor_id, DEVICE_STATE, registry);
+    device_child = new_device(device_id.data.Long, device_descriptor_id, args[0], DEVICE_STATE, registry);
 
     return device_child;
 }
@@ -307,7 +308,7 @@ ControlDevice *device_child_new_control_device(int argc, char **args, size_t dev
     }
 
     control_device_child = new_control_device(
-            new_device(control_device_id.data.Long, device_descriptor_id, DEVICE_STATE,
+            new_device(control_device_id.data.Long, device_descriptor_id, args[0], DEVICE_STATE,
                        registry));
 
     return control_device_child;

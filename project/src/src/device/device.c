@@ -39,8 +39,10 @@ static bool device_switch_equals(const char *data_1, const char *data_2);
  * Replaces the current running process with a new device process described in the Device Descriptor
  * @param child_id The child id
  * @param device_descriptor The descriptor of the device to be created
+ * @param custom_name The custom name, can be NULL
  */
-static void control_device_fork_child(size_t child_id, const DeviceDescriptor *device_descriptor);
+static void
+control_device_fork_child(size_t child_id, const DeviceDescriptor *device_descriptor, const char *custom_name);
 
 static bool device_device_descriptor_equals(const DeviceDescriptor *data_1, const DeviceDescriptor *data_2) {
     if (data_1 == NULL || data_2 == NULL) return false;
@@ -116,7 +118,7 @@ void device_tini(void) {
     free_list(supported_devices);
 }
 
-Device *new_device(size_t device_id, size_t device_descriptor_id, bool state, void *registry) {
+Device *new_device(size_t device_id, size_t device_descriptor_id, const char *name, bool state, void *registry) {
     Device *device;
     if (registry == NULL) {
         fprintf(stderr, "Device: Please define all required function\n");
@@ -136,6 +138,10 @@ Device *new_device(size_t device_id, size_t device_descriptor_id, bool state, vo
         fprintf(stderr, "Device: Device Descriptor id not found\n");
         return NULL;
     }
+    if (name == NULL)
+        strncpy(device->name, device->device_descriptor->name, DEVICE_NAME_LENGTH);
+    else
+        strncpy(device->name, name, DEVICE_NAME_LENGTH);
     device->state = state;
     device->registry = registry;
     device->switches = new_list(NULL, (bool (*)(const void *, const void *)) device_switch_equals);
@@ -302,7 +308,8 @@ bool device_check_control_device(const ControlDevice *control_device) {
     return control_device != NULL && device_check_device(control_device->device) && control_device->devices != NULL;
 }
 
-bool control_device_fork(const ControlDevice *control_device, size_t id, const DeviceDescriptor *device_descriptor) {
+bool control_device_fork(const ControlDevice *control_device, size_t id, const DeviceDescriptor *device_descriptor,
+                         const char *custom_name) {
     pid_t child_pid;
     int write_parent_read_child[2];
     int write_child_read_parent[2];
@@ -330,7 +337,7 @@ bool control_device_fork(const ControlDevice *control_device, size_t id, const D
             /* Attach child stdin to read child pipe */
             dup2(write_parent_read_child[0], DEVICE_COMMUNICATION_CHILD_READ);
 
-            control_device_fork_child(id, device_descriptor);
+            control_device_fork_child(id, device_descriptor, custom_name);
             break;
         }
         default: {
@@ -353,14 +360,15 @@ bool control_device_fork(const ControlDevice *control_device, size_t id, const D
     return true;
 }
 
-static void control_device_fork_child(size_t child_id, const DeviceDescriptor *device_descriptor) {
+static void
+control_device_fork_child(size_t child_id, const DeviceDescriptor *device_descriptor, const char *custom_name) {
     char *device_args[DEVICE_CHILD_ARGS_LENGTH + 1];
     char device_name[DEVICE_NAME_LENGTH];
     char device_id[sizeof(size_t) + 1];
     char device_descriptor_id[sizeof(size_t) + 1];
     if (device_descriptor == NULL) return;
 
-    snprintf(device_name, DEVICE_NAME_LENGTH, "%s", device_descriptor->name);
+    snprintf(device_name, DEVICE_NAME_LENGTH, "%s", (custom_name != NULL) ? custom_name : device_descriptor->name);
     snprintf(device_id, sizeof(size_t) + 1, "%ld", child_id);
     snprintf(device_descriptor_id, sizeof(size_t) + 1, "%ld", device_descriptor->id);
 

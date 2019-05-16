@@ -148,6 +148,7 @@ void device_communication_message_init(const Device *device, DeviceCommunication
     message->id_device_descriptor = device->device_descriptor->id;
     message->flag_force = false;
     message->flag_continue = false;
+    strncpy(message->device_name, device->name, DEVICE_NAME_LENGTH);
 
     snprintf(message->message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "Message has not been initialized");
 }
@@ -199,6 +200,7 @@ DeviceCommunicationMessage *device_communication_message_copy(const DeviceCommun
     message_copy->flag_force = message->flag_force;
     message_copy->flag_continue = message->flag_continue;
     strncpy(message_copy->message, message->message, DEVICE_COMMUNICATION_MESSAGE_LENGTH);
+    strncpy(message_copy->device_name, message->device_name, DEVICE_NAME_LENGTH);
 
     return message_copy;
 }
@@ -337,7 +339,7 @@ Message *queue_message_send_message_with_ack(__pid_t device_pid, Queue_message *
     return in_message;
 }
 
-void queue_message_create_queue(){
+void queue_message_create_queue() {
     char create_command[256];
     snprintf(create_command, sizeof(create_command), "touch %s", QUEUE_MESSAGE_QUEUE_NAME);
     system(create_command);

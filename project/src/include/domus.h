@@ -30,11 +30,13 @@ DomusRegistry *new_domus_registry(void);
 
 /**
  * Create a new process using fork() and save it to the Domus devices list
- *  The child process execute an exec and change itself
+ *  The Device can have a custom name
+ *  The child process execute and change itself
  * @param device_descriptor The descriptor of the device to add
+ * @param custom_name The custom name, can be NULL
  * @return ID of the newly created process, -1 otherwise
  */
-size_t domus_fork_device(const DeviceDescriptor *device_descriptor);
+size_t domus_fork_device(const DeviceDescriptor *device_descriptor, const char *custom_name);
 
 /**
  * Check if the Domus has devices
@@ -105,7 +107,6 @@ pid_t domus_getpid(size_t device_id);
  * Display the current devices hierarchy in the system
  */
 void domus_hierarchy(void);
-
 
 
 #endif

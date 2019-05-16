@@ -57,7 +57,8 @@ DeviceDescriptorSwitch *new_device_descriptor_switch(char name[], char descripti
 
 DeviceDescriptorSwitchPosition *new_device_descriptor_switch_position(char name[], char description[]);
 
-bool device_device_descriptor_add_switch(DeviceDescriptor *device_descriptor, char name[], char description[], bool only_manual);
+bool device_device_descriptor_add_switch(DeviceDescriptor *device_descriptor, char name[], char description[],
+                                         bool only_manual);
 
 bool device_device_descritor_add_position(DeviceDescriptor *device_descriptor, char name[],
                                           char description[]);
@@ -78,6 +79,7 @@ typedef struct DeviceSwitch {
 typedef struct Device {
     size_t id;
     DeviceDescriptor *device_descriptor;
+    char name[DEVICE_NAME_LENGTH];
     bool state;
     void *registry;
 
@@ -107,11 +109,12 @@ void device_tini(void);
  * Create a new generic Device
  * @param device_id Device unique id
  * @param device_descriptor_id Device Descriptor unique id
+ * @param name The Device Name
  * @param state Device state
  * @param registry Device registry
  * @return The new Device, NULL otherwise
  */
-Device *new_device(size_t device_id, size_t device_descriptor_id, bool state, void *registry);
+Device *new_device(size_t device_id, size_t device_descriptor_id, const char *name, bool state, void *registry);
 
 /**
  * Free a Device
@@ -206,9 +209,11 @@ bool device_check_control_device(const ControlDevice *control_device);
  * @param control_device The control device
  * @param id the child id
  * @param device_descriptor The Device Descriptor of the child
+ * @param custom_name The custom name, can be NULL
  * @return true if fork was successful, false otherwise
  */
-bool control_device_fork(const ControlDevice *control_device, size_t id, const DeviceDescriptor *device_descriptor);
+bool control_device_fork(const ControlDevice *control_device, size_t id, const DeviceDescriptor *device_descriptor,
+                         const char *custom_name);
 
 /**
  * Check if the Control Device has Devices
