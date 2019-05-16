@@ -41,8 +41,8 @@ static void controller_message_handler(DeviceCommunicationMessage in_message) {
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
-                                                "%ld\n%ld\n",
-                                                controller->devices->size,
+                                                "%d\n%ld\n",
+                                                controller->device->state,
                                                 controller->devices->size);
             break;
         }
@@ -51,7 +51,8 @@ static void controller_message_handler(DeviceCommunicationMessage in_message) {
             return;
         }
         default: {
-            device_communication_message_modify(&out_message, in_message.id_sender,MESSAGE_TYPE_UNKNOWN, "%s", in_message.message);
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_UNKNOWN, "%s",
+                                                in_message.message);
             break;
         }
     }

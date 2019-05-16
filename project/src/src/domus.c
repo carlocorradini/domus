@@ -214,8 +214,11 @@ bool domus_info_by_id(size_t id) {
 
     message_list = domus_propagate_message(id, MESSAGE_TYPE_INFO, "", MESSAGE_TYPE_INFO);
 
-    println_color(COLOR_BOLD, "\t%-*s | %-*s | %-*s", sizeof(size_t) + 1, "ID", DEVICE_NAME_LENGTH, "NAME",
-                  DEVICE_STATE_LEGTH, "STATE");
+    println_color(COLOR_BOLD, "\t%-*s | %-*s | %-*s | %s",
+                  sizeof(size_t) + 1, "ID",
+                  DEVICE_NAME_LENGTH, "NAME",
+                  DEVICE_STATE_LEGTH, "STATE",
+                  "?");
 
     list_for_each(data, message_list) {
         device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
@@ -225,31 +228,29 @@ bool domus_info_by_id(size_t id) {
         }
 
         char **fields = device_communication_split_message_fields(data->message);
-        ConverterResult device_state = converter_bool_to_string(
-                converter_char_to_bool(fields[0][0]).data.Bool);
+        bool device_state = converter_char_to_bool(fields[0][0]).data.Bool;
 
-        print("\tID: %-*ld DEVICE_NAME: %-*s DEVICE_STATE: %-*s",
+        print("\t%-*ld | %-*s | ",
               sizeof(size_t) + 1, data->id_sender,
-              DEVICE_NAME_LENGTH, (device_descriptor == NULL) ? "?" : device_descriptor->name,
-              10, device_state.data.String);
+              DEVICE_NAME_LENGTH, (device_descriptor == NULL) ? "?" : device_descriptor->name);
 
         switch (data->id_device_descriptor) {
             case DEVICE_TYPE_BULB: {
-                ConverterResult bulb_switch_state = converter_bool_to_string(
-                        converter_char_to_bool(fields[2][0]).data.Bool);
+                bool bulb_switch_state = converter_char_to_bool(fields[2][0]).data.Bool;
 
-                println("\tACTIVE_TIME(s): %-*s SWITCH_TURN: %-*s",
+                println("%-*s | ACTIVE_TIME(s): %-*s | SWITCH_TURN: %-*s",
+                        DEVICE_STATE_LEGTH, (device_state) ? "on" : "off",
                         sizeof(double) + 1, fields[1],
-                        DEVICE_SWITCH_NAME_LENGTH, bulb_switch_state.data.String);
+                        DEVICE_SWITCH_NAME_LENGTH, (bulb_switch_state) ? "on" : "off");
                 break;
             }
             case DEVICE_TYPE_WINDOW : {
-                ConverterResult window_switch_state = converter_bool_to_string(
-                        converter_char_to_bool(fields[2][0]).data.Bool);
+                bool window_switch_state = converter_char_to_bool(fields[2][0]).data.Bool;
 
-                println("\tOPEN_TIME(s): %-*s   SWITCH_OPEN: %-*s",
+                println("%-*s | OPEN_TIME(s): %-*s | SWITCH_OPEN: %-*s",
+                        DEVICE_STATE_LEGTH, (window_switch_state) ? "open" : "close",
                         sizeof(double) + 1, fields[1],
-                        DEVICE_SWITCH_NAME_LENGTH, window_switch_state.data.String);
+                        DEVICE_SWITCH_NAME_LENGTH, (window_switch_state) ? "on" : "off");
                 break;
             }
             case DEVICE_TYPE_FRIDGE: {
