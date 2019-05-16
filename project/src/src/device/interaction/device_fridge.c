@@ -38,7 +38,7 @@ static struct itimerspec t;
  * @param state The state to set
  * @return true if successful, false otherwise
  */
-static bool fridge_set_switch_state(const char *name, void *state);
+static int fridge_set_switch_state(const char *name, void *state);
 
 /**
  * Handle the incoming message
@@ -79,7 +79,7 @@ FridgeRegistry *new_fridge_registry(void) {
     return fridge_registry;
 }
 
-static bool fridge_set_switch_state(const char *name, void *state) {
+static int fridge_set_switch_state(const char *name, void *state) {
     FridgeRegistry *fridge_registry;
     DeviceSwitch *fridge_switch;
 
@@ -110,6 +110,13 @@ static bool fridge_set_switch_state(const char *name, void *state) {
     } else if (strcmp(name, FRIDGE_SWITCH_THERMO) == 0) {
         fridge_switch = device_get_device_switch(fridge->switches, name);
 
+        if(*((double *) state) > DEVICE_FRIDGE_MAX_THERMO ){
+            return -3;
+        }
+        if(*((double *) state) < DEVICE_FRIDGE_MIN_THERMO ){
+            return -4;
+        }
+
         fridge_registry = (FridgeRegistry *) fridge->registry;
         fridge_switch->state = (double *) state;
         fridge_registry->temp = *((double *) state);
@@ -136,7 +143,11 @@ static bool fridge_set_switch_state(const char *name, void *state) {
 
         if (fridge_registry->items > DEVICE_FRIDGE_MAX_ITEM) {
             fridge_registry->items = fridge_registry->items - *(long *) state;
-            return false;
+            return -1;
+        }
+        if (fridge_registry->items < 0) {
+            fridge_registry->items = fridge_registry->items - *(long *) state;
+            return -2;
         }
 
         fridge_registry->perc = (((float) fridge_registry->items) / DEVICE_FRIDGE_MAX_ITEM) * 100;
@@ -242,9 +253,24 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                 if (!result1.error) {
                     double *temp_result = malloc(sizeof(double));
                     *temp_result = result1.data.Double;
-                    fridge_set_switch_state(switch_label, temp_result)
-                    ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
-                    : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+
+                    switch(fridge_set_switch_state(FRIDGE_SWITCH_THERMO, temp_result)){
+                        case 1 : {
+                            device_communication_message_modify_message(&out_message, QUEUE_MESSAGE_RETURN_SUCCESS);
+                            break;
+                        }
+                        case -3 : {
+                            device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_MAXTHERMO_FRIDGE_ERROR);
+                            break;
+                        }
+                        case -4 : {
+                            device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_MINTHERMO_FRIDGE_ERROR);
+                            break;
+                        }
+                        default: {
+                            device_communication_message_modify_message(&out_message, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+                        }
+                    }
                 }
             } else if (strcmp(switch_label, FRIDGE_SWITCH_STATE) == 0) {
                 bool_switch_pos = strcmp(switch_pos, FRIDGE_SWITCH_STATE_ON) == 0 ? true : false;
@@ -331,8 +357,24 @@ static void queue_message_handler() {
         if (!temp.error) {
             double *temp_result = malloc(sizeof(double));
             *temp_result = temp.data.Double;
-            if (fridge_set_switch_state(FRIDGE_SWITCH_THERMO, temp_result))
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+            switch(fridge_set_switch_state(FRIDGE_SWITCH_THERMO, temp_result)){
+                case 1 : {
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                    break;
+                }
+                case -3 : {
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_VALUE_MAXTHERMO_FRIDGE_ERROR);
+                    break;
+                }
+                case -4 : {
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_VALUE_MINTHERMO_FRIDGE_ERROR);
+                    break;
+                }
+                default: {
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+                }
+            }
+
         }
     }
     if (strcmp(fields[1], FRIDGE_SWITCH_DELAY) == 0) {
@@ -355,8 +397,25 @@ static void queue_message_handler() {
         if (!filling.error) {
             long *filling_result = malloc(sizeof(long));
             *filling_result = filling.data.Long;
-            if (fridge_set_switch_state(FRIDGE_SWITCH_FILLING, filling_result))
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+
+            switch (fridge_set_switch_state(FRIDGE_SWITCH_FILLING, filling_result)) {
+                case 1: {
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                    break;
+                }
+                case -1: {
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_VALUE_EXCEEDED_FRIDGE_ERROR);
+                    break;
+                }
+                case -2: {
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_VALUE_EMPTY_FRIDGE_ERROR);
+                    break;
+                }
+                default: {
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+                }
+            }
+
         }
     }
 
