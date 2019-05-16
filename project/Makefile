@@ -32,7 +32,7 @@ DEV_OBJ := $(patsubst $(DEV_SRC_DIR)/%.c, $(DEV_OBJ_DIR)/%.o, $(DEV))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring device.o,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring communication,$a),,$a))
 DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring child,$a),,$a))
-DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring control_libs,$a),,$a))
+DEV_OBJ := $(foreach a,$(DEV_OBJ),$(if $(findstring manual_libs,$a),,$a))
 
 # All .o files, both commons and specific ones
 ALL_OBJ := $(OBJ)
