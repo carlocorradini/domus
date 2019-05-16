@@ -25,17 +25,18 @@ $ ./domus
 
 ### Supported commands
 ~~~~~ bash
-        add <device>                       Add a <device> to the system and show its features
-        clear                              Clear the CLI interface
-        del <id> [--all]                   Delete the device with <id>. If [--all] delete all devices. If it's a control device, deletion is done recursively
-        device                             Display all supported devices and their description
-        exit                               Close Domus
-        help                               Display help information about Domus
-        hierarchy                          Display the current devices hierarchy in the system, described by <name> <id>
-        info <id> [--all]                  Show device info with <id>. Show all devices info with [--all]
-        link <id> to <id>                  Connect two devices each other. One must be a control device
-        list                               Display all available devices and their features
-        switch <id> <label> <pos>          Switch the device with <id> the feature <label> into <pos>
+         add <device> [name]                Add a <device> to the system and show its features. Add [name] to define a custom name for the <device>
+         clear                              Clear the CLI interface
+         del <id> [--all]                   Delete the device with <id>. If [--all] delete all devices. If it's a control device, deletion is done recursively
+         device                             Display all supported devices and their description
+         exit                               Close Domus
+         help                               Display help information about Domus
+         hierarchy                          Display the current devices hierarchy in the system, described by <type> [name] <id>
+         info <id> [--all]                  Show device info with <id>. Show all devices info with [--all]
+         link <id> to <id>                  Connect two devices each other. One must be a control device
+         list                               Display all available devices and their features
+         switch <id> <label> <pos>          Switch the device with <id> the feature <label> into <pos>
+         connect                            Connect manual control interface to Domus
 ~~~~~
 
 ### Extra functionalities
