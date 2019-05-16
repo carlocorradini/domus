@@ -1,6 +1,9 @@
 #include "device/manual_libs.h"
 #include "util/util_printer.h"
 
+/**
+ * The domus_pid; if 0, not connected yet
+ */
 static __pid_t domus_pid = 0;
 
 bool manual_control_check_domus(__pid_t pid){

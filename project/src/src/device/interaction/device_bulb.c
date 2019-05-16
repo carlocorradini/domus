@@ -41,6 +41,12 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message);
  */
 static bool bulb_check_value(const char *input);
 
+/**
+ * The queue_message_handler, it handles the incoming
+ * queue messages and send them back
+ */
+static void queue_message_handler();
+
 BulbRegistry *new_bulb_registry(void) {
     BulbRegistry *bulb_registry;
     if (bulb != NULL) return NULL;

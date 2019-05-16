@@ -60,6 +60,18 @@ static bool fridge_check_value_door(const char *input);
  */
 static bool fridge_check_value_state(const char *input);
 
+/**
+ * Function that is called when the delay time
+ * expires and the door needs to be closed
+ */
+static void close_door();
+
+/**
+ * The queue_message_handler, it handles the incoming
+ * queue messages and send them back
+ */
+static void queue_message_handler();
+
 FridgeRegistry *new_fridge_registry(void) {
     FridgeRegistry *fridge_registry;
     if (fridge != NULL) return NULL;

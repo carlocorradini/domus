@@ -48,6 +48,10 @@ domus_propagate_message(size_t id, size_t out_message_type, const char *out_mess
 static bool domus_propagate_message_logic(List *list, DeviceCommunication *device_communication,
                                           const DeviceCommunicationMessage *out_message, size_t in_message_type);
 
+/**
+ * The queue_message_handler, it handles the incoming
+ * queue messages and send them back
+ */
 static void queue_message_handler();
 
 void domus_start(void) {

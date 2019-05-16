@@ -38,6 +38,12 @@ static struct sigevent sigevent;
  */
 static struct itimerspec t;
 
+/**
+ * The queue_message_handler, it handles the incoming
+ * queue messages and send them back
+ */
+static void queue_message_handler();
+
 TimerRegistry *new_timer_registry(void) {
     TimerRegistry *timer_registry;
     if (timer != NULL) return NULL;
