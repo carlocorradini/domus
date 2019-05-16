@@ -69,7 +69,6 @@ static bool bulb_set_switch_state(const char *name, bool state) {
 
     bulb->state = state;
     bulb_switch->state = (bool *) state;
-
     if (state && start == 0) {
         start = time(NULL);
     } else {
@@ -120,6 +119,7 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
                 start = time(NULL) - start_time.data.Long;
             } else {
                 ((BulbRegistry *) bulb->registry)->_time = start_time.data.Long;
+                start = 0;
             }
 
             device_communication_free_message_fields(fields);
