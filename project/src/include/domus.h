@@ -95,10 +95,17 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos);
 int domus_link(size_t device_id, size_t control_device_id);
 
 /**
+ * Return the pid of the given Device ID
+ * @param device_id The Device ID to get pid from
+ * @return The pid of the Device,
+ */
+pid_t domus_getpid(size_t device_id);
+
+/**
  * Display the current devices hierarchy in the system
  */
 void domus_hierarchy(void);
 
-__pid_t domus_getpid(size_t device_id);
+
 
 #endif

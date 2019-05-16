@@ -214,6 +214,9 @@ bool domus_info_by_id(size_t id) {
 
     message_list = domus_propagate_message(id, MESSAGE_TYPE_INFO, "", MESSAGE_TYPE_INFO);
 
+    println_color(COLOR_BOLD, "\t%-*s | %-*s | %-*s", sizeof(size_t) + 1, "ID", DEVICE_NAME_LENGTH, "NAME",
+                  DEVICE_STATE_LEGTH, "STATE");
+
     list_for_each(data, message_list) {
         device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
         if (device_descriptor == NULL) {
@@ -568,9 +571,8 @@ void domus_hierarchy(void) {
 }
 
 
-__pid_t domus_getpid(size_t device_id) {
+pid_t domus_getpid(size_t device_id) {
     List *message_list;
-    DeviceCommunicationMessage *in_message;
     ConverterResult pid;
     bool to_Rt = false;
 
@@ -590,17 +592,16 @@ __pid_t domus_getpid(size_t device_id) {
     }
     free_list(message_list);
 
-    return (to_Rt) ? (__pid_t) pid.data.Long : 0;
+    return (to_Rt) ? (pid_t) pid.data.Long : (pid_t) 0;
 }
 
 static void queue_message_handler() {
-    if (!device_check_control_device(domus)) return;
-    if (!control_device_has_devices(domus)) return;
-
     ConverterResult result;
     Queue_message *out_message;
     Message *in_message;
     int message_id;
+    if (!device_check_control_device(domus)) return;
+    if (!control_device_has_devices(domus)) return;
 
     message_id = queue_message_get_message_id(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER);
     in_message = queue_message_receive_message(message_id, QUEUE_MESSAGE_TYPE_ALL_TYPES, true);

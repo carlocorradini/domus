@@ -400,7 +400,7 @@ void device_print_all(void) {
     DeviceDescriptor *data;
     if (supported_devices == NULL) return;
 
-    println("\t%s%-*s | %s", COLOR_BOLD, DEVICE_NAME_LENGTH, "NAME", "DESCRIPTION");
+    println_color(COLOR_BOLD, "\t%-*s | %s", DEVICE_NAME_LENGTH, "NAME", "DESCRIPTION");
 
     list_for_each(data, supported_devices) {
         device_table_print_divider();
