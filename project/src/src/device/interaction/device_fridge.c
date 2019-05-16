@@ -236,8 +236,8 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                                                 "");
             break;
         }
-        case MESSAGE_TYPE_SET_ON: {
-            out_message.type = MESSAGE_TYPE_SET_ON;
+        case MESSAGE_TYPE_SWITCH: {
+            out_message.type = MESSAGE_TYPE_SWITCH;
             char *switch_label;
             char *switch_pos;
             bool bool_switch_pos;

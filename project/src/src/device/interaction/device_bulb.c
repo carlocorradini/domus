@@ -133,10 +133,10 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
                                                 "");
             break;
         }
-        case MESSAGE_TYPE_SET_ON: {
+        case MESSAGE_TYPE_SWITCH: {
             char **fields;
 
-            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_ON, "");
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SWITCH, "");
             fields = device_communication_split_message_fields(in_message.message);
 
             if (device_get_device_switch(bulb->switches, fields[0]) == NULL) {

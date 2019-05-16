@@ -175,8 +175,8 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
                                                 "");
             break;
         }
-        case MESSAGE_TYPE_SET_ON: {
-            out_message.type = MESSAGE_TYPE_SET_ON;
+        case MESSAGE_TYPE_SWITCH: {
+            out_message.type = MESSAGE_TYPE_SWITCH;
             int res;
 
             char **fields = device_communication_split_message_fields(in_message.message);
@@ -287,11 +287,11 @@ static void set_device() {
          */
         t.it_value.tv_sec = ((TimerRegistry *) timer->device->registry)->end - time(NULL);
         if (t.it_value.tv_sec > 0) {
-            device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_SET_ON, "%s\noff\n",
+            device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_SWITCH, "%s\noff\n",
                                                 switch_name);
             timer_settime(internal_timer, 0, &t, NULL);
         } else {
-            device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_SET_ON, "%s\non\n", switch_name);
+            device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_SWITCH, "%s\non\n", switch_name);
             timer_settime(internal_timer, 0, &t, NULL);
             internal_timer = NULL;
         }

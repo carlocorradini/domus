@@ -126,7 +126,7 @@ domus_propagate_message(size_t id, size_t out_message_type, const char *out_mess
     device_communication_message_modify(&out_message, id, out_message_type, out_message_message);
     if (id == DEVICE_MESSAGE_TO_ALL_DEVICES) out_message.flag_force = true;
 
-    if (out_message_type == MESSAGE_TYPE_SET_ON) {
+    if (out_message_type == MESSAGE_TYPE_SWITCH) {
         data = (DeviceCommunication *) list_get_first(domus->devices);
         domus_propagate_message_logic(message_list, data, &out_message, in_message_type);
     } else {
@@ -374,7 +374,7 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
 
     snprintf((char *) out_message_message, DEVICE_COMMUNICATION_MESSAGE_LENGTH, "%s\n%s\n", switch_label, switch_pos);
     strncpy((char *) controller_name, device_is_supported_by_id(DEVICE_TYPE_CONTROLLER)->name, DEVICE_NAME_LENGTH);
-    message_list = domus_propagate_message(id, MESSAGE_TYPE_SET_ON, out_message_message, MESSAGE_TYPE_SET_ON);
+    message_list = domus_propagate_message(id, MESSAGE_TYPE_SWITCH, out_message_message, MESSAGE_TYPE_SWITCH);
 
     if (list_is_empty(message_list)) {
         /* No Device under controller */
@@ -403,7 +403,7 @@ void domus_switch(size_t id, const char *switch_label, const char *switch_pos) {
         }
     } else {
         list_for_each(data, message_list) {
-            if (data->type == MESSAGE_TYPE_SET_ON) {
+            if (data->type == MESSAGE_TYPE_SWITCH) {
                 device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
                 if (device_descriptor == NULL) {
                     println_color(COLOR_RED, "\tSet On Command: Device with unknown Device Descriptor id %ld",
@@ -576,7 +576,7 @@ int domus_link(size_t device_id, size_t control_device_id) {
                     }
 
                     /* Unlock and delete previous Locked Devices */
-                    free_list(domus_propagate_message(device_id, MESSAGE_TYPE_UNLOCK_AND_DELETE, "",
+                    free_list(domus_propagate_message(device_id, MESSAGE_TYPE_UNLOCK_AND_TERMINATE, "",
                                                       MESSAGE_TYPE_TERMINATE));
                     toRtn = 0;
                     break;

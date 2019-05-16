@@ -240,7 +240,7 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
     /* Incoming message is not for this Device */
     if (!in_message.flag_force && in_message.id_recipient != device_child->id) {
         in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
-    } else if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_DELETE) {
+    } else if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_TERMINATE) {
         if (device_child_lock) {
             device_child_lock = false;
             in_message.type = MESSAGE_TYPE_TERMINATE;
@@ -360,7 +360,7 @@ static void control_device_child_middleware_message_handler(void) {
     /* Incoming message is not Forced and is not for this Device */
     if (!in_message.flag_force && in_message.id_recipient != control_device_child->device->id) {
         /* Forward message to all child */
-        if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_DELETE) in_message.type = MESSAGE_TYPE_TERMINATE;
+        if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_TERMINATE) in_message.type = MESSAGE_TYPE_TERMINATE;
 
         list_for_each(data, control_device_child->devices) {
             if ((child_in_message = device_communication_write_message_with_ack(data, &child_out_message)).type ==
@@ -392,7 +392,7 @@ static void control_device_child_middleware_message_handler(void) {
         }
 
         in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
-    } else if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_DELETE) {
+    } else if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_TERMINATE) {
         if (device_child_lock) {
             device_child_lock = false;
             child_out_message.type = in_message.type = MESSAGE_TYPE_TERMINATE;
@@ -416,7 +416,7 @@ static void control_device_child_middleware_message_handler(void) {
         }
         case MESSAGE_TYPE_TERMINATE:
         case MESSAGE_TYPE_INFO:
-        case MESSAGE_TYPE_SET_ON: {
+        case MESSAGE_TYPE_SWITCH: {
             list_for_each(data, control_device_child->devices) {
                 child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
                 child_in_message.id_recipient = in_message.id_sender;
@@ -450,7 +450,7 @@ static void control_device_child_middleware_message_handler(void) {
                 /* Stop the Device */
                 _device_child_run = false;
                 break;
-            } else if (in_message.type == MESSAGE_TYPE_INFO || in_message.type == MESSAGE_TYPE_SET_ON) {
+            } else if (in_message.type == MESSAGE_TYPE_INFO || in_message.type == MESSAGE_TYPE_SWITCH) {
                 device_child_message_handler(in_message);
                 return;
             }
