@@ -20,11 +20,12 @@ static int _add(char **args) {
                device_descriptor->id == DEVICE_TYPE_DOMUS) {
         println("\tDevice %s is not supported", args[1]);
     } else if (device_descriptor->id == CONTROLLER_ID) {
-        println("\tCannot add another Controller, only one per system is allowed");
+        println("\tCannot add another Controller, only one is allowed");
     } else if ((id = domus_fork_device(device_descriptor)) == -1) {
         println_color(COLOR_RED, "\tSomething goes wrong");
     } else {
         println_color(COLOR_GREEN, "\t%s added with id %ld", device_descriptor->name, id);
+        println("");
         domus_info_by_id(id);
     }
 

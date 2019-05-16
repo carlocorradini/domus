@@ -69,7 +69,8 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
             break;
         }
         default: {
-            device_communication_message_modify(&out_message, in_message.id_sender,MESSAGE_TYPE_UNKNOWN, "%s", in_message.message);
+            device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_UNKNOWN, "%s",
+                                                in_message.message);
             break;
         }
     }
