@@ -37,8 +37,10 @@ static int _link(char **args) {
             println("\t%s is invalid, add 'to' label", args[2]);
         } else if (control_device_id.error) {
             println("\tControl Device Conversion Error: %s", device_id.error_message);
-        } else if(device_id.data.Long == CONTROLLER_ID) {
+        } else if (device_id.data.Long == CONTROLLER_ID) {
             println("\tCannot Link the Controller");
+        } else if (device_id.data.Long == control_device_id.data.Long) {
+            println("\tCannot Link a Device with itself");
         } else {
             switch (domus_link(device_id.data.Long, control_device_id.data.Long)) {
                 case 0: {

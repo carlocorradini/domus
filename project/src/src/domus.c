@@ -211,7 +211,7 @@ bool domus_del_all(void) {
 static void device_table_print_divider(void) {
     size_t i;
     print("\t");
-    for (i = 0; i < (sizeof(size_t) + 1 + DEVICE_NAME_LENGTH + DEVICE_STATE_LEGTH + (4 * DEVICE_STATE_LEGTH)); ++i) {
+    for (i = 0; i < (sizeof(size_t) + 1 + DEVICE_NAME_LENGTH + DEVICE_STATE_LEGTH + (6 * DEVICE_STATE_LEGTH)); ++i) {
         if (i == sizeof(size_t) + 2 ||
             i == sizeof(size_t) + DEVICE_NAME_LENGTH + 5 ||
             i == sizeof(size_t) + DEVICE_NAME_LENGTH + DEVICE_STATE_LEGTH + 8)
@@ -237,10 +237,11 @@ bool domus_info_by_id(size_t id) {
     if (!list_is_empty(message_list)) {
         device_print_legend();
         println("");
-        println_color(COLOR_BOLD, "\t%-*s | %-*s | %-*s | %-*s |",
+        println_color(COLOR_BOLD, "\t%-*s | %-*s | %-*s | %-*s | %-*s | ",
                       sizeof(size_t) + 1, "ID",
                       DEVICE_NAME_LENGTH, "TYPE",
                       DEVICE_NAME_LENGTH, "NAME",
+                      DEVICE_STATE_LEGTH, "OVERRIDE",
                       DEVICE_STATE_LEGTH, "STATE");
     }
 
@@ -274,7 +275,7 @@ bool domus_info_by_id(size_t id) {
         print("\t%-*ld | ",
               sizeof(size_t) + 1, data->id_sender);
         print_color(color, "%-*s", DEVICE_NAME_LENGTH, (device_descriptor == NULL) ? "?" : device_descriptor->name);
-        print(" | %-*s | ", DEVICE_NAME_LENGTH, data->device_name);
+        print(" | %-*s | %-*s | ", DEVICE_NAME_LENGTH, data->device_name, DEVICE_STATE_LEGTH, "CAMBIARE!!!");
 
         switch (data->id_device_descriptor) {
             case DEVICE_TYPE_BULB: {
@@ -499,7 +500,8 @@ int domus_link(size_t device_id, size_t control_device_id) {
     DeviceCommunicationMessage *device_to_spawn;
     DeviceDescriptor *device_descriptor;
     int toRtn;
-    if (!device_check_control_device(domus)) return false;
+    if (!device_check_control_device(domus)) return -1;
+    if (device_id == control_device_id) return -1;
 
     device_list = domus_propagate_message(device_id, MESSAGE_TYPE_INFO, "", MESSAGE_TYPE_INFO);
     device_dad_list = new_list(NULL, (bool (*)(const void *, const void *)) device_dad_equals);
