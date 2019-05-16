@@ -30,6 +30,7 @@ ControllerRegistry *new_controller_registry(void) {
         perror("Controller Registry Memory Allocation");
         exit(EXIT_FAILURE);
     }
+    controller_registry->directly_connected_devices = 0;
 
     return controller_registry;
 }
@@ -37,13 +38,14 @@ ControllerRegistry *new_controller_registry(void) {
 static void controller_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
     device_communication_message_init(controller->device, &out_message);
+    ((ControllerRegistry *) controller->device->registry)->directly_connected_devices = controller->devices->size;
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
                                                 "%d\n%ld\n",
                                                 controller->device->state,
-                                                controller->devices->size);
+                                                ((ControllerRegistry *) controller->device->registry)->directly_connected_devices);
             break;
         }
         case MESSAGE_TYPE_SPAWN_DEVICE: {

@@ -8,6 +8,7 @@
  * Struct Controller Registry
  */
 typedef struct ControllerRegistry {
+    size_t directly_connected_devices;
 } ControllerRegistry;
 
 /**
