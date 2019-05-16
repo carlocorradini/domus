@@ -3,7 +3,7 @@
 #include "util/util_converter.h"
 #include "util/util_printer.h"
 #include "cli/cli.h"
-#include "device/control_libs.h"
+#include "device/manual_libs.h"
 
 /**
  * Manual switch on devices
