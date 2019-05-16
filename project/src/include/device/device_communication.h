@@ -219,20 +219,64 @@ typedef struct Queue_message {
 
 } Queue_message;
 
+/**
+ * Create new queue_message based on queue_name, queue_number, msg_type, msg_txt, clear
+ * @param queue_name name of queue
+ * @param queue_number queue number
+ * @param msg_type message type
+ * @param msg_text text of the message
+ * @param clear if true, clear the queue before
+ * @return
+ */
 Queue_message *new_queue_message(char queue_name[], int queue_number, int msg_type, char *msg_text, bool clear);
 
+/**
+ * Send queue message
+ * @param message the queue_message to send
+ */
 void queue_message_send_message(Queue_message *message);
 
+/**
+ * Receive message
+ * @param msg_id the message_id
+ * @param message_type the type of the message you want to receive
+ * @param blocking if true, wait until something is received
+ * @return return a Message pointer
+ */
 Message *queue_message_receive_message(int msg_id, int message_type, bool blocking);
 
+/**
+ * Notify that a message has been sent to the device with pid
+ * @param pid the pid of the device
+ */
 void queue_message_notify(__pid_t pid);
 
+/**
+ * Generate the message id based on the name of the queue and its number
+ * @param queue_name The name of queue
+ * @param queue_number The queue number
+ * @return if > 0 successful, error otherwise
+ */
 int queue_message_get_message_id(char queue_name[], int queue_number);
 
+/**
+ * Destroy message queue with message_id msg_id
+ * @param msg_id
+ * @return
+ */
 bool queue_message_remove_message_queue(int msg_id);
 
+/**
+ * Send and receive a message
+ * @param device_pid the pid of the device you want to send the message to
+ * @param message the message you want to send
+ * @return return the received message
+ */
 Message *queue_message_send_message_with_ack(__pid_t device_pid, Queue_message *message);
 
+/**
+ * Create new message queue and the relative file
+ */
 void queue_message_create_queue();
 
 #endif

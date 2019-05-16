@@ -608,6 +608,8 @@ void domus_hierarchy(void) {
     DeviceDescriptor *device_descriptor;
     char device_name[DEVICE_NAME_LENGTH];
     size_t i;
+    int old_hop = 0;
+
     if (!device_check_control_device(domus)) return;
 
     device_list = domus_propagate_message(DEVICE_MESSAGE_TO_ALL_DEVICES, MESSAGE_TYPE_INFO, "",
@@ -621,6 +623,17 @@ void domus_hierarchy(void) {
                           data->id_device_descriptor);
         }
         strncpy(device_name, (device_descriptor == NULL) ? "?" : device_descriptor->name, DEVICE_NAME_LENGTH);
+
+        if(old_hop != 0){
+            printf("\t");
+            for (i = 0; i < old_hop; i++) print("   ");
+            printf("\033[3D");
+            printf("\033[1A");
+            printf("%s", (old_hop-data->ctr_hop == 0) ? "├─" : "└─");
+            printf("\033[1B");
+            printf("\033[100D");
+        }
+        old_hop = data->ctr_hop;
         print("\t");
         for (i = 0; i < data->ctr_hop; i++) print("   ");
 
@@ -633,6 +646,14 @@ void domus_hierarchy(void) {
             println("%s %ld", device_name, data->id_sender);
         }
     }
+
+    printf("\t");
+    for (i = 0; i < old_hop; i++) print("   ");
+    printf("\033[3D");
+    printf("\033[1A");
+    printf("└─");
+    printf("\033[1B");
+    printf("\033[100D");
 
     free_list(device_list);
 }
