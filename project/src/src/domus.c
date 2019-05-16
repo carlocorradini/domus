@@ -238,19 +238,19 @@ bool domus_info_by_id(size_t id) {
             case DEVICE_TYPE_BULB: {
                 bool bulb_switch_state = converter_char_to_bool(fields[2][0]).data.Bool;
 
-                println("%-*s | ACTIVE_TIME(s): %-*s | SWITCH_TURN: %-*s",
+                println("%-*s | ACTIVE_TIME(s): %-*s | SWITCH_TURN: %s",
                         DEVICE_STATE_LEGTH, (device_state) ? "on" : "off",
                         sizeof(double) + 1, fields[1],
-                        DEVICE_SWITCH_NAME_LENGTH, (bulb_switch_state) ? "on" : "off");
+                        (bulb_switch_state) ? "on" : "off");
                 break;
             }
             case DEVICE_TYPE_WINDOW : {
                 bool window_switch_state = converter_char_to_bool(fields[2][0]).data.Bool;
 
-                println("%-*s | OPEN_TIME(s): %-*s | SWITCH_OPEN: %-*s",
+                println("%-*s | OPEN_TIME(s): %-*s | SWITCH_OPEN: %s",
                         DEVICE_STATE_LEGTH, (window_switch_state) ? "open" : "close",
                         sizeof(double) + 1, fields[1],
-                        DEVICE_SWITCH_NAME_LENGTH, (window_switch_state) ? "on" : "off");
+                        (window_switch_state) ? "on" : "off");
                 break;
             }
             case DEVICE_TYPE_FRIDGE: {
@@ -266,8 +266,9 @@ bool domus_info_by_id(size_t id) {
                 break;
             }
             case DEVICE_TYPE_CONTROLLER: {
-                println("\tDIRECTLY_CONNECTED_CHILD: %-*s",
-                        sizeof(double) + 1, fields[1]);
+                println("%-*s | DIRECTLY_CONNECTED_DEVICES: %s",
+                        DEVICE_STATE_LEGTH, (device_state) ? "on" : "off",
+                        fields[1]);
                 break;
             }
             case DEVICE_TYPE_HUB: {
