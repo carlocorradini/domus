@@ -20,7 +20,9 @@ static int _del(char **args) {
     } else if (!domus_has_devices()) {
         println("\tNo Devices");
     } else if (strcmp(args[1], COMMAND_DEL_ALL) == 0) {
-        domus_del_all();
+        if(!domus_del_all()) {
+            println("\tNo Device to Delete");
+        }
     } else {
         result = converter_string_to_long(args[1]);
 

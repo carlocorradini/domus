@@ -108,5 +108,4 @@ pid_t domus_getpid(size_t device_id);
  */
 void domus_hierarchy(void);
 
-
 #endif

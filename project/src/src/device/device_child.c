@@ -246,6 +246,8 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
             device_child_lock = false;
             in_message.type = MESSAGE_TYPE_TERMINATE;
         } else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+    } else if (device_child_lock) {
+        in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     }
 
     switch (in_message.type) {
@@ -276,7 +278,8 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
             break;
         }
         default: {
-            in_message.override = (device_is_supported_by_id(in_message.id_device_descriptor)->control_device && in_message.id_device_descriptor!=DEVICE_TYPE_DOMUS) ? false : true;
+            in_message.override = (device_is_supported_by_id(in_message.id_device_descriptor)->control_device &&
+                                   in_message.id_device_descriptor != DEVICE_TYPE_DOMUS) ? false : true;
             device_child_message_handler(in_message);
             return;
         }
@@ -330,6 +333,7 @@ static void control_device_child_middleware_message_handler(void) {
     DeviceCommunicationMessage child_in_message;
     DeviceCommunicationMessage child_out_message;
     bool terminate_controller = false;
+    bool child_override = false;
     if (control_device_child == NULL || device_child_communication == NULL) return;
 
     device_communication_message_init(control_device_child->device, &out_message);
@@ -360,8 +364,9 @@ static void control_device_child_middleware_message_handler(void) {
     child_out_message = in_message;
     child_out_message.ctr_hop = 0;
 
-    /* Incoming message is not Forced and is not for this Device */
+
     if (!in_message.flag_force && in_message.id_recipient != control_device_child->device->id) {
+        /* Incoming message is not Forced and is not for this Device */
         /* Forward message to all child */
         if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_TERMINATE) in_message.type = MESSAGE_TYPE_TERMINATE;
 
@@ -404,6 +409,8 @@ static void control_device_child_middleware_message_handler(void) {
                in_message.type == MESSAGE_TYPE_TERMINATE_CONTROLLER) {
         terminate_controller = true;
         in_message.type = MESSAGE_TYPE_TERMINATE;
+    } else if (device_child_lock) {
+        in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     }
 
     /* Incoming Message is Forced or it's for this Control Device */
@@ -411,7 +418,6 @@ static void control_device_child_middleware_message_handler(void) {
     child_out_message.id_device_descriptor = control_device_child->device->device_descriptor->id;
     child_out_message.flag_force = true;
 
-    bool override = false;
     switch (in_message.type) {
         case MESSAGE_TYPE_GET_PID: {
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_GET_PID, "%d",
@@ -424,8 +430,8 @@ static void control_device_child_middleware_message_handler(void) {
             list_for_each(data, control_device_child->devices) {
                 child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
                 child_in_message.id_recipient = in_message.id_sender;
-                if(child_in_message.type == MESSAGE_TYPE_INFO){
-                    override |= child_in_message.override;
+                if (child_in_message.type == MESSAGE_TYPE_INFO) {
+                    child_override |= child_in_message.override;
                 }
                 if (child_in_message.flag_continue) {
                     device_communication_write_message_with_ack_silent(device_child_communication,
@@ -456,8 +462,8 @@ static void control_device_child_middleware_message_handler(void) {
                 /* Stop the Device */
                 _device_child_run = false;
                 break;
-            } else if (in_message.type == MESSAGE_TYPE_INFO){
-                in_message.override = override;
+            } else if (in_message.type == MESSAGE_TYPE_INFO) {
+                in_message.override = child_override;
                 device_child_message_handler(in_message);
                 return;
 

@@ -274,7 +274,8 @@ bool domus_info_by_id(size_t id) {
         print("\t%-*ld | ",
               sizeof(size_t) + 1, data->id_sender);
         print_color(color, "%-*s", DEVICE_NAME_LENGTH, (device_descriptor == NULL) ? "?" : device_descriptor->name);
-        print(" | %-*s | %-*s | ", DEVICE_NAME_LENGTH, data->device_name, DEVICE_STATE_LENGTH, (data->override) ? "yes" : "no");
+        print(" | %-*s | %-*s | ", DEVICE_NAME_LENGTH, data->device_name, DEVICE_STATE_LENGTH,
+              (data->override) ? "yes" : "no");
 
         switch (data->id_device_descriptor) {
             case DEVICE_TYPE_BULB: {
@@ -643,13 +644,13 @@ void domus_hierarchy(void) {
         }
 
         if (old_hop != 0) {
-            printf("\t");
+            print("\t");
             for (i = 0; i < old_hop; i++) print("   ");
-            printf("\033[3D");
-            printf("\033[1A");
-            printf("%s", (old_hop - data->ctr_hop == 0) ? "├─" : "└─");
-            printf("\033[1B");
-            printf("\033[100D");
+            print("\033[3D");
+            print("\033[1A");
+            print("%s", (old_hop - data->ctr_hop == 0) ? "├─" : "└─");
+            print("\033[1B");
+            print("\033[100D");
         }
         old_hop = data->ctr_hop;
         print("\t");
@@ -662,22 +663,21 @@ void domus_hierarchy(void) {
         }
     }
 
-    printf("\t");
+    print("\t");
     for (i = 0; i < old_hop; i++) print("   ");
-    printf("\033[3D");
-    printf("\033[1A");
-    printf("└─");
-    printf("\033[1B");
-    printf("\033[100D");
+    print("\033[3D");
+    print("\033[1A");
+    print("└─");
+    print("\033[1B");
+    print("\033[100D");
 
     free_list(device_list);
 }
 
-
 pid_t domus_getpid(size_t device_id) {
     List *message_list;
     ConverterResult pid;
-    bool to_Rt = false;
+    bool toRtn = false;
 
     if (!device_check_control_device(domus)) return false;
     if (!control_device_has_devices(domus)) return false;
@@ -690,12 +690,12 @@ pid_t domus_getpid(size_t device_id) {
     if (!list_is_empty(message_list)) {
         pid = converter_string_to_long(((DeviceCommunicationMessage *) list_get_first(message_list))->message);
         if (!pid.error) {
-            to_Rt = true;
+            toRtn = true;
         }
     }
     free_list(message_list);
 
-    return (to_Rt) ? (pid_t) pid.data.Long : (pid_t) 0;
+    return (toRtn) ? (pid_t) pid.data.Long : (pid_t) 0;
 }
 
 static void queue_message_handler() {
