@@ -180,6 +180,7 @@ static bool fridge_check_value_state(const char *input) {
 static void fridge_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
     device_communication_message_init(fridge, &out_message);
+    out_message.override = fridge->override;
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
@@ -241,6 +242,8 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             char *switch_label;
             char *switch_pos;
             bool bool_switch_pos;
+
+            fridge->override = in_message.override;
 
             char **fields = device_communication_split_message_fields(in_message.message);
 

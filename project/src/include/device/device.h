@@ -12,7 +12,7 @@
 #define DEVICE_FILE_NAME_LENGTH 32
 #define DEVICE_SWITCH_NAME_LENGTH 24
 #define DEVICE_SWITCH_DESCRIPTION_LENGTH 128
-#define DEVICE_STATE_LEGTH 16
+#define DEVICE_STATE_LENGTH 16
 
 #define DEVICE_TYPE_DOMUS 0
 #define DEVICE_TYPE_CONTROLLER 1
@@ -82,7 +82,7 @@ typedef struct Device {
     char name[DEVICE_NAME_LENGTH];
     bool state;
     void *registry;
-
+    bool override;
     List *switches;
 } Device;
 

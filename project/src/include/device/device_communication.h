@@ -87,7 +87,7 @@ typedef struct DeviceCommunicationMessage {
 
     bool flag_force;
     bool flag_continue;
-
+    bool override;
     char message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
     char device_name[DEVICE_NAME_LENGTH];
 } DeviceCommunicationMessage;

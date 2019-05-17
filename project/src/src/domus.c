@@ -211,10 +211,10 @@ bool domus_del_all(void) {
 static void device_table_print_divider(void) {
     size_t i;
     print("\t");
-    for (i = 0; i < (sizeof(size_t) + 1 + DEVICE_NAME_LENGTH + DEVICE_STATE_LEGTH + (6 * DEVICE_STATE_LEGTH)); ++i) {
+    for (i = 0; i < (sizeof(size_t) + 1 + DEVICE_NAME_LENGTH + DEVICE_STATE_LENGTH + (6 * DEVICE_STATE_LENGTH)); ++i) {
         if (i == sizeof(size_t) + 2 ||
             i == sizeof(size_t) + DEVICE_NAME_LENGTH + 5 ||
-            i == sizeof(size_t) + DEVICE_NAME_LENGTH + DEVICE_STATE_LEGTH + 8)
+            i == sizeof(size_t) + DEVICE_NAME_LENGTH + DEVICE_STATE_LENGTH + 8)
             print("|");
         else print("-");
     }
@@ -241,13 +241,12 @@ bool domus_info_by_id(size_t id) {
                       sizeof(size_t) + 1, "ID",
                       DEVICE_NAME_LENGTH, "TYPE",
                       DEVICE_NAME_LENGTH, "NAME",
-                      DEVICE_STATE_LEGTH, "OVERRIDE",
-                      DEVICE_STATE_LEGTH, "STATE");
+                      DEVICE_STATE_LENGTH, "OVERRIDE",
+                      DEVICE_STATE_LENGTH, "STATE");
     }
 
     list_for_each(data, message_list) {
         device_table_print_divider();
-
         device_descriptor = device_is_supported_by_id(data->id_device_descriptor);
         if (device_descriptor == NULL) {
             println_color(COLOR_RED, "\tInfo Command: Device with unknown Device Descriptor id %ld",
@@ -275,17 +274,17 @@ bool domus_info_by_id(size_t id) {
         print("\t%-*ld | ",
               sizeof(size_t) + 1, data->id_sender);
         print_color(color, "%-*s", DEVICE_NAME_LENGTH, (device_descriptor == NULL) ? "?" : device_descriptor->name);
-        print(" | %-*s | %-*s | ", DEVICE_NAME_LENGTH, data->device_name, DEVICE_STATE_LEGTH, "CAMBIARE!!!");
+        print(" | %-*s | %-*s | ", DEVICE_NAME_LENGTH, data->device_name, DEVICE_STATE_LENGTH, (data->override) ? "yes" : "no");
 
         switch (data->id_device_descriptor) {
             case DEVICE_TYPE_BULB: {
                 bool bulb_switch_state = converter_char_to_bool(fields[2][0]).data.Bool;
 
                 println("%-*s | %-*s: %-*s | %-*s: %s",
-                        DEVICE_STATE_LEGTH, (device_state) ? "on" : "off",
-                        DEVICE_STATE_LEGTH, "ACTIVE_TIME(s)",
+                        DEVICE_STATE_LENGTH, (device_state) ? "on" : "off",
+                        DEVICE_STATE_LENGTH, "ACTIVE_TIME(s)",
                         sizeof(double) + 1, fields[1],
-                        DEVICE_STATE_LEGTH, "SWITCH_TURN",
+                        DEVICE_STATE_LENGTH, "SWITCH_TURN",
                         (bulb_switch_state) ? "on" : "off");
                 break;
             }
@@ -293,10 +292,10 @@ bool domus_info_by_id(size_t id) {
                 bool window_switch_state = converter_char_to_bool(fields[2][0]).data.Bool;
 
                 println("%-*s | %-*s: %-*s | %-*s: %s",
-                        DEVICE_STATE_LEGTH, (device_state) ? "open" : "close",
-                        DEVICE_STATE_LEGTH, "OPEN_TIME(s)",
+                        DEVICE_STATE_LENGTH, (device_state) ? "open" : "close",
+                        DEVICE_STATE_LENGTH, "OPEN_TIME(s)",
                         sizeof(double) + 1, fields[1],
-                        DEVICE_STATE_LEGTH, "SWITCH_OPEN",
+                        DEVICE_STATE_LENGTH, "SWITCH_OPEN",
                         (window_switch_state) ? "on" : "off");
                 break;
             }
@@ -304,37 +303,37 @@ bool domus_info_by_id(size_t id) {
                 bool fridge_door_switch_state = converter_char_to_bool(fields[5][0]).data.Bool;
 
                 println("%-*s | %-*s: %-*s | %-*s: %-*s | %-*s: %-*s | %-*s: %-*s | %-*s: %s",
-                        DEVICE_STATE_LEGTH, (fridge_door_switch_state) ? "open" : "close",
-                        DEVICE_STATE_LEGTH, "SWITCH_STATE",
+                        DEVICE_STATE_LENGTH, (fridge_door_switch_state) ? "open" : "close",
+                        DEVICE_STATE_LENGTH, "SWITCH_STATE",
                         sizeof(double) + 1, (device_state) ? "on" : "off",
-                        DEVICE_STATE_LEGTH, "OPEN_TIME(s)",
+                        DEVICE_STATE_LENGTH, "OPEN_TIME(s)",
                         sizeof(double) + 1, fields[1],
-                        DEVICE_STATE_LEGTH, "DELAY_TIME(s)",
+                        DEVICE_STATE_LENGTH, "DELAY_TIME(s)",
                         sizeof(double) + 1, fields[2],
-                        DEVICE_STATE_LEGTH, "FILLING(%)",
+                        DEVICE_STATE_LENGTH, "FILLING(%)",
                         sizeof(double) + 1, fields[3],
-                        DEVICE_STATE_LEGTH, "TEMP(C°)",
+                        DEVICE_STATE_LENGTH, "TEMP(C°)",
                         fields[4]);
                 break;
             }
             case DEVICE_TYPE_CONTROLLER: {
                 println("%-*s | %-*s: %s",
-                        DEVICE_STATE_LEGTH, (device_state) ? "on" : "off",
-                        DEVICE_STATE_LEGTH, "DIR_CONN_DEV",
+                        DEVICE_STATE_LENGTH, (device_state) ? "on" : "off",
+                        DEVICE_STATE_LENGTH, "DIR_CONN_DEV",
                         fields[1]);
                 break;
             }
             case DEVICE_TYPE_HUB: {
                 println("%-*s |",
-                        DEVICE_STATE_LEGTH, (device_state) ? "on" : "off");
+                        DEVICE_STATE_LENGTH, (device_state) ? "on" : "off");
                 break;
             }
             case DEVICE_TYPE_TIMER: {
                 println("%-*s | %-*s: %-*s | %-*s: %-*s",
-                        DEVICE_STATE_LEGTH, (device_state) ? "on" : "off",
-                        DEVICE_STATE_LEGTH, "START_TIME",
+                        DEVICE_STATE_LENGTH, (device_state) ? "on" : "off",
+                        DEVICE_STATE_LENGTH, "START_TIME",
                         sizeof(double) + 1, fields[1],
-                        DEVICE_STATE_LEGTH, "END_TIME",
+                        DEVICE_STATE_LENGTH, "END_TIME",
                         sizeof(double) + 1, fields[2]);
                 break;
             }

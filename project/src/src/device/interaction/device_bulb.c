@@ -92,14 +92,13 @@ static bool bulb_check_value(const char *input) {
 static void bulb_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
     device_communication_message_init(bulb, &out_message);
+    out_message.override = bulb->override;
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
             double on_time = ((BulbRegistry *) bulb->registry)->_time;
-
             bool switch_state = (bool) (device_get_device_switch_state(bulb->switches, BULB_SWITCH_TURN));
             double time_difference = (switch_state) ? difftime(time(NULL), start) : on_time;
-
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
                                                 "%d\n%.0lf\n%d\n",
                                                 bulb->state, time_difference, switch_state);
@@ -138,6 +137,8 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SWITCH, "");
             fields = device_communication_split_message_fields(in_message.message);
+
+            bulb->override = in_message.override;
 
             if (device_get_device_switch(bulb->switches, fields[0]) == NULL) {
                 device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
@@ -200,6 +201,7 @@ static void queue_message_handler(){
 
 int main(int argc, char **args) {
     bulb = device_child_new_device(argc, args, DEVICE_TYPE_BULB, new_bulb_registry());
+    bulb->override = false;
     list_add_last(bulb->switches, new_device_switch(BULB_SWITCH_TURN, (bool *) DEVICE_STATE,
                                                     (int (*)(const char *, void *)) bulb_set_switch_state));
     bulb_communication = device_child_new_device_communication(argc, args, bulb_message_handler);

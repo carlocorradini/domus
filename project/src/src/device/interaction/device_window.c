@@ -82,6 +82,7 @@ static bool window_check_value(const char *input) {
 static void window_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
     device_communication_message_init(window, &out_message);
+    out_message.override = window->override;
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
@@ -119,6 +120,8 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
         }
         case MESSAGE_TYPE_SWITCH: {
             char **fields;
+
+            window->override = in_message.override;
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SWITCH, "");
             fields = device_communication_split_message_fields(in_message.message);

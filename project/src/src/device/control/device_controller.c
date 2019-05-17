@@ -39,6 +39,7 @@ static void controller_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
     device_communication_message_init(controller->device, &out_message);
     ((ControllerRegistry *) controller->device->registry)->directly_connected_devices = controller->devices->size;
+    out_message.override = in_message.override;
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {

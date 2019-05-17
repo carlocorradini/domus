@@ -25,6 +25,7 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
     DeviceCommunicationMessage out_message;
     device_communication_message_init(hub->device, &out_message);
 
+    out_message.override = in_message.override;
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
