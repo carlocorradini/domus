@@ -170,10 +170,16 @@ static void queue_message_handler(){
     if(strcmp(fields[1], WINDOW_SWITCH_OPEN) == 0){
         snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_WINDOW, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
         if(strcmp(fields[2], WINDOW_SWITCH_OPEN_OFF) == 0){
-            if(window_set_switch_state(WINDOW_SWITCH_OPEN, false)) snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_WINDOW, QUEUE_MESSAGE_RETURN_SUCCESS);
+            if(window_set_switch_state(WINDOW_SWITCH_OPEN, false)){
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_WINDOW, QUEUE_MESSAGE_RETURN_SUCCESS);
+                window->override = true;
+            }
         }
         else if(strcmp(fields[2], WINDOW_SWITCH_OPEN_ON) == 0){
-            if(window_set_switch_state(WINDOW_SWITCH_OPEN, true)) snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_WINDOW, QUEUE_MESSAGE_RETURN_SUCCESS);
+            if(window_set_switch_state(WINDOW_SWITCH_OPEN, true)){
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_WINDOW, QUEUE_MESSAGE_RETURN_SUCCESS);
+                window->override = true;
+            }
         }
     }
 

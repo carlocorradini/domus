@@ -347,21 +347,29 @@ static void queue_message_handler() {
     if (strcmp(fields[1], FRIDGE_SWITCH_DOOR) == 0) {
         snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
         if (strcmp(fields[2], FRIDGE_SWITCH_DOOR_OFF) == 0) {
-            if (fridge_set_switch_state(FRIDGE_SWITCH_DOOR, (void *) false))
+            if (fridge_set_switch_state(FRIDGE_SWITCH_DOOR, (void *) false)) {
                 snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                fridge->override = true;
+            }
         } else if (strcmp(fields[2], FRIDGE_SWITCH_DOOR_ON) == 0) {
-            if (fridge_set_switch_state(FRIDGE_SWITCH_DOOR, (void *) true))
+            if (fridge_set_switch_state(FRIDGE_SWITCH_DOOR, (void *) true)) {
                 snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                fridge->override = true;
+            }
         }
     }
     if (strcmp(fields[1], FRIDGE_SWITCH_STATE) == 0) {
         snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
         if (strcmp(fields[2], FRIDGE_SWITCH_STATE_OFF) == 0) {
-            if (fridge_set_switch_state(FRIDGE_SWITCH_STATE, (void *) false))
+            if (fridge_set_switch_state(FRIDGE_SWITCH_STATE, (void *) false)) {
                 snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                fridge->override = true;
+            }
         } else if (strcmp(fields[2], FRIDGE_SWITCH_STATE_ON) == 0) {
-            if (fridge_set_switch_state(FRIDGE_SWITCH_STATE, (void *) true))
+            if (fridge_set_switch_state(FRIDGE_SWITCH_STATE, (void *) true)) {
                 snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                fridge->override = true;
+            }
         }
     }
     if (strcmp(fields[1], FRIDGE_SWITCH_THERMO) == 0) {
@@ -375,6 +383,7 @@ static void queue_message_handler() {
             switch(fridge_set_switch_state(FRIDGE_SWITCH_THERMO, temp_result)){
                 case 1 : {
                     snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                    fridge->override = true;
                     break;
                 }
                 case -3 : {
@@ -400,8 +409,10 @@ static void queue_message_handler() {
         if (!delay.error) {
             long *delay_result = malloc(sizeof(long));
             *delay_result = delay.data.Long;
-            if (fridge_set_switch_state(FRIDGE_SWITCH_DELAY, delay_result))
+            if (fridge_set_switch_state(FRIDGE_SWITCH_DELAY, delay_result)) {
                 snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                fridge->override = true;
+            }
         }
     }
     if (strcmp(fields[1], FRIDGE_SWITCH_FILLING) == 0) {
@@ -416,6 +427,7 @@ static void queue_message_handler() {
             switch (fridge_set_switch_state(FRIDGE_SWITCH_FILLING, filling_result)) {
                 case 1: {
                     snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                    fridge->override = true;
                     break;
                 }
                 case -1: {
