@@ -111,6 +111,8 @@ ConverterResult converter_string_to_date(const char *char_string) {
     pch = strtok(str_date, " ,.-:");
     tmp = strtol(pch, &toRtn_str_end, 10);
 
+    const time_t t = time(NULL);
+    fprintf(stderr, "\n\n %ld %d\n\n", localtime(&t)->tm_gmtoff/3600, localtime(&t)->tm_hour);
 
     if (toRtn_str == toRtn_str_end) {
         result.error = true;

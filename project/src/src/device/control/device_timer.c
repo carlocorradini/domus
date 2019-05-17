@@ -122,6 +122,7 @@ static int timer_set_switch_state(const char *name, char *dates) {
             return 0;
         }
         t.it_value.tv_sec = timer_registry->begin - time(NULL);
+        fprintf(stderr, "\n Mancano : %ld \n", t.it_value.tv_sec);
         timer_settime(internal_timer, 0, &t, NULL);
     } else {
         return -5;
