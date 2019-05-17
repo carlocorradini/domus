@@ -246,6 +246,10 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
             device_child_lock = false;
             in_message.type = MESSAGE_TYPE_TERMINATE;
         } else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+    } else if (in_message.type == MESSAGE_TYPE_UNLOCK) {
+        if (device_child_lock)
+            device_child_lock = false;
+        else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     } else if (device_child_lock) {
         in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     }
@@ -405,6 +409,10 @@ static void control_device_child_middleware_message_handler(void) {
             device_child_lock = false;
             child_out_message.type = in_message.type = MESSAGE_TYPE_TERMINATE;
         } else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+    } else if (in_message.type == MESSAGE_TYPE_UNLOCK) {
+        if (device_child_lock)
+            device_child_lock = false;
+        else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     } else if (control_device_child->device->device_descriptor->id == DEVICE_TYPE_CONTROLLER &&
                in_message.type == MESSAGE_TYPE_TERMINATE_CONTROLLER) {
         terminate_controller = true;
