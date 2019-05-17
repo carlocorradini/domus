@@ -111,8 +111,6 @@ ConverterResult converter_string_to_date(const char *char_string) {
     pch = strtok(str_date, " ,.-:");
     tmp = strtol(pch, &toRtn_str_end, 10);
 
-    const time_t t = time(NULL);
-    fprintf(stderr, "\n\n %ld %d\n\n", localtime(&t)->tm_gmtoff/3600, localtime(&t)->tm_hour);
 
     if (toRtn_str == toRtn_str_end) {
         result.error = true;
@@ -130,6 +128,11 @@ ConverterResult converter_string_to_date(const char *char_string) {
         result.data.Date.tm_min = tmp; //get the min value
         tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
         result.data.Date.tm_sec = tmp; //get the sec value
+
+        char buffer[26];
+
+        strftime(buffer, 26, "%Y-%m-%d %H:%M:%S", &result.data.Date);
+        fprintf(stderr, "\n Date : %s \n", buffer);
 
         if (difftime(mktime(&result.data.Date), time(NULL)) < 0) {
             result.error = true;
