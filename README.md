@@ -80,8 +80,6 @@ These instructions will get you a copy of the project up and running on your loc
   >
   >   <br/>
 
----
-
 ## Supported commands
 
 > Below is a table of supported command in _Domus_ & _Domus Manual_
@@ -114,35 +112,25 @@ These instructions will get you a copy of the project up and running on your loc
   | `help`                      | Display help information about _Domus_                                    |
   | `switch <id> <label> <pos>` | Manually switch the device with `<id>` the feature `<label>` into `<pos>` |
 
----
-
 ## Extra functionalities
 
 - History navigation using arrows: **`↑`** & **`↓`**
 - Autocomplete using **`Tab`**
 - Info about command by adding **`?`** at the end of it (ex. _help ?_ )
 
----
-
 ## Built With
 
 - [GNU Make](https://www.gnu.org/software/make/) - GNU Make is a tool which controls the generation of executables and other non-source files of a program from the program's source files.
 - [Git](https://git-scm.com) - Git is a free and open source distributed version control system designed to handle everything from small to very large projects with speed and efficiency
 
----
-
 ## Versioning
 
 We use [Git](https://git-scm.com) for versioning
-
----
 
 ## Authors
 
 - **Carlo Corradini** - _Initial work_ - 192451
 - **Simone Nascivera** - _Initial work_ - 193246
-
----
 
 ## License
 
