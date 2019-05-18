@@ -2,25 +2,27 @@
 #include "util/util_printer.h"
 
 /**
- * The domus_pid; if 0, not connected yet
+ * The domus_pid
+ *  If 0, not connected yet
  */
-static __pid_t domus_pid = 0;
+static pid_t domus_pid = 0;
 
-bool manual_control_check_domus(__pid_t pid){
+bool manual_control_check_domus(pid_t pid) {
     ConverterResult in_pid;
-    Queue_message * check_message;
-    Message * in_message;
+    Queue_message *check_message;
+    Message *in_message;
     char text[QUEUE_MESSAGE_MESSAGE_LENGTH];
 
     snprintf(text, 64, "%d", getpid());
-    check_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER, QUEUE_MESSAGE_TYPE_DOMUS_PID_REQUEST, text, true);
+    check_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
+                                      QUEUE_MESSAGE_TYPE_DOMUS_PID_REQUEST, text, true);
 
     queue_message_send_message(check_message);
     queue_message_notify(pid);
     usleep(DOMUS_GET_PID_SLEEP);
 
     in_message = queue_message_receive_message(check_message->message_id, QUEUE_MESSAGE_TYPE_DOMUS_PID_REQUEST, false);
-    if(in_message != NULL) {
+    if (in_message != NULL) {
         in_pid = converter_string_to_long(in_message->mesg_text);
 
         if (in_pid.error || in_pid.data.Long != pid) {
@@ -30,34 +32,35 @@ bool manual_control_check_domus(__pid_t pid){
         domus_pid = pid;
         return true;
     }
-    return  false;
+    return false;
 }
 
-__pid_t manual_control_get_device_pid(size_t device_id){
-    if(domus_pid == 0){
+pid_t manual_control_get_device_pid(size_t device_id) {
+    if (domus_pid == 0) {
         println_color(COLOR_RED, "\tPlease connect to domus first");
         return -1;
     }
     ConverterResult out_pid;
-    Queue_message * check_message;
-    Message * in_message;
+    Queue_message *check_message;
+    Message *in_message;
     char text[QUEUE_MESSAGE_MESSAGE_LENGTH];
 
     snprintf(text, 64, "%lu\n%d\n", device_id, getpid());
-    check_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER, QUEUE_MESSAGE_TYPE_PID_REQUEST, text, true);
+    check_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
+                                      QUEUE_MESSAGE_TYPE_PID_REQUEST, text, true);
 
     in_message = queue_message_send_message_with_ack(domus_pid, check_message);
 
     out_pid = converter_string_to_long(in_message->mesg_text);
 
-    if(out_pid.error){
+    if (out_pid.error) {
         return 0;
     }
     return out_pid.data.Long;
 }
 
-void manual_control_set_device(size_t device_id, char * switch_label, char * switch_pos) {
-    __pid_t device_pid;
+void manual_control_set_device(size_t device_id, char *switch_label, char *switch_pos) {
+    pid_t device_pid;
     Queue_message *out_message;
     Message *in_message;
     ConverterResult descriptor_id;

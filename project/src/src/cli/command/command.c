@@ -72,14 +72,14 @@ void manual_command_init(void) {
 
     list_add_last(commands, command_clear());
     autocomplete = trie_insert(autocomplete, command_clear()->name, 1);
+    list_add_last(commands, command_connect_manual());
+    autocomplete = trie_insert(autocomplete, command_connect_manual()->name, 1);
     list_add_last(commands, command_device());
     autocomplete = trie_insert(autocomplete, command_device()->name, 1);
     list_add_last(commands, command_exit());
     autocomplete = trie_insert(autocomplete, command_exit()->name, 1);
     list_add_last(commands, command_help());
     autocomplete = trie_insert(autocomplete, command_help()->name, 1);
-    list_add_last(commands, command_connect_manual());
-    autocomplete = trie_insert(autocomplete, command_connect_manual()->name, 1);
     list_add_last(commands, command_switch_manual());
     autocomplete = trie_insert(autocomplete, command_switch_manual()->name, 1);
 }

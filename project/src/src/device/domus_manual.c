@@ -1,6 +1,5 @@
 
 #include <stdlib.h>
-#include "device/domus_manual.h"
 #include "cli/cli.h"
 #include "cli/command/command.h"
 #include "util/util_printer.h"

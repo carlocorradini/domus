@@ -12,18 +12,17 @@
  * @return CLI status code
  */
 static int _switch(char **args) {
-    ConverterResult result;
+    ConverterResult device_id;
 
     if (args[1] == NULL) {
-        println("\tPlease enter a device id");
-        return CLI_CONTINUE;
+        println("\tPlease enter a Device id");
+    } else if ((device_id = converter_string_to_long(args[1])).error) {
+        println("\tConversion Error: %s", device_id.error_message);
+    } else if (args[2] == NULL || args[3] == NULL) {
+        println_color(COLOR_RED, "\tPlease type a valid pattern:");
+        println_color(COLOR_YELLOW, "\t\tswitch <id> <label> <pos>");
     } else {
-        result = converter_string_to_long(args[1]);
-        if (result.error) {
-            println("\tConversion Error: %s", result.error_message);
-        } else {
-            domus_switch(result.data.Long, args[2], args[3]);
-        }
+        domus_switch(device_id.data.Long, args[2], args[3]);
     }
 
     return CLI_CONTINUE;
