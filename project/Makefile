@@ -111,7 +111,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
 	$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
 
 help:
-	@$(ECHO) "$(COLOR_GREEN)=== DOMUS ===$(COLOR_RESET)";
+	@$(ECHO) "$(COLOR_GREEN)=== DOMUS & DOMUS_MANUAL ===$(COLOR_RESET)";
 	@$(ECHO) "\t$(SLOGAN)";
 	@$(ECHO) "$(COLOR_MAGENTA)- AUTHORS$(COLOR_RESET)"
 	@$(ECHO) "\tCarlo Corradini  | carlo.corradini@studenti.unitn.it  | 192451";
@@ -123,7 +123,7 @@ help:
 	@$(ECHO) "$(COLOR_MAGENTA)- LICENSE$(COLOR_RESET)";
 	@$(ECHO) "\t$(LICENSE)";
 	@$(ECHO) "$(COLOR_MAGENTA)- RECIPES AVAILABLE$(COLOR_RESET)";
-	@$(ECHO) "\t$(COLOR_YELLOW)build$(COLOR_RESET)            Build & Compile all files under $(SRC_DIR) and generate [$(TARGET)] binaries";
+	@$(ECHO) "\t$(COLOR_YELLOW)build$(COLOR_RESET)            Build & Compile all files under $(SRC_DIR) and generate [$(TARGET)] binaries under $(BIN_DIR) folder";
 	@$(ECHO) "\t$(COLOR_YELLOW)clean$(COLOR_RESET)            Delete $(BUILD_DIR) directory and [$(TARGET)] binaries";
 	@$(ECHO) "\t$(COLOR_YELLOW)help$(COLOR_RESET)             Show useful information";
 
