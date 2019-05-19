@@ -133,6 +133,7 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
     ConverterResult result;
 
     device_communication_message_init(timer->device, &out_message);
+    out_message.override = in_message.override;
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
@@ -140,6 +141,30 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
 
             start_date = converter_date_to_string(&(((TimerRegistry *) timer->device->registry)->begin));
             end_date = converter_date_to_string(&(((TimerRegistry *) timer->device->registry)->end));
+
+            if(list_get_first(timer->devices) != NULL){
+                size_t device_id;
+                size_t device_descriptor;
+                DeviceCommunicationMessage send_message;
+                device_communication_message_init(timer->device, &send_message);
+
+                device_communication_message_modify(&send_message, timer->device->id, MESSAGE_TYPE_INFO, "");
+
+                send_message = device_communication_write_message_with_ack(
+                        (DeviceCommunication *) list_get_first(timer->devices),
+                        &send_message);
+
+                device_id = send_message.id_sender;
+
+                device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_INFO, "");
+                send_message = device_communication_write_message_with_ack(
+                        (DeviceCommunication *) list_get_first(timer->devices),
+                        &send_message);
+
+                char **fields = device_communication_split_message_fields(send_message.message);
+
+                timer->device->state = converter_char_to_bool(fields[0][0]).data.Bool;
+            }
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
                                                 "%d\n%s\n%s", timer->device->state,
@@ -314,6 +339,9 @@ static void set_device() {
             ((TimerRegistry *) timer->device->registry)->begin.tm_year = 0;
             ((TimerRegistry *) timer->device->registry)->end.tm_year = 0;
         }
+        send_message.override = false;
+        send_message.id_device_descriptor = timer->device->device_descriptor->id;
+
         device_communication_write_message_with_ack((DeviceCommunication *) list_get_first(timer->devices),
                                                     &send_message);
 
