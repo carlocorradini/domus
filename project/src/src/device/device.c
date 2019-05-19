@@ -76,42 +76,42 @@ void device_init(void) {
                                                            "An automatic mechanism for activating a device at a preset time",
                                                            "./device/timer"));
     device_device_descriptor_add_switch(list_get_last(supported_devices), "time", "Set the timer", true);
-    device_device_descritor_add_position(list_get_last(supported_devices), "Y-m-d_H:i:s?Y-m-d_H:i:s",
-                                         "The begin & end scheduling time divided by ?");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "Y-m-d_H:i:s?Y-m-d_H:i:s",
+                                          "The begin & end scheduling time divided by ?");
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_BULB, false, "bulb",
                                                            "An electric light with a wire filament heated to such a high temperature that it glows with visible light",
                                                            "./device/bulb"));
     device_device_descriptor_add_switch(list_get_last(supported_devices), "turn", "Turn on and off the Bulb", false);
-    device_device_descritor_add_position(list_get_last(supported_devices), "on", "Turn on the Light");
-    device_device_descritor_add_position(list_get_last(supported_devices), "off", "Turn off the Light");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "on", "Turn on the Light");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "off", "Turn off the Light");
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_WINDOW, false, "window",
                                                            "An opening in a wall, door, roof or vehicle that allows the passage of light, sound, and air",
                                                            "./device/window"));
     device_device_descriptor_add_switch(list_get_last(supported_devices), "open", "Open and Close the Window", false);
-    device_device_descritor_add_position(list_get_last(supported_devices), "on", "Open the window");
-    device_device_descritor_add_position(list_get_last(supported_devices), "off", "Close the window");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "on", "Open the window");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "off", "Close the window");
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_FRIDGE, false, "fridge",
                                                            "An appliance or compartment which is artificially kept cool and used to store food and drink",
                                                            "./device/fridge"));
     device_device_descriptor_add_switch(list_get_last(supported_devices), "door", "Open and close the fridge's door",
                                         false);
-    device_device_descritor_add_position(list_get_last(supported_devices), "on", "Open the fridge's door");
-    device_device_descritor_add_position(list_get_last(supported_devices), "off", "Open the fridge's door");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "on", "Open the fridge's door");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "off", "Open the fridge's door");
     device_device_descriptor_add_switch(list_get_last(supported_devices), "thermo",
                                         "Set the internal temperature of the Fridge", false);
-    device_device_descritor_add_position(list_get_last(supported_devices), "<temp>",
-                                         "Set the fridge's temperature to <temp>");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "<temp>",
+                                          "Set the fridge's temperature to <temp>");
     device_device_descriptor_add_switch(list_get_last(supported_devices), "delay",
                                         "Set the delay until the door automatically close", false);
-    device_device_descritor_add_position(list_get_last(supported_devices), "<time>",
-                                         "Set the fridge's delay to <time>");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "<time>",
+                                          "Set the fridge's delay to <time>");
     device_device_descriptor_add_switch(list_get_last(supported_devices), "state", "Turn on and off the Fridge", true);
-    device_device_descritor_add_position(list_get_last(supported_devices), "on", "Turn on the Fridge");
-    device_device_descritor_add_position(list_get_last(supported_devices), "off", "Turn off the Fridge");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "on", "Turn on the Fridge");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "off", "Turn off the Fridge");
     device_device_descriptor_add_switch(list_get_last(supported_devices), "filling",
                                         "Add or remove items from the Fridge", true);
-    device_device_descritor_add_position(list_get_last(supported_devices), "[-]<N° items>",
-                                         "Add or Remove[-] <N° items> from the Fridge");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "[-]<N° items>",
+                                          "Add or Remove[-] <N° items> from the Fridge");
 }
 
 void device_tini(void) {
@@ -245,8 +245,8 @@ bool device_device_descriptor_add_switch(DeviceDescriptor *device_descriptor, ch
     return list_add_last(device_descriptor->switches, new_device_descriptor_switch(name, description, only_manual));
 }
 
-bool device_device_descritor_add_position(DeviceDescriptor *device_descriptor, char name[],
-                                          char description[]) {
+bool device_device_descriptor_add_position(DeviceDescriptor *device_descriptor, char *name,
+                                           char *description) {
     DeviceDescriptorSwitch *device_descriptor_switch;
     if (device_descriptor == NULL) return false;
     if (list_is_empty(device_descriptor->switches)) return false;

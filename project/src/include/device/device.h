@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include "collection/collection_list.h"
+#include "device/device_communication.h"
 
 #define DEVICE_STATE true
 #define DEVICE_NAME_LENGTH 16
@@ -52,16 +53,6 @@ typedef struct DeviceDescriptorSwitchPosition {
     char name[DEVICE_SWITCH_NAME_LENGTH];
     char description[DEVICE_SWITCH_DESCRIPTION_LENGTH];
 } DeviceDescriptorSwitchPosition;
-
-DeviceDescriptorSwitch *new_device_descriptor_switch(char name[], char description[], bool only_manual);
-
-DeviceDescriptorSwitchPosition *new_device_descriptor_switch_position(char name[], char description[]);
-
-bool device_device_descriptor_add_switch(DeviceDescriptor *device_descriptor, char name[], char description[],
-                                         bool only_manual);
-
-bool device_device_descritor_add_position(DeviceDescriptor *device_descriptor, char name[],
-                                          char description[]);
 
 /**
  * Struct generic switch
@@ -148,6 +139,46 @@ bool free_control_device(ControlDevice *control_device);
  */
 DeviceDescriptor *
 new_device_descriptor(size_t id, bool control_device, char name[], char description[], char file_name[]);
+
+/**
+ * Create and return a new Device Descriptor Switch
+ * @param name The name of the Switch
+ * @param description The description of the Switch
+ * @param only_manual Set to true if the Switch is available only in Manual
+ * @return The new Device Descriptor Switch
+ */
+DeviceDescriptorSwitch *new_device_descriptor_switch(char name[], char description[], bool only_manual);
+
+/**
+ * Create and return a new Device Descriptor Switch Position
+ * @param name The name of the Switch Position
+ * @param description The description of the Switch Position
+ * @return The new Device Descriptor Switch Position
+ */
+DeviceDescriptorSwitchPosition *new_device_descriptor_switch_position(char name[], char description[]);
+
+/**
+ * Add the new Switch to the Device, represented by a Device Descriptor
+ *  Add the new Descriptor Switch to the last position of the List of the Device Descriptor
+ * @param device_descriptor The Device Descriptor
+ * @param name The name of the Switch
+ * @param description The description of the Switch
+ * @param only_manual Set to true if the Switch is available only in Manual
+ * @return true if added, false otherwise
+ */
+bool device_device_descriptor_add_switch(DeviceDescriptor *device_descriptor, char name[], char description[],
+                                         bool only_manual);
+
+/**
+ * Add the new Switch Position to the Device, represented by a Device Descriptor
+ *  Add the new Descriptor Switch Position to the last position of the List of the Device Descriptor Switch
+ * @param @param device_descriptor The Device Descriptor
+ * @param name The name of the Switch
+ * @param description The description of the Switch
+ * @return true if added, false otherwise
+ */
+bool device_device_descriptor_add_position(DeviceDescriptor *device_descriptor, char *name,
+                                           char *description);
 
 /**
  * Check if a device is supported by name
