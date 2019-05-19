@@ -76,7 +76,7 @@ void device_init(void) {
                                                            "An automatic mechanism for activating a device at a preset time",
                                                            "./device/timer"));
     device_device_descriptor_add_switch(list_get_last(supported_devices), "time", "Set the timer", true);
-    device_device_descritor_add_position(list_get_last(supported_devices), "Y-m-d-H-i-s?Y-m-d-H-i-s",
+    device_device_descritor_add_position(list_get_last(supported_devices), "Y-m-d_H:i:s?Y-m-d_H:i:s",
                                          "The begin & end scheduling time divided by ?");
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_BULB, false, "bulb",
                                                            "An electric light with a wire filament heated to such a high temperature that it glows with visible light",
