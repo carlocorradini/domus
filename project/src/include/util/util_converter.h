@@ -9,6 +9,8 @@
 #define CONVERTER_DATA_STRING_LENGTH 32
 #define CONVERTER_DATA_MAX_DATE_STRING_LENGTH 64
 
+#define CONVERTER_DATE_FORMAT "%Y-%m-%d_%H:%M:%S"
+
 typedef struct ConverterResult {
     bool error;
     char error_message[CONVERTER_RESULT_ERROR_LENGTH];
@@ -69,5 +71,5 @@ ConverterResult converter_string_to_date(const char *char_string);
  * @param date The String to convert
  * @return The Converter Result
  */
-ConverterResult converter_date_to_string(time_t date);
+ConverterResult converter_date_to_string(struct tm *  date);
 #endif

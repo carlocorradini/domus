@@ -53,8 +53,8 @@ TimerRegistry *new_timer_registry(void) {
         perror("Hub Registry Memory Allocation");
         exit(EXIT_FAILURE);
     }
-    timer_registry->begin = 0;
-    timer_registry->end = 0;
+    timer_registry->begin.tm_year = 0;
+    timer_registry->end.tm_year = 0;
 
     return timer_registry;
 }
@@ -69,44 +69,37 @@ static int timer_set_switch_state(const char *name, char *dates) {
 
     timer_registry = (TimerRegistry *) timer->device->registry;
 
-    ConverterResult result = converter_string_to_date(start_date);
+    ConverterResult start = converter_string_to_date(start_date);
 
-    if (result.error) {
-        if (strcmp(result.error_message, "Format") == 0) {
+    if (start.error) {
+        if (strcmp(start.error_message, "Format") == 0) {
             return -1;
         }
-        if (strcmp(result.error_message, "Passed") == 0) {
+        if (strcmp(start.error_message, "Passed") == 0) {
             return -2;
         }
         return 0;
     }
-    timer_registry->begin = mktime(&result.data.Date);
-    if (timer_registry->begin == -1) {
-        return 0;
-    }
+    timer_registry->begin = start.data.Date;
 
-    result = converter_string_to_date(end_date);
+    ConverterResult end = converter_string_to_date(end_date);
 
-    if (result.error) {
-        if (strcmp(result.error_message, "Format") == 0) {
+    if (end.error) {
+        if (strcmp(end.error_message, "Format") == 0) {
             return -1;
         }
-        if (strcmp(result.error_message, "Passed") == 0) {
+        if (strcmp(end.error_message, "Passed") == 0) {
             return -2;
         }
         return 0;
     }
 
-    timer_registry->end = mktime(&result.data.Date);
+    timer_registry->end = end.data.Date;
 
-    if (timer_registry->end == -1) {
-        return 0;
-    }
-
-    if (difftime(timer_registry->end, timer_registry->begin) < 0) {
+    if (difftime(mktime(&timer_registry->end), mktime(&timer_registry->begin)) < 0) {
         return -3;
     }
-    if (difftime(timer_registry->end, timer_registry->begin) == 0) {
+    if (difftime(mktime(&timer_registry->end), mktime(&timer_registry->begin)) == 0) {
         return -6;
     }
 
@@ -121,7 +114,7 @@ static int timer_set_switch_state(const char *name, char *dates) {
             fprintf(stderr, "\tError while initializing the internal timer\n");
             return 0;
         }
-        t.it_value.tv_sec = timer_registry->begin - time(NULL);
+        t.it_value.tv_sec = mktime(&timer_registry->begin) - time(NULL);
         timer_settime(internal_timer, 0, &t, NULL);
     } else {
         return -5;
@@ -139,15 +132,13 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
         case MESSAGE_TYPE_INFO: {
             ConverterResult start_date, end_date;
 
-            time_t start_time = ((TimerRegistry *) timer->device->registry)->begin;
-            time_t end_time = ((TimerRegistry *) timer->device->registry)->end;
-            start_date = converter_date_to_string(start_time);
-            end_date = converter_date_to_string(end_time);
+            start_date = converter_date_to_string(&(((TimerRegistry *) timer->device->registry)->begin));
+            end_date = converter_date_to_string(&(((TimerRegistry *) timer->device->registry)->end));
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
                                                 "%d\n%s\n%s", timer->device->state,
-                                                (start_time == 0) ? "NOT SET" : start_date.data.String,
-                                                (end_time == 0) ? "NOT SET" : end_date.data.String);
+                                                (((TimerRegistry *) timer->device->registry)->begin.tm_year == 0) ? "NOT SET" : start_date.data.String,
+                                                (((TimerRegistry *) timer->device->registry)->end.tm_year == 0)  ? "NOT SET" : end_date.data.String);
 
             break;
         }
@@ -159,15 +150,15 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
             timer->device->state = result.data.Bool;
 
             if(strcmp(fields[3], "NOT SET") == 0){
-                ((TimerRegistry *) timer->device->registry)->begin = 0;
-                ((TimerRegistry *) timer->device->registry)->end = 0;
+                ((TimerRegistry *) timer->device->registry)->begin.tm_year = 0;
+                ((TimerRegistry *) timer->device->registry)->end.tm_year = 0;
             }
             else{
                 ConverterResult date1, date2;
                 date1 = converter_string_to_date(fields[3]);
-                ((TimerRegistry *) timer->device->registry)->begin = mktime(&date1.data.Date) + 3600;
+                ((TimerRegistry *) timer->device->registry)->begin = date1.data.Date;
                 date2 = converter_string_to_date(fields[4]);
-                ((TimerRegistry *) timer->device->registry)->end = mktime(&date2.data.Date);
+                ((TimerRegistry *) timer->device->registry)->end = date2.data.Date;
             }
 
             device_communication_free_message_fields(fields);
@@ -285,7 +276,7 @@ static void set_device() {
         /**
          * Set the switches
          */
-        t.it_value.tv_sec = ((TimerRegistry *) timer->device->registry)->end - time(NULL);
+        t.it_value.tv_sec = mktime(&((TimerRegistry *) timer->device->registry)->end) - time(NULL);
         if (t.it_value.tv_sec > 0) {
             device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_SWITCH, "%s\noff\n",
                                                 switch_name);
@@ -294,6 +285,8 @@ static void set_device() {
             device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_SWITCH, "%s\non\n", switch_name);
             timer_settime(internal_timer, 0, &t, NULL);
             internal_timer = NULL;
+            ((TimerRegistry *) timer->device->registry)->begin.tm_year = 0;
+            ((TimerRegistry *) timer->device->registry)->end.tm_year = 0;
         }
         device_communication_write_message_with_ack((DeviceCommunication *) list_get_first(timer->devices),
                                                     &send_message);
