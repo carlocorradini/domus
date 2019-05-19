@@ -39,6 +39,7 @@ ALL_OBJ := $(OBJ)
 
 # Only common .o files
 OBJ := $(foreach a,$(OBJ),$(if $(findstring main.o,$a),,$a))
+OBJ := $(foreach a,$(OBJ),$(if $(findstring domus_manual.o,$a),,$a))
 OBJ := $(filter-out $(DEV_OBJ), $(OBJ))
 
 # COMPILER
