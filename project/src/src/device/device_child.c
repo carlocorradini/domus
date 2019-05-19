@@ -246,14 +246,11 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
         /* Incoming message is not for this Device */
         in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     } else if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_TERMINATE) {
-        if (device_child_lock) {
-            device_child_lock = false;
-            in_message.type = MESSAGE_TYPE_TERMINATE;
-        } else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
-    } else if (in_message.type == MESSAGE_TYPE_UNLOCK) {
         if (device_child_lock)
-            device_child_lock = false;
+            in_message.type = MESSAGE_TYPE_TERMINATE;
         else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+    } else if (in_message.type == MESSAGE_TYPE_UNLOCK) {
+        if (!device_child_lock) in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     }
 
     switch (in_message.type) {
@@ -410,14 +407,11 @@ static void control_device_child_middleware_message_handler(void) {
 
         in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     } else if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_TERMINATE) {
-        if (device_child_lock) {
-            device_child_lock = false;
-            child_out_message.type = in_message.type = MESSAGE_TYPE_TERMINATE;
-        } else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
-    } else if (in_message.type == MESSAGE_TYPE_UNLOCK) {
         if (device_child_lock)
-            device_child_lock = false;
+            child_out_message.type = in_message.type = MESSAGE_TYPE_TERMINATE;
         else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+    } else if (in_message.type == MESSAGE_TYPE_UNLOCK) {
+        if (!device_child_lock) in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     } else if (control_device_child->device->device_descriptor->id == DEVICE_TYPE_CONTROLLER &&
                in_message.type == MESSAGE_TYPE_TERMINATE_CONTROLLER) {
         terminate_controller = true;
