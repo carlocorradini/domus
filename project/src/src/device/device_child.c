@@ -238,8 +238,12 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
 
     device_communication_message_init(device_child, &out_message);
 
-    /* Incoming message is not for this Device */
-    if (!in_message.flag_force && in_message.id_recipient != device_child->id) {
+    if (device_child_lock && in_message.type != MESSAGE_TYPE_UNLOCK_AND_TERMINATE &&
+        in_message.type != MESSAGE_TYPE_UNLOCK) {
+        /* This Device is Locked & incoming message is not an unlock type */
+        in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+    } else if (!in_message.flag_force && in_message.id_recipient != device_child->id) {
+        /* Incoming message is not for this Device */
         in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     } else if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_TERMINATE) {
         if (device_child_lock) {
@@ -250,8 +254,6 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
         if (device_child_lock)
             device_child_lock = false;
         else in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
-    } else if (device_child_lock) {
-        in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     }
 
     switch (in_message.type) {
@@ -368,8 +370,11 @@ static void control_device_child_middleware_message_handler(void) {
     child_out_message = in_message;
     child_out_message.ctr_hop = 0;
 
-
-    if (!in_message.flag_force && in_message.id_recipient != control_device_child->device->id) {
+    if (device_child_lock && in_message.type != MESSAGE_TYPE_UNLOCK_AND_TERMINATE &&
+        in_message.type != MESSAGE_TYPE_UNLOCK) {
+        /* This Device is Locked & incoming message is not an unlock type */
+        in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+    } else if (!in_message.flag_force && in_message.id_recipient != control_device_child->device->id) {
         /* Incoming message is not Forced and is not for this Device */
         /* Forward message to all child */
         if (in_message.type == MESSAGE_TYPE_UNLOCK_AND_TERMINATE) in_message.type = MESSAGE_TYPE_TERMINATE;
@@ -417,8 +422,6 @@ static void control_device_child_middleware_message_handler(void) {
                in_message.type == MESSAGE_TYPE_TERMINATE_CONTROLLER) {
         terminate_controller = true;
         in_message.type = MESSAGE_TYPE_TERMINATE;
-    } else if (device_child_lock) {
-        in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
     }
 
     /* Incoming Message is Forced or it's for this Control Device */
