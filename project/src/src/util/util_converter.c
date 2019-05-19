@@ -105,12 +105,12 @@ ConverterResult converter_string_to_date(const char *char_string) {
     ConverterResult result;
     result.error = false;
     errno = 0;
-    char *check;
+    int * check;
 
     char buf[255];
     struct tm * data = malloc(sizeof(struct tm));
 
-    check = strptime(char_string, CONVERTER_DATE_FORMAT, data);
+    check = (int *) strptime(char_string, CONVERTER_DATE_FORMAT, data);
     if (check == NULL || (*check != '\0' && *check != '?')){
         result.error = true;
         strncpy(result.error_message, "Format", CONVERTER_RESULT_ERROR_LENGTH);
