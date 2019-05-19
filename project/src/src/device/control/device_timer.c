@@ -44,6 +44,12 @@ static struct itimerspec t;
  */
 static void queue_message_handler();
 
+/**
+ * The state of the device when the timer was triggered for
+ * the first time
+ */
+static bool set_device_state_value;
+
 TimerRegistry *new_timer_registry(void) {
     TimerRegistry *timer_registry;
     if (timer != NULL) return NULL;
@@ -137,8 +143,10 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
 
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
                                                 "%d\n%s\n%s", timer->device->state,
-                                                (((TimerRegistry *) timer->device->registry)->begin.tm_year == 0) ? "NOT SET" : start_date.data.String,
-                                                (((TimerRegistry *) timer->device->registry)->end.tm_year == 0)  ? "NOT SET" : end_date.data.String);
+                                                (((TimerRegistry *) timer->device->registry)->begin.tm_year == 0)
+                                                ? "NOT SET" : start_date.data.String,
+                                                (((TimerRegistry *) timer->device->registry)->end.tm_year == 0)
+                                                ? "NOT SET" : end_date.data.String);
 
             break;
         }
@@ -149,11 +157,10 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
 
             timer->device->state = result.data.Bool;
 
-            if(strcmp(fields[3], "NOT SET") == 0){
+            if (strcmp(fields[3], "NOT SET") == 0) {
                 ((TimerRegistry *) timer->device->registry)->begin.tm_year = 0;
                 ((TimerRegistry *) timer->device->registry)->end.tm_year = 0;
-            }
-            else{
+            } else {
                 ConverterResult date1, date2;
                 date1 = converter_string_to_date(fields[3]);
                 ((TimerRegistry *) timer->device->registry)->begin = date1.data.Date;
@@ -195,7 +202,8 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
                     break;
                 }
                 case -5 : {
-                    device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ALREADY_DEFINED_DATE_ERROR);
+                    device_communication_message_modify_message(&out_message,
+                                                                MESSAGE_RETURN_VALUE_ALREADY_DEFINED_DATE_ERROR);
                     break;
                 }
                 case -6 : {
@@ -278,11 +286,29 @@ static void set_device() {
          */
         t.it_value.tv_sec = mktime(&((TimerRegistry *) timer->device->registry)->end) - time(NULL);
         if (t.it_value.tv_sec > 0) {
-            device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_SWITCH, "%s\noff\n",
-                                                switch_name);
+            /**
+            * Get the info about current device state in order
+            * to invert its state when timer is triggered
+            */
+            device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_INFO, "");
+            send_message = device_communication_write_message_with_ack(
+                    (DeviceCommunication *) list_get_first(timer->devices),
+                    &send_message);
+
+            char **fields = device_communication_split_message_fields(send_message.message);
+
+            set_device_state_value = !converter_char_to_bool(fields[0][0]).data.Bool;
+
+            device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_SWITCH, "%s\n%s\n",
+                                                switch_name, (set_device_state_value) ? "on" : "off");
             timer_settime(internal_timer, 0, &t, NULL);
         } else {
-            device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_SWITCH, "%s\non\n", switch_name);
+            /*
+             * Invert device state
+             */
+            set_device_state_value = !set_device_state_value;
+            device_communication_message_modify(&send_message, device_id, MESSAGE_TYPE_SWITCH, "%s\n%s\n", switch_name,
+                                                (set_device_state_value) ? "on" : "off");
             timer_settime(internal_timer, 0, &t, NULL);
             internal_timer = NULL;
             ((TimerRegistry *) timer->device->registry)->begin.tm_year = 0;
