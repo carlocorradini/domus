@@ -111,7 +111,7 @@ ConverterResult converter_string_to_date(const char *char_string) {
     char buf[255];
     struct tm *data = malloc(sizeof(struct tm));
 
-    if (strptime(char_string, CONVERTER_DATE_FORMAT, data) == NULL) {
+    if (strptime(char_string, CONVERTER_DATE_FORMAT, data) == 0) {
         result.error = true;
         strncpy(result.error_message, "Format", CONVERTER_RESULT_ERROR_LENGTH);
         free(data);
