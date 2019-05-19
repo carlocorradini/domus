@@ -58,10 +58,10 @@ These instructions will get you a copy of the project up and running on your loc
 
 - ### Connect
 
-  > Perform the connection between _Domus Manual_ and _Domus_.
-  >
-  > Launch both programs as described above, and type:
-  >
+  Perform the connection between _Domus Manual_ and _Domus_.
+
+  Launch both programs as described above, and type:
+
   > - `Domus`
   >
   >   Get _Domus_ unique PID
