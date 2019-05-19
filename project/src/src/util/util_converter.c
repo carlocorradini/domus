@@ -3,7 +3,6 @@
 #include <errno.h>
 #include <string.h>
 #include <limits.h>
-#define _XOPEN_SOURCE
 #include <time.h>
 #include "util/util_converter.h"
 
