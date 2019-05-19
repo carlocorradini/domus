@@ -5,7 +5,6 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include "collection/collection_list.h"
-#include "device/device_communication.h"
 
 #define DEVICE_STATE true
 #define DEVICE_NAME_LENGTH 16
