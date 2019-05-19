@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <string.h>
 #include <limits.h>
+#include <time.h>
 #include "util/util_converter.h"
 
 ConverterResult converter_string_to_int(const char *char_string) {
@@ -95,61 +96,45 @@ ConverterResult converter_string_to_double(const char *char_string) {
     return result;
 }
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <time.h>
+
 ConverterResult converter_string_to_date(const char *char_string) {
     ConverterResult result;
-    char str_date[CONVERTER_DATA_MAX_DATE_STRING_LENGTH];
-    const char *toRtn_str;
-    char *toRtn_str_end = NULL;
-    char *pch;
-    int tmp;
-
-    strncpy(str_date, char_string, CONVERTER_DATA_MAX_DATE_STRING_LENGTH);
     result.error = false;
-    toRtn_str = str_date;
-    toRtn_str_end = NULL;
     errno = 0;
-    pch = strtok(str_date, " ,.-:");
-    tmp = strtol(pch, &toRtn_str_end, 10);
+    char *check;
 
+    char buf[255];
+    struct tm * data = malloc(sizeof(struct tm));
 
-    if (toRtn_str == toRtn_str_end) {
+    check = strptime(char_string, CONVERTER_DATE_FORMAT, data);
+    if (check == NULL || (*check != '\0' && *check != '?')){
         result.error = true;
         strncpy(result.error_message, "Format", CONVERTER_RESULT_ERROR_LENGTH);
-    } else {
-        result.data.Date.tm_year = tmp - 1900; //get the year value
-        tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);;
-        result.data.Date.tm_mon = tmp - 1;  //get the month value
-        tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
-        result.data.Date.tm_mday = tmp; //get the day value
-        tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
-        /* TODO */
-        result.data.Date.tm_hour = tmp - 1; //get the hour value
-        tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
-        result.data.Date.tm_min = tmp; //get the min value
-        tmp = strtol(strtok(NULL, " ,.-:"), &toRtn_str_end, 10);
-        result.data.Date.tm_sec = tmp; //get the sec value
-
-        char buffer[26];
-
-        strftime(buffer, 26, "%Y-%m-%d %H:%M:%S", &result.data.Date);
-        fprintf(stderr, "\n Date : %s \n", buffer);
-
-        if (difftime(mktime(&result.data.Date), time(NULL)) < 0) {
-            result.error = true;
-            strncpy(result.error_message, "Passed", CONVERTER_RESULT_ERROR_LENGTH);
-        }
+        free(data);
+        return result;
     }
 
+    data->tm_isdst = 1;
+
+    result.data.Date = *(data);
+    if (difftime(mktime(&result.data.Date), time(NULL)) < 0) {
+        result.error = true;
+        strncpy(result.error_message, "Passed", CONVERTER_RESULT_ERROR_LENGTH);
+        free(data);
+        return result;
+    }
+    free(data);
     return result;
 }
 
-ConverterResult converter_date_to_string(time_t date){
+ConverterResult converter_date_to_string(struct tm * date) {
     ConverterResult result;
-    struct tm* tm_info;
-    /* TODO */
-    date+=3600;
-    tm_info = localtime(&date);
-    strftime(result.data.String, 26, "%Y-%m-%d %H:%M:%S", tm_info);
+
+    strftime(result.data.String, 26, CONVERTER_DATE_FORMAT, date);
     result.error = false;
 
     return result;

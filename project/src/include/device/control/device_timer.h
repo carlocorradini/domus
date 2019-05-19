@@ -3,6 +3,7 @@
 #define _DEVICE_TIMER_H
 
 #include <unistd.h>
+#include <time.h>
 
 #define TIMER_SWITCH_TIME "time"
 #define TIMER_DATE_DELIMITER "?"
@@ -11,8 +12,8 @@
  * The Registry of the Timer
  */
 typedef struct TimerRegistry {
-    time_t begin;
-    time_t end;
+    struct tm begin;
+    struct tm end;
 } TimerRegistry;
 
 /**
