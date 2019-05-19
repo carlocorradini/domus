@@ -3,6 +3,7 @@
 #include <errno.h>
 #include <string.h>
 #include <limits.h>
+#define _XOPEN_SOURCE
 #include <time.h>
 #include "util/util_converter.h"
 
@@ -105,19 +106,17 @@ ConverterResult converter_string_to_date(const char *char_string) {
     ConverterResult result;
     result.error = false;
     errno = 0;
-    int * check;
+    char * check;
 
     char buf[255];
     struct tm * data = malloc(sizeof(struct tm));
 
-    check = (int *) strptime(char_string, CONVERTER_DATE_FORMAT, data);
-    if (check == NULL || (*check != '\0' && *check != '?')){
+    if(strptime(char_string, CONVERTER_DATE_FORMAT, data) == NULL ){
         result.error = true;
         strncpy(result.error_message, "Format", CONVERTER_RESULT_ERROR_LENGTH);
         free(data);
         return result;
     }
-
     data->tm_isdst = 1;
 
     result.data.Date = *(data);
