@@ -94,10 +94,81 @@ HubRegistry *new_hub_registry(void) {
     return hub_registry;
 }
 
+
+static void queue_message_handler() {
+    Message *in_message;
+    Queue_message *out_message;
+    ConverterResult sender_pid;
+    char text[QUEUE_MESSAGE_MESSAGE_LENGTH];
+    char **fields;
+    int message_id;
+
+    message_id = queue_message_get_message_id(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER);
+    in_message = queue_message_receive_message(message_id, QUEUE_MESSAGE_TYPE_DEVICE_START + hub->device->id, true);
+
+    fields = device_communication_split_message_fields(in_message->mesg_text);
+
+    sender_pid = converter_string_to_long(fields[0]);
+
+    DeviceCommunication * data;
+    List * message_list;
+    DeviceCommunicationMessage device_out_message;
+    size_t device_id;
+
+    if(strcmp(fields[2], "off") == 0){
+        hub->device->state = false;
+    }
+    if(strcmp(fields[2], "on") == 0){
+        hub->device->state = true;
+    }
+
+
+    device_communication_message_init(hub->device, &device_out_message);
+    device_communication_message_modify(&device_out_message, hub->device->id, MESSAGE_TYPE_INFO, "");
+
+    message_list = new_list(NULL, NULL);
+
+    list_for_each(data, hub->devices){
+        /**
+         * Get device id
+         */
+        device_out_message = device_communication_write_message_with_ack(data, &device_out_message);
+        device_id = device_out_message.id_sender;
+
+        /**
+         * Try to switch the device
+         */
+        device_communication_message_modify(&device_out_message, device_id, MESSAGE_TYPE_SWITCH, "%s\n%s\n", fields[1], fields[2]);
+
+        /* If override is needed remove these brackets
+        device_out_message.override = false;
+        device_out_message.id_device_descriptor = hub->device->device_descriptor->id;
+        */
+        device_out_message = device_communication_write_message_with_ack(data, &device_out_message);
+
+        if(device_out_message.type == MESSAGE_TYPE_SWITCH && strcmp(device_out_message.message, MESSAGE_RETURN_SUCCESS) == 0 )
+            list_add_first(message_list, (void *) device_id);
+    }
+
+    if(message_list->size > 0) {
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_HUB, MESSAGE_RETURN_SUCCESS);
+    } else{
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_HUB, MESSAGE_RETURN_NAME_ERROR);
+    }
+
+    out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
+                                    QUEUE_MESSAGE_TYPE_DEVICE_START + hub->device->id, text, false);
+    queue_message_send_message(out_message);
+    queue_message_notify((__pid_t) sender_pid.data.Long);
+
+    device_communication_free_message_fields(fields);
+}
+
 int main(int argc, char **args) {
     hub = device_child_new_control_device(argc, args, DEVICE_TYPE_HUB, new_hub_registry());
     hub_communication = device_child_new_control_device_communication(argc, args, hub_message_handler);
 
+    signal(DEVICE_COMMUNICATION_READ_QUEUE, queue_message_handler);
     device_child_run(NULL);
 
     return EXIT_SUCCESS;
