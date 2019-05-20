@@ -69,6 +69,10 @@ void device_init(void) {
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_CONTROLLER, true, "controller",
                                                            "Domus Master Controller",
                                                            "./device/controller"));
+    device_device_descriptor_add_switch(list_get_last(supported_devices), "state", "Turn on and off the Controller",
+                                        true);
+    device_device_descriptor_add_position(list_get_last(supported_devices), "on", "Turn on the Controller");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "off", "Turn off the Controller");
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_HUB, true, "hub",
                                                            "A device for connecting multiple devices having the same type and making them act as a single segment",
                                                            "./device/hub"));
