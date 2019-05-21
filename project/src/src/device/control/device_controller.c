@@ -5,6 +5,7 @@
 #include "device/control/device_controller.h"
 #include <string.h>
 #include "util/util_converter.h"
+
 /**
  * Controller that must be defined and it cannot be visible outside this file
  * Only one can exist in the entire program!!!
@@ -70,13 +71,36 @@ static int controller_set_switch_state(const char *name, bool state) {
         if (state) {
             //controller_switch->state = (void *) 0;
             return 1;
-        } else{
+        } else {
             //controller_switch->state = (void *) 1;
             return 1;
         }
         return -1;
     }
     return false;
+}
+
+static bool
+control_device_propagate_message_logic(List *list, DeviceCommunication *device_communication,
+                                       const DeviceCommunicationMessage *out_message, size_t in_message_type) {
+    DeviceCommunicationMessage in_message;
+    if (!device_check_control_device(controller)) return false;
+    if (!control_device_has_devices(controller)) return false;
+    if (list == NULL || device_communication == NULL || out_message == NULL) return false;
+
+    if ((in_message = device_communication_write_message_with_ack(device_communication, out_message)).type ==
+        in_message_type) {
+        list_add_first(list, device_communication_message_copy(&in_message));
+
+        if (in_message.flag_continue) {
+            do {
+                in_message = device_communication_write_message_with_ack_silent(device_communication, out_message);
+                list_add_first(list, device_communication_message_copy(&in_message));
+            } while (in_message.flag_continue);
+        }
+    }
+
+    return true;
 }
 
 static void queue_message_handler() {
@@ -88,14 +112,14 @@ static void queue_message_handler() {
     int message_id;
 
     message_id = queue_message_get_message_id(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER);
-    in_message = queue_message_receive_message(message_id, QUEUE_MESSAGE_TYPE_DEVICE_START + controller->device->id, true);
+    in_message = queue_message_receive_message(message_id, QUEUE_MESSAGE_TYPE_DEVICE_START + controller->device->id,
+                                               true);
 
     fields = device_communication_split_message_fields(in_message->mesg_text);
 
     sender_pid = converter_string_to_long(fields[0]);
     snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, QUEUE_MESSAGE_RETURN_NAME_ERROR);
 
-    fprintf(stderr, "\n\n%s\n\n", in_message->mesg_text);
     if (strcmp(fields[1], CONTROLLER_SWITCH_STATE) == 0) {
         snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
         if (strcmp(fields[2], CONTROLLER_SWITCH_STATE_OFF) == 0) {
@@ -109,8 +133,44 @@ static void queue_message_handler() {
                 controller->device->override = true;
             }
         }
-    }
+    } else {
 
+        DeviceCommunication *data;
+        List *message_list;
+        DeviceCommunicationMessage device_out_message;
+
+        message_list = new_list(NULL, NULL);
+        device_communication_message_init(controller->device, &device_out_message);
+        device_communication_message_modify(&device_out_message, -1, MESSAGE_TYPE_SWITCH, "%s\n%s\n", fields[1], fields[2]);
+        device_out_message.flag_force = true;
+        device_out_message.override = true;
+
+        list_for_each(data, controller->devices) {
+            control_device_propagate_message_logic(message_list, data, &device_out_message, MESSAGE_TYPE_SWITCH);
+        }
+
+        size_t i;
+        bool success = false;
+
+        for (i = 0; i < message_list->size; i++) {
+            if (strcmp(((DeviceCommunicationMessage *) list_get(message_list, i))->message, MESSAGE_RETURN_SUCCESS) == 0) {
+                success = true;
+                break;
+            }
+        }
+
+        if (success) {
+            snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, MESSAGE_RETURN_SUCCESS);
+            if (strcmp(fields[2], "off") == 0) {
+                controller->device->state = false;
+            }
+            if (strcmp(fields[2], "on") == 0) {
+                controller->device->state = true;
+            }
+        } else {
+            snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+        }
+    }
     out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
                                     QUEUE_MESSAGE_TYPE_DEVICE_START + controller->device->id, text, false);
     queue_message_send_message(out_message);

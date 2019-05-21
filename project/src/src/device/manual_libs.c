@@ -73,7 +73,7 @@ void manual_control_set_device(size_t device_id, char *switch_label, char *switc
         return;
     }
 
-    if (device_pid == 0) {
+    if (device_pid == 0 || device_id == 0) {
         println_color(COLOR_RED, "\tCannot find a device with id %d ",
                       device_id);
         return;

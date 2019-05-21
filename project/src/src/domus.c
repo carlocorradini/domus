@@ -740,9 +740,6 @@ static void queue_message_handler() {
 
             device_pid = domus_getpid(result.data.Long);
 
-            if(result.data.Long == CONTROLLER_ID){
-                fprintf(stderr, "Controller pid : %d\n", device_pid);
-            }
             snprintf(text, 64, "%d", device_pid);
 
             result = converter_string_to_long(fields[1]);
