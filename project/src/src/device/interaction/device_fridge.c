@@ -122,10 +122,10 @@ static int fridge_set_switch_state(const char *name, void *state) {
     } else if (strcmp(name, FRIDGE_SWITCH_THERMO) == 0) {
         fridge_switch = device_get_device_switch(fridge->switches, name);
 
-        if(*((double *) state) > DEVICE_FRIDGE_MAX_THERMO ){
+        if (*((double *) state) > DEVICE_FRIDGE_MAX_THERMO) {
             return -3;
         }
-        if(*((double *) state) < DEVICE_FRIDGE_MIN_THERMO ){
+        if (*((double *) state) < DEVICE_FRIDGE_MIN_THERMO) {
             return -4;
         }
 
@@ -243,8 +243,6 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             char *switch_pos;
             bool bool_switch_pos;
 
-            fridge->override = in_message.override;
-
             char **fields = device_communication_split_message_fields(in_message.message);
 
             switch_label = fields[0];
@@ -258,9 +256,13 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
 
                 bool_switch_pos = strcmp(switch_pos, FRIDGE_SWITCH_DOOR_ON) == 0 ? true : false;
 
-                fridge_set_switch_state(switch_label, (void *) bool_switch_pos)
-                ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
-                : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+                if (fridge_set_switch_state(switch_label, (void *) bool_switch_pos)) {
+                    fridge->override = in_message.override;
+                    out_message.override = fridge->override;
+                    device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS);
+                } else {
+                    device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+                }
             } else if (strcmp(switch_label, FRIDGE_SWITCH_THERMO) == 0) {
                 ConverterResult result1;
                 result1 = converter_string_to_double(switch_pos);
@@ -269,17 +271,21 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                     double *temp_result = malloc(sizeof(double));
                     *temp_result = result1.data.Double;
 
-                    switch(fridge_set_switch_state(FRIDGE_SWITCH_THERMO, temp_result)){
+                    switch (fridge_set_switch_state(FRIDGE_SWITCH_THERMO, temp_result)) {
                         case 1 : {
+                            fridge->override = in_message.override;
+                            out_message.override = fridge->override;
                             device_communication_message_modify_message(&out_message, QUEUE_MESSAGE_RETURN_SUCCESS);
                             break;
                         }
                         case -3 : {
-                            device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_MAXTHERMO_FRIDGE_ERROR);
+                            device_communication_message_modify_message(&out_message,
+                                                                        MESSAGE_RETURN_VALUE_MAXTHERMO_FRIDGE_ERROR);
                             break;
                         }
                         case -4 : {
-                            device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_MINTHERMO_FRIDGE_ERROR);
+                            device_communication_message_modify_message(&out_message,
+                                                                        MESSAGE_RETURN_VALUE_MINTHERMO_FRIDGE_ERROR);
                             break;
                         }
                         default: {
@@ -290,9 +296,13 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
             } else if (strcmp(switch_label, FRIDGE_SWITCH_STATE) == 0) {
                 bool_switch_pos = strcmp(switch_pos, FRIDGE_SWITCH_STATE_ON) == 0 ? true : false;
 
-                fridge_set_switch_state(switch_label, (void *) bool_switch_pos)
-                ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
-                : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+                if(fridge_set_switch_state(switch_label, (void *) bool_switch_pos)){
+                    fridge->override = in_message.override;
+                    out_message.override = fridge->override;
+                    device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS);
+                } else {
+                    device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+                }
             } else if (strcmp(switch_label, FRIDGE_SWITCH_DELAY) == 0) {
                 ConverterResult result1;
                 result1 = converter_string_to_long(switch_pos);
@@ -300,9 +310,13 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                 if (!result1.error) {
                     long *delay_result = malloc(sizeof(long));
                     *delay_result = result1.data.Long;
-                    fridge_set_switch_state(switch_label, delay_result)
-                    ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
-                    : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+                    if(fridge_set_switch_state(switch_label, delay_result)){
+                        fridge->override = in_message.override;
+                        out_message.override = fridge->override;
+                        device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS);
+                    } else {
+                        device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+                    }
                 }
             } else {
                 device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
@@ -380,7 +394,7 @@ static void queue_message_handler() {
         if (!temp.error) {
             double *temp_result = malloc(sizeof(double));
             *temp_result = temp.data.Double;
-            switch(fridge_set_switch_state(FRIDGE_SWITCH_THERMO, temp_result)){
+            switch (fridge_set_switch_state(FRIDGE_SWITCH_THERMO, temp_result)) {
                 case 1 : {
                     snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
                     fridge->override = true;

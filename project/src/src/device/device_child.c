@@ -282,7 +282,8 @@ static void devive_child_middleware_message_handler(DeviceCommunicationMessage i
         }
         default: {
             in_message.override = (device_is_supported_by_id(in_message.id_device_descriptor)->control_device &&
-                                   in_message.id_device_descriptor != DEVICE_TYPE_DOMUS) ? false : true;
+                                   in_message.id_device_descriptor != DEVICE_TYPE_DOMUS && in_message.override == false)
+                                  ? false : true;
             device_child_message_handler(in_message);
             return;
         }
@@ -432,18 +433,30 @@ static void control_device_child_middleware_message_handler(void) {
         case MESSAGE_TYPE_TERMINATE:
         case MESSAGE_TYPE_INFO:
         case MESSAGE_TYPE_SWITCH: {
+
+            bool all_error_messages = true;
+
             list_for_each(data, control_device_child->devices) {
                 child_in_message = device_communication_write_message_with_ack(data, &child_out_message);
                 child_in_message.id_recipient = in_message.id_sender;
                 if (child_in_message.type == MESSAGE_TYPE_INFO) {
                     child_override |= child_in_message.override;
                 }
+                if (child_in_message.type == MESSAGE_TYPE_SWITCH &&
+                    (strcmp(child_in_message.message, MESSAGE_RETURN_SUCCESS) == 0))
+                    all_error_messages = false;
+
                 if (child_in_message.flag_continue) {
                     device_communication_write_message_with_ack_silent(device_child_communication,
                                                                        &child_in_message);
                     do {
                         child_in_message = device_communication_write_message_with_ack_silent(data,
                                                                                               &child_out_message);
+
+                        if (child_in_message.type == MESSAGE_TYPE_SWITCH &&
+                            (strcmp(child_in_message.message, MESSAGE_RETURN_SUCCESS) == 0))
+                            all_error_messages = false;
+
                         if (child_in_message.flag_continue) {
                             device_communication_write_message_with_ack_silent(device_child_communication,
                                                                                &child_in_message);
@@ -473,6 +486,12 @@ static void control_device_child_middleware_message_handler(void) {
                 return;
 
             } else if (in_message.type == MESSAGE_TYPE_SWITCH) {
+                if (all_error_messages) {
+                    char message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
+                    strcpy(message, in_message.message);
+                    strcat(message, "ERRORS\n");
+                    device_communication_message_modify_message(&in_message, message);
+                }
                 device_child_message_handler(in_message);
                 return;
             }

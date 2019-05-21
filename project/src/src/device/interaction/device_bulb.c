@@ -138,22 +138,25 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SWITCH, "");
             fields = device_communication_split_message_fields(in_message.message);
 
-            bulb->override = in_message.override;
-
             if (device_get_device_switch(bulb->switches, fields[0]) == NULL) {
                 device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
             } else if (!bulb_check_value(fields[1])) {
                 device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ERROR);
             } else {
-                bulb_set_switch_state(fields[0], strcmp(fields[1], BULB_SWITCH_TURN_ON) == 0)
-                ? device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS)
-                : device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+                if (bulb_set_switch_state(fields[0], strcmp(fields[1], BULB_SWITCH_TURN_ON) == 0)) {
+                    bulb->override = in_message.override;
+                    out_message.override = bulb->override;
+                    device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS);
+                } else {
+                    device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
+                }
             }
 
             device_communication_free_message_fields(fields);
 
             break;
         }
+
         default: {
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_UNKNOWN, "%s",
                                                 in_message.message);
@@ -161,7 +164,8 @@ static void bulb_message_handler(DeviceCommunicationMessage in_message) {
         }
     }
 
-    device_communication_write_message(bulb_communication, &out_message);
+    device_communication_write_message(bulb_communication,
+                                       &out_message);
 }
 
 static void queue_message_handler() {

@@ -69,6 +69,22 @@ static void hub_message_handler(DeviceCommunicationMessage in_message) {
 
             break;
         }
+        case MESSAGE_TYPE_SWITCH: {
+            char **fields = device_communication_split_message_fields(in_message.message);
+
+            if (fields[2] == NULL) {
+                if (strcmp(fields[0], "turn") == 0 || strcmp(fields[0], "state") == 0 ||
+                    strcmp(fields[0], "open") == 0) {
+                    if (strcmp(fields[1], "on") == 0) {
+                        hub->device->state = true;
+                    } else if (strcmp(fields[1], "off") == 0) {
+                        hub->device->state = false;
+                    }
+                }
+            }
+            free(fields);
+            break;
+        }
         default: {
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_UNKNOWN, "%s",
                                                 in_message.message);
@@ -135,62 +151,38 @@ static void queue_message_handler() {
     DeviceCommunication *data;
     List *message_list;
     DeviceCommunicationMessage device_out_message;
-    size_t device_id;
-
-    if (strcmp(fields[2], "off") == 0) {
-        hub->device->state = false;
-    }
-    if (strcmp(fields[2], "on") == 0) {
-        hub->device->state = true;
-    }
 
     message_list = new_list(NULL, NULL);
     device_communication_message_init(hub->device, &device_out_message);
     device_communication_message_modify(&device_out_message, -1, MESSAGE_TYPE_SWITCH, "%s\n%s\n", fields[1], fields[2]);
     device_out_message.flag_force = true;
+    device_out_message.override = true;
 
     list_for_each(data, hub->devices) {
         control_device_propagate_message_logic(message_list, data, &device_out_message, MESSAGE_TYPE_SWITCH);
     }
 
-    /**
-     *
-     *
-     * QUI HAI UNA LISTA "message_list" POPOLATA CON I MESSAGGI DI SWITCH
-     *
-     *
-     *
-     */
+    size_t i;
+    bool success = false;
 
+    for (i = 0; i < message_list->size; i++) {
+        if (strcmp(((DeviceCommunicationMessage *) list_get(message_list, i))->message, MESSAGE_RETURN_SUCCESS) == 0) {
+            success = true;
+            break;
+        }
+    }
 
-//    list_for_each(data, hub->devices){
-//        /**
-//         * Get device id
-//         */
-//        device_out_message = device_communication_write_message_with_ack(data, &device_out_message);
-//        device_id = device_out_message.id_sender;
-//
-//        /**
-//         * Try to switch the device
-//         */
-//        device_communication_message_modify(&device_out_message, device_id, MESSAGE_TYPE_SWITCH, "%s\n%s\n", fields[1], fields[2]);
-//
-//        /* If override is needed remove these brackets
-//        device_out_message.override = false;
-//        device_out_message.id_device_descriptor = hub->device->device_descriptor->id;
-//        */
-//        device_out_message = device_communication_write_message_with_ack(data, &device_out_message);
-//
-//        if(device_out_message.type == MESSAGE_TYPE_SWITCH && strcmp(device_out_message.message, MESSAGE_RETURN_SUCCESS) == 0 )
-//            list_add_first(message_list, (void *) device_id);
-//    }
-//
-//    if(message_list->size > 0) {
-//        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_HUB, MESSAGE_RETURN_SUCCESS);
-//    } else{
-//        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_HUB, MESSAGE_RETURN_NAME_ERROR);
-//    }
-    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_HUB, MESSAGE_RETURN_SUCCESS);
+    if (success) {
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_HUB, MESSAGE_RETURN_SUCCESS);
+        if (strcmp(fields[2], "off") == 0) {
+            hub->device->state = false;
+        }
+        if (strcmp(fields[2], "on") == 0) {
+            hub->device->state = true;
+        }
+    } else {
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_HUB, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+    }
     out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
                                     QUEUE_MESSAGE_TYPE_DEVICE_START + hub->device->id, text, false);
     queue_message_send_message(out_message);
