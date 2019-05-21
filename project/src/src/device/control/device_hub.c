@@ -94,13 +94,13 @@ HubRegistry *new_hub_registry(void) {
     return hub_registry;
 }
 
-static bool control_device_propagate_message_logic(ControlDevice * ctr_device, List *list, DeviceCommunication *device_communication,
-                                        const DeviceCommunicationMessage *out_message, size_t in_message_type) {
+static bool
+control_device_propagate_message_logic(List *list, DeviceCommunication *device_communication,
+                                       const DeviceCommunicationMessage *out_message, size_t in_message_type) {
     DeviceCommunicationMessage in_message;
-    //if (!device_check_control_device(ctr_device)) return false;
-    //if (!control_device_has_devices(ctr_device)) return false;
+    if (!device_check_control_device(hub)) return false;
+    if (!control_device_has_devices(hub)) return false;
     if (list == NULL || device_communication == NULL || out_message == NULL) return false;
-
 
     if ((in_message = device_communication_write_message_with_ack(device_communication, out_message)).type ==
         in_message_type) {
@@ -132,31 +132,35 @@ static void queue_message_handler() {
 
     sender_pid = converter_string_to_long(fields[0]);
 
-    DeviceCommunication * data;
-    List * message_list;
+    DeviceCommunication *data;
+    List *message_list;
     DeviceCommunicationMessage device_out_message;
     size_t device_id;
 
-    if(strcmp(fields[2], "off") == 0){
+    if (strcmp(fields[2], "off") == 0) {
         hub->device->state = false;
     }
-    if(strcmp(fields[2], "on") == 0){
+    if (strcmp(fields[2], "on") == 0) {
         hub->device->state = true;
     }
-
-
-    //device_communication_message_init(hub->device, &device_out_message);
-    //device_communication_message_modify(&device_out_message, hub->device->id, MESSAGE_TYPE_INFO, "");
-
-    //message_list = new_list(NULL, NULL);
 
     message_list = new_list(NULL, NULL);
     device_communication_message_init(hub->device, &device_out_message);
     device_communication_message_modify(&device_out_message, -1, MESSAGE_TYPE_SWITCH, "%s\n%s\n", fields[1], fields[2]);
     device_out_message.flag_force = true;
 
-    data = (DeviceCommunication *) list_get_first(hub->devices);
-    control_device_propagate_message_logic(hub, message_list, data, &device_out_message, MESSAGE_TYPE_SWITCH);
+    list_for_each(data, hub->devices) {
+        control_device_propagate_message_logic(message_list, data, &device_out_message, MESSAGE_TYPE_SWITCH);
+    }
+
+    /**
+     *
+     *
+     * QUI HAI UNA LISTA "message_list" POPOLATA CON I MESSAGGI DI SWITCH
+     *
+     *
+     *
+     */
 
 
 //    list_for_each(data, hub->devices){
