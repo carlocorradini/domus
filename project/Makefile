@@ -71,7 +71,7 @@ COLOR_WHITE := \033[0;37m
 # -------------------------
 # RECIPES
 # -------------------------
-.PHONY: all build build_mkdir help clean
+.PHONY: all build help clean
 
 all:
 	@$(ECHO) "$(COLOR_RED)Make without any recipe is not allowed$(COLOR_RESET)";
@@ -83,10 +83,6 @@ build: clean $(TARGET)
 	@$(ECHO) "\tTo run $(COLOR_YELLOW)$(DOMUS_MAIN)$(COLOR_RESET), type $(COLOR_YELLOW)'./$(DOMUS_MAIN)'$(COLOR_RESET)";
 	@$(ECHO) "\tTo run $(COLOR_YELLOW)$(DOMUS_MANUAL_MAIN)$(COLOR_RESET), type $(COLOR_YELLOW)'./$(DOMUS_MANUAL_MAIN)'$(COLOR_RESET)";
 	@$(ECHO) "";
-
-build_mkdir:
-	@$(ECHO) "$(COLOR_YELLOW)=== GENERATING DIRECTORY $(DEV_BIN) ===$(COLOR_RESET)";
-	@$(MKDIR) $(DEV_BIN);
 
 $(TARGET): $(ALL_OBJ)
 	@if [ ! -d "$(DEV_BIN)" ]; then \
