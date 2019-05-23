@@ -11,7 +11,7 @@
  * The registry of the Window
  */
 typedef struct WindowRegistry {
-    time_t open;
+    double open;
 } WindowRegistry;
 
 /**

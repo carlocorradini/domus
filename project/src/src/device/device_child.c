@@ -487,7 +487,7 @@ static void control_device_child_middleware_message_handler(void) {
 
             } else if (in_message.type == MESSAGE_TYPE_SWITCH) {
                 if (all_error_messages)
-                    device_communication_message_modify_message(&in_message, "ERRORS\n%s", in_message.message);
+                    strncat(in_message.message, "ERRORS\n", DEVICE_COMMUNICATION_MESSAGE_LENGTH);
                 device_child_message_handler(in_message);
                 return;
             }

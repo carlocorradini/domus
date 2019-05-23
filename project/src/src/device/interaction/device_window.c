@@ -16,6 +16,11 @@ static Device *window = NULL;
 static DeviceCommunication *window_communication = NULL;
 
 /**
+ * When the window was opened last time
+ */
+static time_t start = 0;
+
+/**
  * Set the bulb switch state
  * @param name The switch name
  * @param state The state to set
@@ -52,7 +57,8 @@ WindowRegistry *new_window_registry(void) {
         exit(EXIT_FAILURE);
     }
 
-    window_registry->open = time(NULL);
+    window_registry->open = 0;
+    start = time(NULL);
 
     return window_registry;
 }
@@ -69,7 +75,14 @@ static bool window_set_switch_state(const char *name, bool state) {
 
     window_switch->state = (bool *) true;
     window->state = state;
-    window_registry->open = (state) ? time(NULL) : (time_t) 0;
+
+    if (state && start == 0) {
+        start = time(NULL);
+    } else {
+        window_registry->open = difftime(time(NULL), start);
+        start = 0;
+    }
+
     window_switch->state = (bool *) false;
 
     return true;
@@ -86,10 +99,9 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
 
     switch (in_message.type) {
         case MESSAGE_TYPE_INFO: {
-            time_t open_time = ((WindowRegistry *) window->registry)->open;
-            double time_difference = (open_time == 0) ? 0.0 : difftime(time(NULL), open_time);
+            double open_time = ((WindowRegistry *) window->registry)->open;
             bool switch_state = (bool) (device_get_device_switch_state(window->switches, WINDOW_SWITCH_OPEN));
-
+            double time_difference = (window->state) ? difftime(time(NULL), start) : open_time;
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_INFO,
                                                 "%d\n%.0lf\n%d\n",
                                                 window->state, time_difference, switch_state);
@@ -109,9 +121,15 @@ static void window_message_handler(DeviceCommunicationMessage in_message) {
             switch_state = converter_char_to_bool(fields[4][0]);
 
             window->state = state.data.Bool;
-            ((WindowRegistry *) window->registry)->open = time(NULL) - open_time.data.Long;
 
             device_get_device_switch(window->switches, WINDOW_SWITCH_OPEN)->state = (bool *) switch_state.data.Bool;
+
+            if (window->state) {
+                start = time(NULL) - open_time.data.Long;
+            } else {
+                ((WindowRegistry *) window->registry)->open = open_time.data.Long;
+                start = 0;
+            }
 
             device_communication_free_message_fields(fields);
             device_communication_message_modify(&out_message, in_message.id_sender, MESSAGE_TYPE_SET_INIT_VALUES,
