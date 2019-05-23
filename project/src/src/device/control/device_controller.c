@@ -68,14 +68,11 @@ static void controller_message_handler(DeviceCommunicationMessage in_message) {
 static int controller_set_switch_state(const char *name, bool state) {
     if (strcmp(name, CONTROLLER_SWITCH_STATE) == 0) {
         DeviceSwitch *controller_switch = device_get_device_switch(controller->device->switches, name);
-        if (state) {
-            //controller_switch->state = (void *) 0;
-            return 1;
-        } else {
-            //controller_switch->state = (void *) 1;
-            return 1;
-        }
-        return -1;
+
+        controller_switch->state = (void * ) state;
+        controller->device->state = state;
+        
+        return 1;
     }
     return false;
 }
@@ -118,10 +115,10 @@ static void queue_message_handler() {
     fields = device_communication_split_message_fields(in_message->mesg_text);
 
     sender_pid = converter_string_to_long(fields[0]);
-    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, MESSAGE_RETURN_NAME_ERROR);
 
     if (strcmp(fields[1], CONTROLLER_SWITCH_STATE) == 0) {
-        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, MESSAGE_RETURN_VALUE_ERROR);
         if (strcmp(fields[2], CONTROLLER_SWITCH_STATE_OFF) == 0) {
             if (controller_set_switch_state(CONTROLLER_SWITCH_STATE, false)) {
                 snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, QUEUE_MESSAGE_RETURN_SUCCESS);
@@ -168,7 +165,7 @@ static void queue_message_handler() {
                 controller->device->state = true;
             }
         } else {
-            snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+            snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, MESSAGE_RETURN_NAME_ERROR);
         }
     }
     out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
