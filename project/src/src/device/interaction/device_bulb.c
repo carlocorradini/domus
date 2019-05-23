@@ -183,18 +183,18 @@ static void queue_message_handler() {
 
     sender_pid = converter_string_to_long(fields[0]);
 
-    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_BULB, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_BULB, MESSAGE_RETURN_NAME_ERROR);
 
     if (strcmp(fields[1], BULB_SWITCH_TURN) == 0) {
-        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_BULB, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_BULB, MESSAGE_RETURN_VALUE_ERROR);
         if (strcmp(fields[2], BULB_SWITCH_TURN_OFF) == 0) {
             if (bulb_set_switch_state(BULB_SWITCH_TURN, false)) {
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_BULB, QUEUE_MESSAGE_RETURN_SUCCESS);
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_BULB, MESSAGE_RETURN_SUCCESS);
                 bulb->override = true;
             }
         } else if (strcmp(fields[2], BULB_SWITCH_TURN_ON) == 0) {
             if (bulb_set_switch_state(BULB_SWITCH_TURN, true)) {
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_BULB, QUEUE_MESSAGE_RETURN_SUCCESS);
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_BULB, MESSAGE_RETURN_SUCCESS);
                 bulb->override = true;
             }
         }

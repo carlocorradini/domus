@@ -181,7 +181,7 @@ static void queue_message_handler() {
             hub->device->state = true;
         }
     } else {
-        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_HUB, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_HUB, MESSAGE_RETURN_NAME_ERROR);
     }
     out_message = new_queue_message(QUEUE_MESSAGE_QUEUE_NAME, QUEUE_MESSAGE_QUEUE_NUMBER,
                                     QUEUE_MESSAGE_TYPE_DEVICE_START + hub->device->id, text, false);

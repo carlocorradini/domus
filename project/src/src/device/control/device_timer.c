@@ -223,7 +223,7 @@ static void timer_message_handler(DeviceCommunicationMessage in_message) {
                     break;
                 }
                 case -4 : {
-                    device_communication_message_modify_message(&out_message, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+                    device_communication_message_modify_message(&out_message, MESSAGE_RETURN_NAME_ERROR);
                     break;
                 }
                 case -5 : {
@@ -363,10 +363,10 @@ static void queue_message_handler() {
 
     sender_pid = converter_string_to_long(fields[0]);
 
-    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, MESSAGE_RETURN_NAME_ERROR);
 
     if (strcmp(fields[1], TIMER_SWITCH_TIME) == 0) {
-        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, MESSAGE_RETURN_VALUE_ERROR);
 
         int res;
 
@@ -389,7 +389,7 @@ static void queue_message_handler() {
                 break;
             }
             case -4 : {
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_TIMER, MESSAGE_RETURN_NAME_ERROR);
                 break;
             }
             case -5 : {

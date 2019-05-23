@@ -71,7 +71,7 @@ static int controller_set_switch_state(const char *name, bool state) {
 
         controller_switch->state = (void * ) state;
         controller->device->state = state;
-        
+
         return 1;
     }
     return false;
@@ -121,12 +121,12 @@ static void queue_message_handler() {
         snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, MESSAGE_RETURN_VALUE_ERROR);
         if (strcmp(fields[2], CONTROLLER_SWITCH_STATE_OFF) == 0) {
             if (controller_set_switch_state(CONTROLLER_SWITCH_STATE, false)) {
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, QUEUE_MESSAGE_RETURN_SUCCESS);
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, MESSAGE_RETURN_SUCCESS);
                 controller->device->override = true;
             }
         } else if (strcmp(fields[2], CONTROLLER_SWITCH_STATE_ON) == 0) {
             if (controller_set_switch_state(CONTROLLER_SWITCH_STATE, true)) {
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, QUEUE_MESSAGE_RETURN_SUCCESS);
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, MESSAGE_RETURN_SUCCESS);
                 controller->device->override = true;
             }
         }
@@ -158,12 +158,6 @@ static void queue_message_handler() {
 
         if (success) {
             snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, MESSAGE_RETURN_SUCCESS);
-            if (strcmp(fields[2], "off") == 0) {
-                controller->device->state = false;
-            }
-            if (strcmp(fields[2], "on") == 0) {
-                controller->device->state = true;
-            }
         } else {
             snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_CONTROLLER, MESSAGE_RETURN_NAME_ERROR);
         }

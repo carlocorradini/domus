@@ -275,7 +275,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                         case 1 : {
                             fridge->override = in_message.override;
                             out_message.override = fridge->override;
-                            device_communication_message_modify_message(&out_message, QUEUE_MESSAGE_RETURN_SUCCESS);
+                            device_communication_message_modify_message(&out_message, MESSAGE_RETURN_SUCCESS);
                             break;
                         }
                         case -3 : {
@@ -289,7 +289,7 @@ static void fridge_message_handler(DeviceCommunicationMessage in_message) {
                             break;
                         }
                         default: {
-                            device_communication_message_modify_message(&out_message, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+                            device_communication_message_modify_message(&out_message, MESSAGE_RETURN_VALUE_ERROR);
                         }
                     }
                 }
@@ -356,38 +356,38 @@ static void queue_message_handler() {
 
     sender_pid = converter_string_to_long(fields[0]);
 
-    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_NAME_ERROR);
+    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_NAME_ERROR);
 
     if (strcmp(fields[1], FRIDGE_SWITCH_DOOR) == 0) {
-        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_VALUE_ERROR);
         if (strcmp(fields[2], FRIDGE_SWITCH_DOOR_OFF) == 0) {
             if (fridge_set_switch_state(FRIDGE_SWITCH_DOOR, (void *) false)) {
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_SUCCESS);
                 fridge->override = true;
             }
         } else if (strcmp(fields[2], FRIDGE_SWITCH_DOOR_ON) == 0) {
             if (fridge_set_switch_state(FRIDGE_SWITCH_DOOR, (void *) true)) {
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_SUCCESS);
                 fridge->override = true;
             }
         }
     }
     if (strcmp(fields[1], FRIDGE_SWITCH_STATE) == 0) {
-        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_VALUE_ERROR);
         if (strcmp(fields[2], FRIDGE_SWITCH_STATE_OFF) == 0) {
             if (fridge_set_switch_state(FRIDGE_SWITCH_STATE, (void *) false)) {
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_SUCCESS);
                 fridge->override = true;
             }
         } else if (strcmp(fields[2], FRIDGE_SWITCH_STATE_ON) == 0) {
             if (fridge_set_switch_state(FRIDGE_SWITCH_STATE, (void *) true)) {
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_SUCCESS);
                 fridge->override = true;
             }
         }
     }
     if (strcmp(fields[1], FRIDGE_SWITCH_THERMO) == 0) {
-        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_VALUE_ERROR);
         ConverterResult temp;
         temp = converter_string_to_double(fields[2]);
 
@@ -396,7 +396,7 @@ static void queue_message_handler() {
             *temp_result = temp.data.Double;
             switch (fridge_set_switch_state(FRIDGE_SWITCH_THERMO, temp_result)) {
                 case 1 : {
-                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_SUCCESS);
                     fridge->override = true;
                     break;
                 }
@@ -409,14 +409,14 @@ static void queue_message_handler() {
                     break;
                 }
                 default: {
-                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_VALUE_ERROR);
                 }
             }
 
         }
     }
     if (strcmp(fields[1], FRIDGE_SWITCH_DELAY) == 0) {
-        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_VALUE_ERROR);
         ConverterResult delay;
         delay = converter_string_to_long(fields[2]);
 
@@ -424,13 +424,13 @@ static void queue_message_handler() {
             long *delay_result = malloc(sizeof(long));
             *delay_result = delay.data.Long;
             if (fridge_set_switch_state(FRIDGE_SWITCH_DELAY, delay_result)) {
-                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_SUCCESS);
                 fridge->override = true;
             }
         }
     }
     if (strcmp(fields[1], FRIDGE_SWITCH_FILLING) == 0) {
-        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+        snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_VALUE_ERROR);
         ConverterResult filling;
         filling = converter_string_to_long(fields[2]);
 
@@ -440,7 +440,7 @@ static void queue_message_handler() {
 
             switch (fridge_set_switch_state(FRIDGE_SWITCH_FILLING, filling_result)) {
                 case 1: {
-                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_SUCCESS);
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_SUCCESS);
                     fridge->override = true;
                     break;
                 }
@@ -453,7 +453,7 @@ static void queue_message_handler() {
                     break;
                 }
                 default: {
-                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, QUEUE_MESSAGE_RETURN_VALUE_ERROR);
+                    snprintf(text, 64, "%d\n%s\n", DEVICE_TYPE_FRIDGE, MESSAGE_RETURN_VALUE_ERROR);
                 }
             }
 

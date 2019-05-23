@@ -61,10 +61,6 @@
 
 #define QUEUE_MESSAGE_MESSAGE_LENGTH 100
 
-#define QUEUE_MESSAGE_RETURN_SUCCESS "SUCCESS"
-#define QUEUE_MESSAGE_RETURN_NAME_ERROR "ERROR_NAME"
-#define QUEUE_MESSAGE_RETURN_VALUE_ERROR "ERROR_VALUE"
-
 /* END Queue Message Definitions */
 /** Struct Device Communication for storing information about a Communication between two processes
  */
