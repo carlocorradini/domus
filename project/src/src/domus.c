@@ -152,6 +152,8 @@ bool domus_system_is_active(void) {
     if (!toRtn) {
         println_color(COLOR_RED, "\tTHE SYSTEM IS UNAVAILABLE");
         println("\tPlease enable the controller using Domus Manual");
+        println("\tPlease type:");
+        println_color(COLOR_YELLOW, "\t\tswitch %ld system on", CONTROLLER_ID);
     }
 
     return toRtn;
