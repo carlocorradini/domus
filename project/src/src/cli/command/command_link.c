@@ -76,7 +76,7 @@ static int _link(char **args) {
 Command *command_link(void) {
     return new_command(
             "link",
-            "Connect two devices each other. One must be a control device",
+            "Connect two devices each other. The second <id> must be a control device",
             "link <id> to <id>",
             _link);
 }
