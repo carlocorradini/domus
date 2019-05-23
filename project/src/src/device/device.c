@@ -69,25 +69,25 @@ void device_init(void) {
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_CONTROLLER, true, "controller",
                                                            "Domus Master Controller",
                                                            "./device/controller"));
-    device_device_descriptor_add_switch(list_get_last(supported_devices), "state", "Turn on and off the Controller",
+    device_device_descriptor_add_switch(list_get_last(supported_devices), "system", "Turns on and off the Controller acting as a general master switch",
                                         true);
-    device_device_descriptor_add_position(list_get_last(supported_devices), "on", "Turn on the Controller");
-    device_device_descriptor_add_position(list_get_last(supported_devices), "off", "Turn off the Controller");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "on", "Turns on the Controller");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "off", "Turns off the Controller");
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_HUB, true, "hub",
                                                            "A device for connecting multiple devices having the same type and making them act as a single segment",
                                                            "./device/hub"));
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_TIMER, true, "timer",
                                                            "An automatic mechanism for activating a device at a preset time",
                                                            "./device/timer"));
-    device_device_descriptor_add_switch(list_get_last(supported_devices), "time", "Set the timer", true);
+    device_device_descriptor_add_switch(list_get_last(supported_devices), "time", "Set the timer", false);
     device_device_descriptor_add_position(list_get_last(supported_devices), "Y-m-d_H:i:s?Y-m-d_H:i:s",
                                           "The begin & end scheduling time divided by ?");
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_BULB, false, "bulb",
                                                            "An electric light with a wire filament heated to such a high temperature that it glows with visible light",
                                                            "./device/bulb"));
-    device_device_descriptor_add_switch(list_get_last(supported_devices), "turn", "Turn on and off the Bulb", false);
-    device_device_descriptor_add_position(list_get_last(supported_devices), "on", "Turn on the Light");
-    device_device_descriptor_add_position(list_get_last(supported_devices), "off", "Turn off the Light");
+    device_device_descriptor_add_switch(list_get_last(supported_devices), "turn", "Turns on and off the Bulb", false);
+    device_device_descriptor_add_position(list_get_last(supported_devices), "on", "Turns on the Light");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "off", "Turns off the Light");
     list_add_last(supported_devices, new_device_descriptor(DEVICE_TYPE_WINDOW, false, "window",
                                                            "An opening in a wall, door, roof or vehicle that allows the passage of light, sound, and air",
                                                            "./device/window"));
@@ -109,9 +109,9 @@ void device_init(void) {
                                         "Set the delay until the door automatically close", false);
     device_device_descriptor_add_position(list_get_last(supported_devices), "<time>",
                                           "Set the fridge's delay to <time>");
-    device_device_descriptor_add_switch(list_get_last(supported_devices), "state", "Turn on and off the Fridge", true);
-    device_device_descriptor_add_position(list_get_last(supported_devices), "on", "Turn on the Fridge");
-    device_device_descriptor_add_position(list_get_last(supported_devices), "off", "Turn off the Fridge");
+    device_device_descriptor_add_switch(list_get_last(supported_devices), "state", "Turns on and off the Fridge", true);
+    device_device_descriptor_add_position(list_get_last(supported_devices), "on", "Turns on the Fridge");
+    device_device_descriptor_add_position(list_get_last(supported_devices), "off", "Turns off the Fridge");
     device_device_descriptor_add_switch(list_get_last(supported_devices), "filling",
                                         "Add or remove items from the Fridge", true);
     device_device_descriptor_add_position(list_get_last(supported_devices), "[-]<N° items>",
