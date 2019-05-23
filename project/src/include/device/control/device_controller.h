@@ -4,7 +4,7 @@
 
 #include <unistd.h>
 
-#define CONTROLLER_SWITCH_STATE "state"
+#define CONTROLLER_SWITCH_STATE "switch"
 #define CONTROLLER_SWITCH_STATE_ON "on"
 #define CONTROLLER_SWITCH_STATE_OFF "off"
 /**
