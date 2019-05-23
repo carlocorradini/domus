@@ -11,10 +11,12 @@
  * @return CLI status code
  */
 static int _list(char **args) {
-    if (!domus_has_devices()) {
-        println("\tNo Devices");
-    } else {
-        domus_list();
+    if (domus_system_is_active()) {
+        if (!domus_has_devices()) {
+            println("\tNo Devices");
+        } else {
+            domus_list();
+        }
     }
 
     return CLI_CONTINUE;

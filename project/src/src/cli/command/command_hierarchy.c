@@ -11,9 +11,11 @@
  * @return CLI status code
  */
 static int _hierarchy(char **args) {
-    device_print_legend();
-    println("");
-    domus_hierarchy();
+    if (domus_system_is_active()) {
+        device_print_legend();
+        println("");
+        domus_hierarchy();
+    }
 
     return CLI_CONTINUE;
 }

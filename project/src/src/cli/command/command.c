@@ -112,7 +112,7 @@ int command_execute(char **args) {
     list_for_each(data, commands) {
         if (strcmp(args[0], data->name) == 0) {
             /* Command Found */
-            if (args[1] && strcmp(args[1], CLI_QUESTION) == 0) {
+            if (args[1] != NULL && strcmp(args[1], CLI_QUESTION) == 0) {
                 /* Command Question */
                 command_print(data);
                 return CLI_CONTINUE;

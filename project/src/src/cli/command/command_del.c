@@ -15,23 +15,25 @@
 static int _del(char **args) {
     ConverterResult result;
 
-    if (args[1] == NULL) {
-        println("\tPlease add a device id");
-    } else if (!domus_has_devices()) {
-        println("\tNo Devices");
-    } else if (strcmp(args[1], COMMAND_DEL_ALL) == 0) {
-        if(!domus_del_all()) {
-            println("\tNo Device to Delete");
-        }
-    } else {
-        result = converter_string_to_long(args[1]);
+    if (domus_system_is_active()) {
+        if (args[1] == NULL) {
+            println("\tPlease add a device id");
+        } else if (!domus_has_devices()) {
+            println("\tNo Devices");
+        } else if (strcmp(args[1], COMMAND_DEL_ALL) == 0) {
+            if (!domus_del_all()) {
+                println("\tNo Device to Delete");
+            }
+        } else {
+            result = converter_string_to_long(args[1]);
 
-        if (result.error) {
-            println("\tConversion Error: %s", result.error_message);
-        } else if (result.data.Long == CONTROLLER_ID) {
-            println("\tCannot delete the Controller");
-        } else if (!domus_del_by_id(result.data.Long)) {
-            println("\tCannot find a Device with id %ld", result.data.Long);
+            if (result.error) {
+                println("\tConversion Error: %s", result.error_message);
+            } else if (result.data.Long == CONTROLLER_ID) {
+                println("\tCannot delete the Controller");
+            } else if (!domus_del_by_id(result.data.Long)) {
+                println("\tCannot find a Device with id %ld", result.data.Long);
+            }
         }
     }
 

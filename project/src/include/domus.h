@@ -39,6 +39,12 @@ DomusRegistry *new_domus_registry(void);
 size_t domus_fork_device(const DeviceDescriptor *device_descriptor, const char *custom_name);
 
 /**
+ * Check if the System is UP and Running
+ * @return true if the Controller is active, false otherwise
+ */
+bool domus_system_is_active(void);
+
+/**
  * Check if the Domus has devices
  * @return true if has devices, false otherwise
  */

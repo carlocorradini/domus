@@ -486,16 +486,22 @@ static void control_device_child_middleware_message_handler(void) {
                 return;
 
             } else if (in_message.type == MESSAGE_TYPE_SWITCH) {
-                if (all_error_messages) {
-                    char message[DEVICE_COMMUNICATION_MESSAGE_LENGTH];
-                    strcpy(message, in_message.message);
-                    strcat(message, "ERRORS\n");
-                    device_communication_message_modify_message(&in_message, message);
-                }
+                if (all_error_messages)
+                    device_communication_message_modify_message(&in_message, "ERRORS\n%s", in_message.message);
                 device_child_message_handler(in_message);
                 return;
             }
 
+            break;
+        }
+        case MESSAGE_TYPE_SYSTEM_STATUS: {
+            if (control_device_child->device->device_descriptor->id != DEVICE_TYPE_CONTROLLER) {
+                in_message.type = MESSAGE_TYPE_RECIPIENT_ID_MISLEADING;
+            } else {
+                in_message.type = MESSAGE_TYPE_INFO;
+                device_child_message_handler(in_message);
+                return;
+            }
             break;
         }
         case MESSAGE_TYPE_LOCK: {
