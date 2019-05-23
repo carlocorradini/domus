@@ -136,8 +136,10 @@ bool domus_system_is_active(void) {
             toRtn = false;
         } else {
             controller_state = converter_char_to_bool(fields[0][0]);
-            if (controller_state.error) toRtn = false;
-            else {
+
+            if (controller_state.error) {
+                toRtn = false;
+            } else {
                 toRtn = controller_state.data.Bool;
             }
         }
@@ -148,7 +150,7 @@ bool domus_system_is_active(void) {
     free_list(message_list);
 
     if (!toRtn) {
-        println(COLOR_RED, "\tTHE SYSTEM IS UNAVAILABLE");
+        println_color(COLOR_RED, "\tTHE SYSTEM IS UNAVAILABLE");
         println("\tPlease enable the controller using Domus Manual");
     }
 
