@@ -1,5 +1,8 @@
 # Domus
 
+Implement the emulation of a home automation system so that each device is represented by
+a single entity (process with any sub-processes). The devices can be of two kinds and various types and all have a "status", two "switches" on / off and a possible parameter register.
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
