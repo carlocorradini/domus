@@ -47,10 +47,11 @@ ConverterResult converter_char_to_bool(char char_value) {
     const char char_string[2] = {char_value, '\0'};
     ConverterResult result = converter_string_to_int(char_string);
 
-    if (!result.error && (result.data.Int != false || result.data.Int != true)) {
+    if (result.error && (result.data.Int != false || result.data.Int != true)) {
         result.error = true;
         strncpy(result.error_message, "Not a valid boolean value", CONVERTER_RESULT_ERROR_LENGTH);
     }
+
     result.data.Bool = (bool) result.data.Int;
 
     return result;

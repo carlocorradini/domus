@@ -14,19 +14,21 @@ static int _add(char **args) {
     const DeviceDescriptor *device_descriptor;
     size_t id;
 
-    if (args[1] == NULL) {
-        println("\tPlease choose a device");
-    } else if ((device_descriptor = device_is_supported_by_name(args[1])) == NULL ||
-               device_descriptor->id == DEVICE_TYPE_DOMUS) {
-        println("\tDevice %s is not supported", args[1]);
-    } else if (device_descriptor->id == CONTROLLER_ID) {
-        println("\tCannot add another Controller, only one is allowed");
-    } else if ((id = domus_fork_device(device_descriptor, args[2])) == -1) {
-        println_color(COLOR_RED, "\tSomething goes wrong");
-    } else {
-        println_color(COLOR_GREEN, "\t%s added with id %ld", device_descriptor->name, id);
-        println("");
-        domus_info_by_id(id);
+    if (domus_system_is_active()) {
+        if (args[1] == NULL) {
+            println("\tPlease choose a device");
+        } else if ((device_descriptor = device_is_supported_by_name(args[1])) == NULL ||
+                   device_descriptor->id == DEVICE_TYPE_DOMUS) {
+            println("\tDevice %s is not supported", args[1]);
+        } else if (device_descriptor->id == CONTROLLER_ID) {
+            println("\tCannot add another Controller, only one is allowed");
+        } else if ((id = domus_fork_device(device_descriptor, args[2])) == -1) {
+            println_color(COLOR_RED, "\tSomething goes wrong");
+        } else {
+            println_color(COLOR_GREEN, "\t%s added with id %ld", device_descriptor->name, id);
+            println("");
+            domus_info_by_id(id);
+        }
     }
 
     return CLI_CONTINUE;

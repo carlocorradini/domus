@@ -113,6 +113,50 @@ size_t domus_fork_device(const DeviceDescriptor *device_descriptor, const char *
     return child_id;
 }
 
+bool domus_system_is_active(void) {
+    List *message_list;
+    const DeviceCommunicationMessage *message;
+    char **fields;
+    ConverterResult controller_state;
+    bool toRtn;
+    if (!device_check_control_device(domus)) return false;
+    if (!control_device_has_devices(domus)) return false;
+
+    message_list = domus_propagate_message(CONTROLLER_ID, MESSAGE_TYPE_SYSTEM_STATUS, "", MESSAGE_TYPE_INFO);
+
+    if (list_is_empty(message_list)) {
+        toRtn = false;
+    } else if (message_list->size > 1) {
+        toRtn = false;
+    } else {
+        message = (DeviceCommunicationMessage *) list_get_first(message_list);
+        fields = device_communication_split_message_fields(message->message);
+
+        if (message->id_sender != CONTROLLER_ID) {
+            toRtn = false;
+        } else {
+            controller_state = converter_char_to_bool(fields[0][0]);
+
+            if (controller_state.error) {
+                toRtn = false;
+            } else {
+                toRtn = controller_state.data.Bool;
+            }
+        }
+
+        device_communication_free_message_fields(fields);
+    }
+
+    free_list(message_list);
+
+    if (!toRtn) {
+        println_color(COLOR_RED, "\tTHE SYSTEM IS UNAVAILABLE");
+        println("\tPlease enable the controller using Domus Manual");
+    }
+
+    return toRtn;
+}
+
 static List *
 domus_propagate_message(size_t id, size_t out_message_type, const char *out_message_message, size_t in_message_type) {
     List *message_list;
