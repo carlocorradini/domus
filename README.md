@@ -2,6 +2,8 @@
 
 An emulation of a home automation system where each device is represented as a single process. There are two kind of devices, control and interaction one, and various types. All have a "status", one or more switches and a register with parameters.
 
+[Read assignment task for more information](SO_Project_2018_2019.pdf)
+
 ## Getting Started
 
 These instructions will get you a copy of the project up and running on your local machine for development and testing purposes.
