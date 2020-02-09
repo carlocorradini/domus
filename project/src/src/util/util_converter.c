@@ -98,11 +98,6 @@ ConverterResult converter_string_to_double(const char *char_string) {
     return result;
 }
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <time.h>
-
 ConverterResult converter_string_to_date(const char *char_string) {
     ConverterResult result;
     result.error = false;
